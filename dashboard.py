@@ -30,7 +30,6 @@ st.markdown("""
 .bg-orange { background-color: #f59e0b; }
 .bg-purple { background-color: #8b5cf6; }
 .bg-red    { background-color: #ef4444; }
-.bg-teal   { background-color: #14b8a6; }
 
 .kpi-label  { font-size: 12px; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 6px; opacity: 0.9; line-height: 1.2;}
 .kpi-value  { font-size: 32px; font-weight: 700; line-height: 1; margin-bottom: 8px; }
@@ -60,99 +59,70 @@ PLOT_THEME = dict(
 COLOR_ISD = "#388bfd"
 COLOR_OSD = "#3fb950"
 
-# ── Robust Data Loading & Cleaning ───────────────────────────────────────────
-# ── Robust Data Loading & Cleaning ───────────────────────────────────────────
+# ── Bulletproof Universal Data Cleaner ───────────────────────────────────────
 @st.cache_data(show_spinner=False, ttl=600)
 def load_data():
     conn = st.connection("gsheets", type=GSheetsConnection)
     
-    def get_sheet(sheet_name):
+    def fetch_and_clean(sheet_name):
         try:
-            return conn.read(spreadsheet=SPREADSHEET_URL, worksheet=sheet_name)
-        except Exception:
+            df = conn.read(spreadsheet=SPREADSHEET_URL, worksheet=sheet_name)
+            if df.empty: return pd.DataFrame()
+            
+            # 1. Force Headers
+            df.columns = [str(c).strip() for c in df.columns]
+            if df.columns[0] in ["0", ""] or "Unnamed" in df.columns[0]:
+                df.columns = [str(c).strip() for c in df.iloc[0]]
+                df = df.iloc[1:].reset_index(drop=True)
+            
+            # 2. Identify Date Column
+            date_cols = [c for c in df.columns if 'DATE' in c.upper() or c.upper() == 'DATE']
+            if not date_cols: return pd.DataFrame()
+            date_col = date_cols[0]
+            
+            # 3. Forward Fill Dates (Fixes Merged Cells for OSD/RID)
+            df[date_col] = df[date_col].ffill()
+            
+            # 4. Remove 'Grand Total' Rows
+            df = df[~df[date_col].astype(str).str.contains('Grand Total', case=False, na=False)]
+            
+            # 5. Parse Dates
+            df[date_col] = pd.to_datetime(df[date_col], errors='coerce')
+            df = df.dropna(subset=[date_col])
+            
+            # 6. Parse Numbers (Strip Commas & %)
+            for c in df.columns:
+                if c != date_col and c.upper() not in ['REGION', 'TYPE']:
+                    clean_str = df[c].astype(str).str.replace(',', '', regex=False).str.replace('%', '', regex=False)
+                    df[c] = pd.to_numeric(clean_str, errors='coerce').fillna(0)
+                    
+            # 7. Standardize Date Access
+            df.rename(columns={date_col: "Standard_Date"}, inplace=True)
+            df["Date_Label"] = df["Standard_Date"].dt.strftime("%b %d")
+            return df
+        except Exception as e:
             return pd.DataFrame()
 
-    dc = get_sheet("Dashboard_Card")
-    ft = get_sheet("FID_Tracking")
-    ag = get_sheet("Aging_Distribution")
-    fr = get_sheet("FID_RID_Backlog_Details")
-    st_det = get_sheet("Sort Details")
+    dc = fetch_and_clean("Dashboard_Card")
+    ft = fetch_and_clean("FID_Tracking")
+    rt = fetch_and_clean("RID Tracking") # Included to calculate Overall Backlog properly
+    ag = fetch_and_clean("Aging_Distribution")
+    fr = fetch_and_clean("FID_RID_Backlog_Details")
+    st_det = fetch_and_clean("Sort Details")
 
-    # 1. Clean Dashboard_Card
-    if not dc.empty:
-        if "Date" not in dc.columns:
-            dc.columns = dc.iloc[0]
-            dc = dc.iloc[1:].reset_index(drop=True)
-        dc = dc[~dc.iloc[:, 0].astype(str).str.contains('Grand Total', case=False, na=False)]
-        dc.rename(columns={"FID Backlog (%)": "FID_Backlog_Pct", "Zone Transfer": "Zone_Transfer", "Zone Transfer (%)": "Zone_Transfer_Pct"}, inplace=True)
-        if "Date" in dc.columns:
-            dc["Date"] = pd.to_datetime(dc["Date"], errors='coerce')
-            dc = dc.dropna(subset=["Date"])
-            for col in ["ISD", "OSD", "Total", "FID_Backlog_Pct", "Zone_Transfer", "Zone_Transfer_Pct"]: 
-                if col in dc.columns: dc[col] = pd.to_numeric(dc[col].astype(str).str.replace(',', ''), errors="coerce").fillna(0)
-            dc["Date_Label"] = dc["Date"].dt.strftime("%b %d")
-
-    # 2. Clean FID_Tracking
-    if not ft.empty:
-        if "Report Date" not in ft.columns:
-            ft.columns = ft.iloc[0]
-            ft = ft.iloc[1:].reset_index(drop=True)
-        ft = ft[~ft.iloc[:, 0].astype(str).str.contains('Grand Total', case=False, na=False)]
-        ft.rename(columns={"Report Date": "Report_Date", "Newly Added": "Newly_Added", "Total In Progress (Backlog)": "Total_In_Progress", "Worked On": "Worked_On", "Carry Forward": "Carry_Forward"}, inplace=True)
-        if "Report_Date" in ft.columns:
-            ft["Report_Date"] = pd.to_datetime(ft["Report_Date"], errors='coerce')
-            ft = ft.dropna(subset=["Report_Date"])
-            for col in ["Newly_Added", "Total_In_Progress", "Worked_On", "Carry_Forward"]:
-                if col in ft.columns: ft[col] = pd.to_numeric(ft[col].astype(str).str.replace(',', ''), errors="coerce").fillna(0)
-            ft["Date_Label"] = ft["Report_Date"].dt.strftime("%b %d")
-
-    # 3. Clean Aging_Distribution
-    if not ag.empty:
-        if "Report Date" not in ag.columns:
-            ag.columns = ag.iloc[0]
-            ag = ag.iloc[1:].reset_index(drop=True)
-        ag["Report Date"] = ag["Report Date"].ffill()
-        ag = ag[~ag.iloc[:, 0].astype(str).str.contains('Grand Total', case=False, na=False)]
-        if "Report Date" in ag.columns:
-            ag["Report Date"] = pd.to_datetime(ag["Report Date"], errors='coerce')
-            ag = ag.dropna(subset=["Report Date"])
-            ag.columns = [str(c).strip() for c in ag.columns]
-            ag["Region"] = ag["Region"].astype(str).str.strip()
-            for c in ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "10+", "Total"]:
-                if c in ag.columns: ag[c] = pd.to_numeric(ag[c].astype(str).str.replace(',', ''), errors="coerce").fillna(0)
-
-    # 4. Clean FID_RID Details
-    if not fr.empty:
-        if "Report Date" not in fr.columns and "Date" not in fr.columns:
-            fr.columns = fr.iloc[0]
-            fr = fr.iloc[1:].reset_index(drop=True)
-        fr = fr[~fr.iloc[:, 0].astype(str).str.contains('Grand Total', case=False, na=False)]
-        date_col = "Report Date" if "Report Date" in fr.columns else "Date"
-        if date_col in fr.columns:
-            fr[date_col] = pd.to_datetime(fr[date_col], errors='coerce')
-            fr = fr.dropna(subset=[date_col])
-        for col in fr.columns:
-            if col not in ["Date", "Report Date", "Region", "Type"]:
-                fr[col] = pd.to_numeric(fr[col].astype(str).str.replace(',', ''), errors="coerce").fillna(0)
-
-    # 5. Clean Sort Details
-    if not st_det.empty:
-        if "Report Date" not in st_det.columns and "Date" not in st_det.columns:
-            st_det.columns = st_det.iloc[0]
-            st_det = st_det.iloc[1:].reset_index(drop=True)
-        st_det = st_det[~st_det.iloc[:, 0].astype(str).str.contains('Grand Total', case=False, na=False)]
-        date_col = "Report Date" if "Report Date" in st_det.columns else "Date"
-        if date_col in st_det.columns:
-            st_det[date_col] = pd.to_datetime(st_det[date_col], errors='coerce')
-            st_det = st_det.dropna(subset=[date_col])
-        for col in st_det.columns:
-            if col not in ["Date", "Report Date", "Region"]:
-                st_det[col] = pd.to_numeric(st_det[col].astype(str).str.replace(',', ''), errors="coerce").fillna(0)
-
-    return dc, ft, ag, fr, st_det
+    return dc, ft, rt, ag, fr, st_det
 
 with st.spinner("Loading live data from Google Sheets…"):
-    dc, ft, ag, fr, st_det = load_data()
+    dc, ft, rt, ag, fr, st_det = load_data()
+
+# ── Dynamic Column Lookups (Prevents KeyErrors if Excel changes spacing) ─────
+def get_col(df, keyword, exclude=None):
+    if df.empty: return None
+    for c in df.columns:
+        if keyword.upper() in c.upper():
+            if exclude and exclude.upper() in c.upper(): continue
+            return c
+    return None
 
 # ── TOP LAYER: Title & Horizontal Filters ──────────────────────────────────────
 st.title("🐝 Carrybee Delivery Intelligence")
@@ -162,7 +132,7 @@ st.markdown('<div class="section-header" style="margin-top: 0;">Data Filters</di
 f_col1, f_col2, f_col3 = st.columns(3)
 
 with f_col1:
-    all_dates = sorted(ft["Report_Date"].dropna().unique()) if not ft.empty else []
+    all_dates = sorted(ft["Standard_Date"].dropna().unique()) if not ft.empty else []
     if all_dates:
         date_opts = [pd.Timestamp(d).strftime("%b %d, %Y") for d in all_dates]
         sub_col1, sub_col2 = st.columns(2)
@@ -176,6 +146,7 @@ with f_col1:
         sel_end   = pd.Timestamp(all_dates[end_idx])
     else:
         sel_start, sel_end = pd.Timestamp.now(), pd.Timestamp.now()
+        st.error("No valid dates found. Check the sheet formatting.")
 
 with f_col2:
     aging_region = st.multiselect("Hubs / Regions", ["ISD", "OSD"], default=["ISD", "OSD"])
@@ -187,49 +158,52 @@ with f_col3:
 st.markdown("---")
 
 # ── Filter Data based on selection ───────────────────────────────────────────
-ft_f = ft[(ft["Report_Date"] >= sel_start) & (ft["Report_Date"] <= sel_end)].copy() if not ft.empty else ft
-dc_f = dc[(dc["Date"] >= sel_start) & (dc["Date"] <= sel_end)].copy() if not dc.empty else dc
-ag_f = ag[(ag["Report Date"] >= sel_start) & (ag["Report Date"] <= sel_end)].copy() if not ag.empty else ag
-ag_f = ag_f[ag_f["Region"].isin(aging_region)] if aging_region and not ag_f.empty else ag_f
+def filter_df(df, region_col=None):
+    if df.empty: return df
+    mask = (df["Standard_Date"] >= sel_start) & (df["Standard_Date"] <= sel_end)
+    filtered = df[mask].copy()
+    if region_col and aging_region and region_col in filtered.columns:
+        filtered = filtered[filtered[region_col].isin(aging_region)]
+    return filtered
 
-# Dynamic filter for FR and Sort
-fr_date_col = "Report Date" if "Report Date" in fr.columns else "Date"
-st_date_col = "Report Date" if "Report Date" in st_det.columns else "Date"
-fr_f = fr[(fr[fr_date_col] >= sel_start) & (fr[fr_date_col] <= sel_end)].copy() if not fr.empty else fr
-st_det_f = st_det[(st_det[st_date_col] >= sel_start) & (st_det[st_date_col] <= sel_end)].copy() if not st_det.empty else st_det
+ft_f = filter_df(ft)
+rt_f = filter_df(rt)
+dc_f = filter_df(dc)
+ag_f = filter_df(ag, "Region")
+fr_f = filter_df(fr)
+st_det_f = filter_df(st_det)
 
-# Extract Latest Values
-latest_ft = ft_f.sort_values("Report_Date").iloc[-1] if not ft_f.empty else None
-latest_dc = dc_f.sort_values("Date").iloc[-1] if not dc_f.empty else None
-
-def delta_html(curr, prev, fmt="{:,.0f}", inverse=False):
-    if prev is None or pd.isna(curr) or pd.isna(prev): return ""
-    d = curr - prev
-    if d == 0: return '<span class="kpi-delta">→ No change</span>'
-    arrow = "▲" if d > 0 else "▼"
-    return f'<span class="kpi-delta">{arrow} {fmt.format(abs(d))}</span>'
+# ── Latest Row Extractions ───────────────────────────────────────────────────
+latest_ft = ft_f.sort_values("Standard_Date").iloc[-1] if not ft_f.empty else None
+latest_dc = dc_f.sort_values("Standard_Date").iloc[-1] if not dc_f.empty else None
+latest_rt = rt_f.sort_values("Standard_Date").iloc[-1] if not rt_f.empty else None
 
 # ── SECOND LAYER: 5 KPIs (Requirements 1, 2, 3, 4, 5) ─────────────────────────
 k1, k2, k3, k4, k5 = st.columns(5)
 
-# Calculate Overall Backlog safely (Requirement 2)
-overall_backlog = "—"
-if latest_ft is not None:
-    overall_backlog_val = latest_ft['Total_In_Progress']
-    # If we have RID backlog in FR Details, add it
-    if not fr_f.empty and len(fr_f) > 0:
-        latest_fr = fr_f.sort_values(fr_date_col).iloc[-1]
-        rid_cols = [c for c in fr.columns if "RID" in c.upper() and ("TOTAL" in c.upper() or "BACKLOG" in c.upper())]
-        if rid_cols:
-            overall_backlog_val += latest_fr[rid_cols[0]]
-    overall_backlog = f"{overall_backlog_val:,.0f}"
+# Safety variables
+ft_prog_col = get_col(ft, "IN PROGRESS")
+rt_prog_col = get_col(rt, "IN PROGRESS")
+dc_zt_col = get_col(dc, "ZONE TRANSFER", exclude="%")
+dc_fid_pct_col = get_col(dc, "FID BACKLOG")
+dc_zt_pct_col = get_col(dc, "ZONE TRANSFER", exclude="NOT") # Grab the % one if it exists
+
+tot_fid = latest_ft[ft_prog_col] if latest_ft is not None and ft_prog_col else 0
+tot_rid = latest_rt[rt_prog_col] if latest_rt is not None and rt_prog_col else 0
+zt_val = latest_dc[dc_zt_col] if latest_dc is not None and dc_zt_col else 0
+
+# Formatting Percentages correctly (handles both '0.1' and '10' from Excel)
+fid_pct_raw = latest_dc[dc_fid_pct_col] if latest_dc is not None and dc_fid_pct_col else 0
+zt_pct_raw = latest_dc[dc_zt_pct_col] if latest_dc is not None and dc_zt_pct_col else 0
+fid_pct_str = f"{fid_pct_raw:.1f}%" if fid_pct_raw > 1 else f"{fid_pct_raw*100:.1f}%"
+zt_pct_str = f"{zt_pct_raw:.1f}%" if zt_pct_raw > 1 else f"{zt_pct_raw*100:.1f}%"
 
 kpi_data = [
-    (k1, "1. Total FID Parcel", "bg-blue", f"{latest_ft['Total_In_Progress']:,.0f}" if latest_ft is not None else "—"),
-    (k2, "2. Overall Backlog", "bg-red", overall_backlog),
-    (k3, "3. Zone Transfers", "bg-orange", f"{latest_dc['Zone_Transfer']:,.0f}" if latest_dc is not None else "—"),
-    (k4, "4. FID Backlog %", "bg-green", f"{latest_dc['FID_Backlog_Pct']*100:.2f}%" if latest_dc is not None else "—"),
-    (k5, "5. Zone Change %", "bg-purple", f"{latest_dc.get('Zone_Transfer_Pct', 0)*100:.2f}%" if latest_dc is not None and 'Zone_Transfer_Pct' in latest_dc else "—"),
+    (k1, "1. Total FID Parcel", "bg-blue", f"{tot_fid:,.0f}"),
+    (k2, "2. Overall Backlog", "bg-red", f"{(tot_fid + tot_rid):,.0f}"),
+    (k3, "3. Zone Transfers", "bg-orange", f"{zt_val:,.0f}"),
+    (k4, "4. FID Backlog %", "bg-green", fid_pct_str),
+    (k5, "5. Zone Change %", "bg-purple", zt_pct_str),
 ]
 
 for col, label, color_class, value in kpi_data:
@@ -244,17 +218,21 @@ c_combo, c_donut = st.columns([3, 2])
 with c_combo:
     st.markdown('<div class="section-header">11. Date Wise Backlog Tracking (FID)</div>', unsafe_allow_html=True)
     fig_combo = go.Figure()
-    if not ft_f.empty:
-        fig_combo.add_trace(go.Bar(x=ft_f["Date_Label"], y=ft_f["Total_In_Progress"], name="Total In Progress", marker_color="#3b82f6"))
-        fig_combo.add_trace(go.Bar(x=ft_f["Date_Label"], y=ft_f["Newly_Added"], name="Newly Added", marker_color="#f59e0b"))
-        if show_worked:
-            fig_combo.add_trace(go.Scatter(x=ft_f["Date_Label"], y=ft_f["Worked_On"], name="Worked On", mode="lines+markers", line=dict(color="#10b981", width=3), marker=dict(size=8)))
+    if not ft_f.empty and ft_prog_col:
+        ft_add_col = get_col(ft_f, "NEWLY ADDED")
+        ft_wrk_col = get_col(ft_f, "WORKED ON")
+        
+        fig_combo.add_trace(go.Bar(x=ft_f["Date_Label"], y=ft_f[ft_prog_col], name="Total In Progress", marker_color="#3b82f6"))
+        if ft_add_col: fig_combo.add_trace(go.Bar(x=ft_f["Date_Label"], y=ft_f[ft_add_col], name="Newly Added", marker_color="#f59e0b"))
+        if show_worked and ft_wrk_col:
+            fig_combo.add_trace(go.Scatter(x=ft_f["Date_Label"], y=ft_f[ft_wrk_col], name="Worked On", mode="lines+markers", line=dict(color="#10b981", width=3), marker=dict(size=8)))
+            
         fig_combo.update_layout(**PLOT_THEME, height=360, barmode='group')
         st.plotly_chart(fig_combo, use_container_width=True)
 
 with c_donut:
     st.markdown('<div class="section-header">6. Region Wise In Process Parcel</div>', unsafe_allow_html=True)
-    if latest_dc is not None:
+    if latest_dc is not None and 'ISD' in latest_dc and 'OSD' in latest_dc:
         fig_donut = go.Figure(data=[go.Pie(
             labels=['ISD', 'OSD'], values=[latest_dc['ISD'], latest_dc['OSD']], 
             hole=.6, marker_colors=[COLOR_ISD, COLOR_OSD], textinfo='label+percent',
@@ -270,47 +248,41 @@ c_fr_pie, c_fr_bar = st.columns([2, 3])
 with c_fr_pie:
     st.markdown('<div class="section-header">7. Backlog (FID vs RID)</div>', unsafe_allow_html=True)
     if not fr_f.empty:
-        latest_fr = fr_f.sort_values(fr_date_col).iloc[-1]
+        fr_latest = fr_f[fr_f["Standard_Date"] == fr_f["Standard_Date"].max()]
+        type_col = get_col(fr_latest, "TYPE")
         
-        # Safely find columns matching Total FID and Total RID
-        fid_tots = [c for c in fr.columns if "FID" in c.upper() and "TOTAL" in c.upper()]
-        rid_tots = [c for c in fr.columns if "RID" in c.upper() and "TOTAL" in c.upper()]
-        
-        if fid_tots and rid_tots:
+        if type_col and 'LMH' in fr_latest.columns and 'FMH' in fr_latest.columns:
+            fid_sum = fr_latest[fr_latest[type_col].astype(str).str.upper() == 'FID'][['LMH', 'FMH']].sum().sum()
+            rid_sum = fr_latest[fr_latest[type_col].astype(str).str.upper() == 'RID'][['LMH', 'FMH']].sum().sum()
+            
             fig_fr_pie = go.Figure(data=[go.Pie(
-                labels=['FID Backlog', 'RID Backlog'], 
-                values=[latest_fr[fid_tots[0]], latest_fr[rid_tots[0]]], 
+                labels=['FID Backlog', 'RID Backlog'], values=[fid_sum, rid_sum], 
                 marker_colors=["#3b82f6", "#ef4444"], textinfo='label+percent+value'
             )])
             fig_fr_pie.update_layout(**PLOT_THEME, height=350, legend=dict(orientation="h", yanchor="bottom", y=-0.2, xanchor="center", x=0.5))
             st.plotly_chart(fig_fr_pie, use_container_width=True)
         else:
-            st.info("Could not find 'Total FID' and 'Total RID' columns in FID_RID_Backlog_Details.")
-    else:
-        st.warning("FID_RID_Backlog_Details sheet is missing or empty.")
+            st.info("Missing Type, LMH, or FMH columns for Pie chart.")
 
 with c_fr_bar:
     st.markdown('<div class="section-header">9. Backlog Details (LMH & FMH)</div>', unsafe_allow_html=True)
     if not fr_f.empty:
-        latest_fr = fr_f.sort_values(fr_date_col).iloc[-1]
+        fr_latest = fr_f[fr_f["Standard_Date"] == fr_f["Standard_Date"].max()]
+        type_col = get_col(fr_latest, "TYPE")
         
-        # Safely identify the 4 specific columns
-        lmh_fmh_data = {}
-        for metric in ["FID LMH", "FID FMH", "RID LMH", "RID FMH"]:
-            matched_col = [c for c in fr.columns if metric.replace(" ", "") in c.replace(" ", "")]
-            if matched_col:
-                lmh_fmh_data[metric] = latest_fr[matched_col[0]]
-        
-        if lmh_fmh_data:
-            df_lmh = pd.DataFrame(list(lmh_fmh_data.items()), columns=["Category", "Count"])
-            fig_lmh = px.bar(df_lmh, x="Category", y="Count", color="Category", 
-                             color_discrete_sequence=["#3b82f6", "#60a5fa", "#ef4444", "#f87171"])
+        if type_col and 'LMH' in fr_latest.columns and 'FMH' in fr_latest.columns:
+            f_lmh = fr_latest[fr_latest[type_col].astype(str).str.upper() == 'FID']['LMH'].sum()
+            f_fmh = fr_latest[fr_latest[type_col].astype(str).str.upper() == 'FID']['FMH'].sum()
+            r_lmh = fr_latest[fr_latest[type_col].astype(str).str.upper() == 'RID']['LMH'].sum()
+            r_fmh = fr_latest[fr_latest[type_col].astype(str).str.upper() == 'RID']['FMH'].sum()
+            
+            df_lmh = pd.DataFrame([
+                {"Category": "FID LMH", "Count": f_lmh}, {"Category": "FID FMH", "Count": f_fmh},
+                {"Category": "RID LMH", "Count": r_lmh}, {"Category": "RID FMH", "Count": r_fmh}
+            ])
+            fig_lmh = px.bar(df_lmh, x="Category", y="Count", color="Category", color_discrete_sequence=["#3b82f6", "#60a5fa", "#ef4444", "#f87171"])
             fig_lmh.update_layout(**PLOT_THEME, height=350, showlegend=False)
             st.plotly_chart(fig_lmh, use_container_width=True)
-        else:
-            st.info("LMH/FMH columns not detected.")
-    else:
-        st.warning("Data not available.")
 
 st.markdown("---")
 
@@ -320,31 +292,27 @@ c_sort, c_aging = st.columns(2)
 with c_sort:
     st.markdown('<div class="section-header">10. Sort (FID Sort vs RID Sort)</div>', unsafe_allow_html=True)
     if not st_det_f.empty:
-        latest_sort = st_det_f.sort_values(st_date_col).iloc[-1]
+        st_latest = st_det_f[st_det_f["Standard_Date"] == st_det_f["Standard_Date"].max()]
+        type_col = get_col(st_latest, "TYPE")
+        sort_col = get_col(st_latest, "SORT")
         
-        sort_data = {}
-        for metric in ["FID Sort", "RID Sort"]:
-            matched_col = [c for c in st_det.columns if metric.upper() in c.upper()]
-            if matched_col:
-                sort_data[metric] = latest_sort[matched_col[0]]
-                
-        if sort_data:
-            df_sort = pd.DataFrame(list(sort_data.items()), columns=["Type", "Parcels"])
+        if type_col and sort_col:
+            f_sort = st_latest[st_latest[type_col].astype(str).str.upper() == 'FID'][sort_col].sum()
+            r_sort = st_latest[st_latest[type_col].astype(str).str.upper() == 'RID'][sort_col].sum()
+            
+            df_sort = pd.DataFrame([{"Type": "FID Sort", "Parcels": f_sort}, {"Type": "RID Sort", "Parcels": r_sort}])
             fig_sort = px.bar(df_sort, x="Type", y="Parcels", color="Type", color_discrete_sequence=["#3b82f6", "#ef4444"])
             fig_sort.update_layout(**PLOT_THEME, height=350, showlegend=False)
             st.plotly_chart(fig_sort, use_container_width=True)
         else:
-            st.info("Sort columns not detected in Sort Details sheet.")
-    else:
-        st.warning("Sort Details sheet is missing or empty.")
+            st.info("Missing 'Type' or 'Sort' column in Sort Details.")
 
 with c_aging:
     st.markdown('<div class="section-header">8. Aging Distribution (%)</div>', unsafe_allow_html=True)
-    if not ag_f.empty:
-        latest_ag_date = ag_f["Report Date"].max()
-        ag_latest = ag_f[ag_f["Report Date"] == latest_ag_date].copy()
-        
+    if not ag_f.empty and "Region" in ag_f.columns:
+        ag_latest = ag_f[ag_f["Standard_Date"] == ag_f["Standard_Date"].max()]
         AGE_COLS = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "10+"]
+        
         rows = []
         for _, row in ag_latest.iterrows():
             total_region = sum([row[c] for c in AGE_COLS if c in ag_latest.columns and pd.notna(row[c])])
@@ -356,12 +324,7 @@ with c_aging:
                     
         ag_melt = pd.DataFrame(rows)
         if not ag_melt.empty:
-            # Using 100% Stacked Bar behavior by showing percentage
-            fig_age = px.bar(
-                ag_melt, x="Age", y="Percentage", color="Region",
-                color_discrete_map={"ISD": COLOR_ISD, "OSD": COLOR_OSD},
-                barmode="group", text=ag_melt["Percentage"].apply(lambda x: f"{x:.1f}%")
-            )
+            fig_age = px.bar(ag_melt, x="Age", y="Percentage", color="Region", color_discrete_map={"ISD": COLOR_ISD, "OSD": COLOR_OSD}, barmode="group", text=ag_melt["Percentage"].apply(lambda x: f"{x:.1f}%"))
             fig_age.update_traces(textposition="outside", hovertemplate="<b>%{x}</b><br>Count: %{customdata[0]:,}<br>Pct: %{y:.1f}%", customdata=ag_melt[["Count"]])
             fig_age.update_layout(**PLOT_THEME, height=350, yaxis_title="Percentage (%)")
             st.plotly_chart(fig_age, use_container_width=True)
