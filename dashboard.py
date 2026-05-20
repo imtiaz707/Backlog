@@ -2,52 +2,66 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
+from plotly.subplots import make_subplots
+import numpy as np
 from streamlit_gsheets import GSheetsConnection
 
 # ── Page config ──────────────────────────────────────────────────────────────
 st.set_page_config(
-    page_title="Carrybee Intelligence",
-    page_icon="🐝",
+    page_title="Courier Logistics Dashboard",
+    page_icon="📦",
     layout="wide",
-    initial_sidebar_state="collapsed",
+    initial_sidebar_state="expanded",
 )
 
 # ── Theme / CSS ───────────────────────────────────────────────────────────────
 st.markdown("""
 <style>
+/* ---- global ---- */
 [data-testid="stAppViewContainer"] { background: #0d1117; }
+[data-testid="stSidebar"]          { background: #161b22; border-right: 1px solid #30363d; }
 [data-testid="stHeader"]           { background: transparent; }
 
+/* ---- metric cards ---- */
 .kpi-card {
+    background: linear-gradient(135deg, #1c2333 0%, #21262d 100%);
+    border: 1px solid #30363d;
     border-radius: 12px;
-    padding: 16px 20px;
-    text-align: left;
+    padding: 20px 24px;
+    text-align: center;
     box-shadow: 0 4px 16px rgba(0,0,0,.4);
-    color: #ffffff; 
 }
-.bg-blue   { background-color: #3b82f6; }
-.bg-green  { background-color: #10b981; }
-.bg-orange { background-color: #f59e0b; }
-.bg-purple { background-color: #8b5cf6; }
-.bg-red    { background-color: #ef4444; }
+.kpi-label  { font-size: 12px; color: #8b949e; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 6px; }
+.kpi-value  { font-size: 36px; font-weight: 700; color: #e6edf3; line-height: 1; }
+.kpi-delta  { font-size: 13px; margin-top: 6px; }
+.kpi-delta.up   { color: #3fb950; }
+.kpi-delta.down { color: #f85149; }
+.kpi-delta.neutral { color: #8b949e; }
 
-.kpi-label  { font-size: 12px; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 6px; opacity: 0.9; line-height: 1.2;}
-.kpi-value  { font-size: 32px; font-weight: 700; line-height: 1; margin-bottom: 8px; }
-.kpi-delta  { font-size: 12px; font-weight: 500; background: rgba(255,255,255,0.2); padding: 2px 6px; border-radius: 4px;}
-
+/* ---- section headers ---- */
 .section-header {
-    font-size: 16px; font-weight: 600; color: #e6edf3;
-    letter-spacing: .5px; margin: 20px 0 15px 0;
+    font-size: 15px; font-weight: 600; color: #e6edf3;
+    letter-spacing: .5px; margin: 20px 0 8px 0;
+    border-left: 3px solid #388bfd; padding-left: 10px;
 }
+
+/* ---- sidebar ---- */
+.sidebar-title {
+    font-size: 20px; font-weight: 700; color: #e6edf3; margin-bottom: 4px;
+}
+.sidebar-sub { font-size: 12px; color: #8b949e; }
+
+/* ---- divider ---- */
 hr { border-color: #30363d !important; }
 </style>
 """, unsafe_allow_html=True)
 
-# ── 🚨 YOUR REAL SPREADSHEET URL ───────────────────────────────────────────────
+# Replace this with the actual URL of your restricted Google Sheet
 SPREADSHEET_URL = "https://docs.google.com/spreadsheets/d/1n9GW1UksZ-jhCQ-zmCqwx4EH20fa-Zm5wA5BiMmdZAE/edit?gid=713116247#gid=713116247"
 
 PLOT_THEME = dict(
-    paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="#161b22",
+    paper_bgcolor="rgba(0,0,0,0)",
+    plot_bgcolor="#161b22",
     font=dict(color="#c9d1d9", family="Inter, sans-serif", size=12),
     xaxis=dict(gridcolor="#21262d", linecolor="#30363d", tickcolor="#30363d"),
     yaxis=dict(gridcolor="#21262d", linecolor="#30363d", tickcolor="#30363d"),
@@ -56,275 +70,334 @@ PLOT_THEME = dict(
     margin=dict(l=20, r=20, t=45, b=20),
 )
 
-COLOR_ISD = "#388bfd"
-COLOR_OSD = "#3fb950"
+COLOR_ISD   = "#388bfd"
+COLOR_OSD   = "#3fb950"
+COLOR_ADDED = "#f0883e"
+COLOR_PROG  = "#ff7b72"
+COLOR_WRK   = "#58a6ff"
+COLOR_CF    = "#8b949e"
 
-# ── Bulletproof Universal Data Cleaner ───────────────────────────────────────
+# ── Data loading (Connected to GSheets) ───────────────────────────────────────
+# ttl=600 tells Streamlit to re-fetch the data from Google every 10 minutes
 @st.cache_data(show_spinner=False, ttl=600)
 def load_data():
+    # Establish secure connection
     conn = st.connection("gsheets", type=GSheetsConnection)
-    
-    def fetch_and_clean(sheet_name):
-        try:
-            df = conn.read(spreadsheet=SPREADSHEET_URL, worksheet=sheet_name)
-            if df.empty: return pd.DataFrame()
-            
-            # 1. Force Headers
-            df.columns = [str(c).strip() for c in df.columns]
-            if df.columns[0] in ["0", ""] or "Unnamed" in df.columns[0]:
-                df.columns = [str(c).strip() for c in df.iloc[0]]
-                df = df.iloc[1:].reset_index(drop=True)
-            
-            # 2. Identify Date Column
-            date_cols = [c for c in df.columns if 'DATE' in c.upper() or c.upper() == 'DATE']
-            if not date_cols: return pd.DataFrame()
-            date_col = date_cols[0]
-            
-            # 3. Forward Fill Dates (Fixes Merged Cells for OSD/RID)
-            df[date_col] = df[date_col].ffill()
-            
-            # 4. Remove 'Grand Total' Rows
-            df = df[~df[date_col].astype(str).str.contains('Grand Total', case=False, na=False)]
-            
-            # 5. Parse Dates
-            df[date_col] = pd.to_datetime(df[date_col], errors='coerce')
-            df = df.dropna(subset=[date_col])
-            
-            # 6. Parse Numbers (Strip Commas & %)
-            for c in df.columns:
-                if c != date_col and c.upper() not in ['REGION', 'TYPE']:
-                    clean_str = df[c].astype(str).str.replace(',', '', regex=False).str.replace('%', '', regex=False)
-                    df[c] = pd.to_numeric(clean_str, errors='coerce').fillna(0)
-                    
-            # 7. Standardize Date Access
-            df.rename(columns={date_col: "Standard_Date"}, inplace=True)
-            df["Date_Label"] = df["Standard_Date"].dt.strftime("%b %d")
-            return df
-        except Exception as e:
-            return pd.DataFrame()
 
-    dc = fetch_and_clean("Dashboard_Card")
-    ft = fetch_and_clean("FID_Tracking")
-    rt = fetch_and_clean("RID Tracking") # Included to calculate Overall Backlog properly
-    ag = fetch_and_clean("Aging_Distribution")
-    fr = fetch_and_clean("FID_RID_Backlog_Details")
-    st_det = fetch_and_clean("Sort Details")
+    # Read each specific worksheet from the Google Sheet
+    dc_raw = conn.read(spreadsheet=SPREADSHEET_URL, worksheet="Dashboard_Card")
+    ft_raw = conn.read(spreadsheet=SPREADSHEET_URL, worksheet="FID_Tracking")
+    ag_raw = conn.read(spreadsheet=SPREADSHEET_URL, worksheet="Aging_Distribution")
 
-    return dc, ft, rt, ag, fr, st_det
+    # ── Dashboard_Card ───────────────────────────────────────────────────────
+    dc = dc_raw.copy()
+    dc.columns = dc.iloc[0]
+    dc = dc.iloc[1:].reset_index(drop=True)
+    dc.rename(columns={
+        "Date": "Date",
+        "ISD": "ISD",
+        "OSD": "OSD",
+        "Total": "Total",
+        "FID Backlog (%)": "FID_Backlog_Pct",
+        "Zone Transfer": "Zone_Transfer",
+        "Zone Transfer (%)": "Zone_Transfer_Pct",
+    }, inplace=True)
+    dc = dc[["Date", "ISD", "OSD", "Total", "FID_Backlog_Pct", "Zone_Transfer"]].dropna(subset=["Date"])
+    dc["Date"] = pd.to_datetime(dc["Date"])
+    for col in ["ISD", "OSD", "Total", "FID_Backlog_Pct", "Zone_Transfer"]:
+        dc[col] = pd.to_numeric(dc[col], errors="coerce")
+    dc["Date_Label"] = dc["Date"].dt.strftime("%b %d")
+
+    # ── FID_Tracking ─────────────────────────────────────────────────────────
+    ft = ft_raw.copy()
+    ft["Report Date"] = pd.to_datetime(ft["Report Date"])
+    ft.rename(columns={
+        "Report Date": "Report_Date",
+        "Newly Added": "Newly_Added",
+        "Total In Progress (Backlog)": "Total_In_Progress",
+        "Worked On": "Worked_On",
+        "Carry Forward": "Carry_Forward",
+    }, inplace=True)
+    ft["Date_Label"] = ft["Report_Date"].dt.strftime("%b %d")
+
+    # ── Aging_Distribution ───────────────────────────────────────────────────
+    ag = ag_raw.copy()
+    ag["Report Date"] = pd.to_datetime(ag["Report Date"])
+    age_cols = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, "10+"]
+    keep_cols = ["Report Date", "Region"] + age_cols + ["Total"]
+    ag = ag[[c for c in keep_cols if c in ag.columns]].copy()
+    ag["Region"] = ag["Region"].astype(str).str.strip()
+    for c in age_cols + ["Total"]:
+        if c in ag.columns:
+            ag[c] = pd.to_numeric(ag[c], errors="coerce")
+    ag["Date_Label"] = ag["Report Date"].dt.strftime("%b %d")
+
+    return dc, ft, ag
+
 
 with st.spinner("Loading live data from Google Sheets…"):
-    dc, ft, rt, ag, fr, st_det = load_data()
+    dc, ft, ag = load_data()
 
-# ── Dynamic Column Lookups (Prevents KeyErrors if Excel changes spacing) ─────
-def get_col(df, keyword, exclude=None):
-    if df.empty: return None
-    for c in df.columns:
-        if keyword.upper() in c.upper():
-            if exclude and exclude.upper() in c.upper(): continue
-            return c
-    return None
+# ── Sidebar ───────────────────────────────────────────────────────────────────
+with st.sidebar:
+    st.markdown('<div class="sidebar-title">📦 Logistics Hub</div>', unsafe_allow_html=True)
+    st.markdown('<div class="sidebar-sub">Courier Delivery Team Dashboard</div>', unsafe_allow_html=True)
+    st.markdown("---")
 
-# ── TOP LAYER: Title & Horizontal Filters ──────────────────────────────────────
-st.title("🐝 Carrybee Delivery Intelligence")
-st.markdown("---")
+    st.markdown("### 🗓 Date Range Filter")
+    all_dates = sorted(ft["Report_Date"].dropna().unique())
+    date_opts = [pd.Timestamp(d).strftime("%b %d, %Y") for d in all_dates]
 
-st.markdown('<div class="section-header" style="margin-top: 0;">Data Filters</div>', unsafe_allow_html=True)
-f_col1, f_col2, f_col3 = st.columns(3)
+    start_idx = st.selectbox("From date", range(len(date_opts)), format_func=lambda i: date_opts[i], index=0)
+    end_idx   = st.selectbox("To date",   range(len(date_opts)), format_func=lambda i: date_opts[i], index=len(date_opts)-1)
 
-with f_col1:
-    all_dates = sorted(ft["Standard_Date"].dropna().unique()) if not ft.empty else []
-    if all_dates:
-        date_opts = [pd.Timestamp(d).strftime("%b %d, %Y") for d in all_dates]
-        sub_col1, sub_col2 = st.columns(2)
-        with sub_col1: start_idx = st.selectbox("From date", range(len(date_opts)), format_func=lambda i: date_opts[i], index=0)
-        with sub_col2: end_idx   = st.selectbox("To date",   range(len(date_opts)), format_func=lambda i: date_opts[i], index=len(date_opts)-1)
-        
-        if end_idx < start_idx:
-            st.warning("End date is before start date.")
-            end_idx = start_idx
-        sel_start = pd.Timestamp(all_dates[start_idx])
-        sel_end   = pd.Timestamp(all_dates[end_idx])
-    else:
-        sel_start, sel_end = pd.Timestamp.now(), pd.Timestamp.now()
-        st.error("No valid dates found. Check the sheet formatting.")
+    if end_idx < start_idx:
+        st.warning("End date is before start date.")
+        end_idx = start_idx
 
-with f_col2:
-    aging_region = st.multiselect("Hubs / Regions", ["ISD", "OSD"], default=["ISD", "OSD"])
+    sel_start = pd.Timestamp(all_dates[start_idx])
+    sel_end   = pd.Timestamp(all_dates[end_idx])
 
-with f_col3:
-    st.markdown("<br>", unsafe_allow_html=True)
-    show_worked = st.toggle("Show Worked On Line (Combo Chart)", value=True)
+    st.markdown("---")
+    st.markdown("### 📊 Chart Options")
+    show_worked  = st.toggle("Show Worked On", value=True)
+    show_carry   = st.toggle("Show Carry Forward", value=False)
+    aging_region = st.multiselect("Aging Regions", ["ISD", "OSD"], default=["ISD", "OSD"])
 
-st.markdown("---")
+    st.markdown("---")
+    st.caption("Data source: Live Google Sheets DB")
 
-# ── Filter Data based on selection ───────────────────────────────────────────
-def filter_df(df, region_col=None):
-    if df.empty: return df
-    mask = (df["Standard_Date"] >= sel_start) & (df["Standard_Date"] <= sel_end)
-    filtered = df[mask].copy()
-    if region_col and aging_region and region_col in filtered.columns:
-        filtered = filtered[filtered[region_col].isin(aging_region)]
-    return filtered
+# ── Filter data ───────────────────────────────────────────────────────────────
+ft_f = ft[(ft["Report_Date"] >= sel_start) & (ft["Report_Date"] <= sel_end)].copy()
+dc_f = dc[(dc["Date"] >= sel_start) & (dc["Date"] <= sel_end)].copy()
+ag_f = ag[(ag["Report Date"] >= sel_start) & (ag["Report Date"] <= sel_end)].copy()
+ag_f = ag_f[ag_f["Region"].isin(aging_region)] if aging_region else ag_f
 
-ft_f = filter_df(ft)
-rt_f = filter_df(rt)
-dc_f = filter_df(dc)
-ag_f = filter_df(ag, "Region")
-fr_f = filter_df(fr)
-st_det_f = filter_df(st_det)
+# ── Latest row for KPIs ───────────────────────────────────────────────────────
+latest_ft = ft_f.sort_values("Report_Date").iloc[-1] if not ft_f.empty else None
+latest_dc = dc_f.sort_values("Date").iloc[-1] if not dc_f.empty else None
+prev_ft   = ft_f.sort_values("Report_Date").iloc[-2] if len(ft_f) > 1 else None
 
-# ── Latest Row Extractions ───────────────────────────────────────────────────
-latest_ft = ft_f.sort_values("Standard_Date").iloc[-1] if not ft_f.empty else None
-latest_dc = dc_f.sort_values("Standard_Date").iloc[-1] if not dc_f.empty else None
-latest_rt = rt_f.sort_values("Standard_Date").iloc[-1] if not rt_f.empty else None
+def delta_html(curr, prev, fmt="{:,.0f}", inverse=False):
+    if prev is None or pd.isna(curr) or pd.isna(prev): return ""
+    d = curr - prev
+    if d == 0: return '<span class="kpi-delta neutral">→ No change</span>'
+    cls = ("down" if d > 0 else "up") if inverse else ("up" if d > 0 else "down")
+    arrow = "▲" if d > 0 else "▼"
+    return f'<span class="kpi-delta {cls}">{arrow} {fmt.format(abs(d))}</span>'
 
-# ── SECOND LAYER: 5 KPIs (Requirements 1, 2, 3, 4, 5) ─────────────────────────
+# ── Dashboard title ───────────────────────────────────────────────────────────
+col_title, col_date = st.columns([3, 1])
+with col_title:
+    st.markdown("## 📦 Courier Delivery Operations")
+with col_date:
+    if latest_ft is not None:
+        st.markdown(f"<p style='text-align:right;color:#8b949e;padding-top:12px'>As of <b style='color:#e6edf3'>{latest_ft['Report_Date'].strftime('%d %b %Y')}</b></p>", unsafe_allow_html=True)
+
+# ── KPI Row ───────────────────────────────────────────────────────────────────
 k1, k2, k3, k4, k5 = st.columns(5)
 
-# Safety variables
-ft_prog_col = get_col(ft, "IN PROGRESS")
-rt_prog_col = get_col(rt, "IN PROGRESS")
-dc_zt_col = get_col(dc, "ZONE TRANSFER", exclude="%")
-dc_fid_pct_col = get_col(dc, "FID BACKLOG")
-dc_zt_pct_col = get_col(dc, "ZONE TRANSFER", exclude="NOT") # Grab the % one if it exists
-
-tot_fid = latest_ft[ft_prog_col] if latest_ft is not None and ft_prog_col else 0
-tot_rid = latest_rt[rt_prog_col] if latest_rt is not None and rt_prog_col else 0
-zt_val = latest_dc[dc_zt_col] if latest_dc is not None and dc_zt_col else 0
-
-# Formatting Percentages correctly (handles both '0.1' and '10' from Excel)
-fid_pct_raw = latest_dc[dc_fid_pct_col] if latest_dc is not None and dc_fid_pct_col else 0
-zt_pct_raw = latest_dc[dc_zt_pct_col] if latest_dc is not None and dc_zt_pct_col else 0
-fid_pct_str = f"{fid_pct_raw:.1f}%" if fid_pct_raw > 1 else f"{fid_pct_raw*100:.1f}%"
-zt_pct_str = f"{zt_pct_raw:.1f}%" if zt_pct_raw > 1 else f"{zt_pct_raw*100:.1f}%"
-
 kpi_data = [
-    (k1, "1. Total FID Parcel", "bg-blue", f"{tot_fid:,.0f}"),
-    (k2, "2. Overall Backlog", "bg-red", f"{(tot_fid + tot_rid):,.0f}"),
-    (k3, "3. Zone Transfers", "bg-orange", f"{zt_val:,.0f}"),
-    (k4, "4. FID Backlog %", "bg-green", fid_pct_str),
-    (k5, "5. Zone Change %", "bg-purple", zt_pct_str),
+    (k1, "Total In Process",
+     f"{latest_ft['Total_In_Progress']:,.0f}" if latest_ft is not None else "—",
+     delta_html(latest_ft["Total_In_Progress"] if latest_ft is not None else None,
+                prev_ft["Total_In_Progress"] if prev_ft is not None else None, inverse=True)),
+    (k2, "FID Backlog %",
+     f"{latest_dc['FID_Backlog_Pct']*100:.2f}%" if latest_dc is not None and pd.notna(latest_dc["FID_Backlog_Pct"]) else "—",
+     delta_html(latest_dc["FID_Backlog_Pct"] if latest_dc is not None else None,
+                dc_f.sort_values("Date").iloc[-2]["FID_Backlog_Pct"] if len(dc_f) > 1 else None,
+                fmt="{:.2%}", inverse=True)),
+    (k3, "Zone Transfers",
+     f"{latest_dc['Zone_Transfer']:,.0f}" if latest_dc is not None and pd.notna(latest_dc["Zone_Transfer"]) else "—",
+     ""),
+    (k4, "Newly Added Today",
+     f"{latest_ft['Newly_Added']:,.0f}" if latest_ft is not None else "—",
+     delta_html(latest_ft["Newly_Added"] if latest_ft is not None else None,
+                prev_ft["Newly_Added"] if prev_ft is not None else None, inverse=True)),
+    (k5, "Worked On Today",
+     f"{latest_ft['Worked_On']:,.0f}" if latest_ft is not None and pd.notna(latest_ft["Worked_On"]) else "—",
+     ""),
 ]
 
-for col, label, color_class, value in kpi_data:
+for col, label, value, delta in kpi_data:
     with col:
-        st.markdown(f'<div class="kpi-card {color_class}"><div class="kpi-label">{label}</div><div class="kpi-value">{value}</div></div>', unsafe_allow_html=True)
+        st.markdown(f"""
+        <div class="kpi-card">
+            <div class="kpi-label">{label}</div>
+            <div class="kpi-value">{value}</div>
+            {delta}
+        </div>""", unsafe_allow_html=True)
 
 st.markdown("<br>", unsafe_allow_html=True)
 
-# ── THIRD LAYER: Requirements 11 & 6 ──────────────────────────────────────────
-c_combo, c_donut = st.columns([3, 2])
+# ── Row 2: Line chart + Backlog % sparkline ───────────────────────────────────
+c_line, c_pct = st.columns([3, 2])
 
-with c_combo:
-    st.markdown('<div class="section-header">11. Date Wise Backlog Tracking (FID)</div>', unsafe_allow_html=True)
-    fig_combo = go.Figure()
-    if not ft_f.empty and ft_prog_col:
-        ft_add_col = get_col(ft_f, "NEWLY ADDED")
-        ft_wrk_col = get_col(ft_f, "WORKED ON")
-        
-        fig_combo.add_trace(go.Bar(x=ft_f["Date_Label"], y=ft_f[ft_prog_col], name="Total In Progress", marker_color="#3b82f6"))
-        if ft_add_col: fig_combo.add_trace(go.Bar(x=ft_f["Date_Label"], y=ft_f[ft_add_col], name="Newly Added", marker_color="#f59e0b"))
-        if show_worked and ft_wrk_col:
-            fig_combo.add_trace(go.Scatter(x=ft_f["Date_Label"], y=ft_f[ft_wrk_col], name="Worked On", mode="lines+markers", line=dict(color="#10b981", width=3), marker=dict(size=8)))
-            
-        fig_combo.update_layout(**PLOT_THEME, height=360, barmode='group')
-        st.plotly_chart(fig_combo, use_container_width=True)
+with c_line:
+    st.markdown('<div class="section-header">FID Tracking — Newly Added vs Total In Progress</div>', unsafe_allow_html=True)
 
-with c_donut:
-    st.markdown('<div class="section-header">6. Region Wise In Process Parcel</div>', unsafe_allow_html=True)
-    if latest_dc is not None and 'ISD' in latest_dc and 'OSD' in latest_dc:
-        fig_donut = go.Figure(data=[go.Pie(
-            labels=['ISD', 'OSD'], values=[latest_dc['ISD'], latest_dc['OSD']], 
-            hole=.6, marker_colors=[COLOR_ISD, COLOR_OSD], textinfo='label+percent',
-        )])
-        fig_donut.update_layout(**PLOT_THEME, height=360, legend=dict(orientation="h", yanchor="bottom", y=-0.2, xanchor="center", x=0.5))
-        st.plotly_chart(fig_donut, use_container_width=True)
+    fig_line = go.Figure()
+    fig_line.add_trace(go.Scatter(
+        x=ft_f["Date_Label"], y=ft_f["Total_In_Progress"],
+        name="Total In Progress", mode="lines+markers",
+        line=dict(color=COLOR_PROG, width=2.5),
+        marker=dict(size=7, symbol="circle"),
+        fill="tozeroy", fillcolor="rgba(255,123,114,0.08)",
+        hovertemplate="<b>Total In Progress</b>: %{y:,}<extra></extra>",
+    ))
+    fig_line.add_trace(go.Scatter(
+        x=ft_f["Date_Label"], y=ft_f["Newly_Added"],
+        name="Newly Added", mode="lines+markers",
+        line=dict(color=COLOR_ADDED, width=2.5, dash="dot"),
+        marker=dict(size=7, symbol="diamond"),
+        hovertemplate="<b>Newly Added</b>: %{y:,}<extra></extra>",
+    ))
+    if show_worked:
+        fig_line.add_trace(go.Scatter(
+            x=ft_f["Date_Label"], y=ft_f["Worked_On"],
+            name="Worked On", mode="lines+markers",
+            line=dict(color=COLOR_WRK, width=2),
+            marker=dict(size=6),
+            hovertemplate="<b>Worked On</b>: %{y:,}<extra></extra>",
+        ))
+    if show_carry:
+        fig_line.add_trace(go.Scatter(
+            x=ft_f["Date_Label"], y=ft_f["Carry_Forward"],
+            name="Carry Forward", mode="lines+markers",
+            line=dict(color=COLOR_CF, width=1.5, dash="dash"),
+            marker=dict(size=5),
+            hovertemplate="<b>Carry Forward</b>: %{y:,}<extra></extra>",
+        ))
 
-st.markdown("---")
+    fig_line.update_layout(**PLOT_THEME, height=340)
+    fig_line.update_xaxes(title_text="Date")
+    fig_line.update_yaxes(title_text="Parcel Count")
+    st.plotly_chart(fig_line, use_container_width=True)
 
-# ── FOURTH LAYER: Requirements 7 & 9 ──────────────────────────────────────────
-c_fr_pie, c_fr_bar = st.columns([2, 3])
+with c_pct:
+    st.markdown('<div class="section-header">FID Backlog % over Time</div>', unsafe_allow_html=True)
 
-with c_fr_pie:
-    st.markdown('<div class="section-header">7. Backlog (FID vs RID)</div>', unsafe_allow_html=True)
-    if not fr_f.empty:
-        fr_latest = fr_f[fr_f["Standard_Date"] == fr_f["Standard_Date"].max()]
-        type_col = get_col(fr_latest, "TYPE")
-        
-        if type_col and 'LMH' in fr_latest.columns and 'FMH' in fr_latest.columns:
-            fid_sum = fr_latest[fr_latest[type_col].astype(str).str.upper() == 'FID'][['LMH', 'FMH']].sum().sum()
-            rid_sum = fr_latest[fr_latest[type_col].astype(str).str.upper() == 'RID'][['LMH', 'FMH']].sum().sum()
-            
-            fig_fr_pie = go.Figure(data=[go.Pie(
-                labels=['FID Backlog', 'RID Backlog'], values=[fid_sum, rid_sum], 
-                marker_colors=["#3b82f6", "#ef4444"], textinfo='label+percent+value'
-            )])
-            fig_fr_pie.update_layout(**PLOT_THEME, height=350, legend=dict(orientation="h", yanchor="bottom", y=-0.2, xanchor="center", x=0.5))
-            st.plotly_chart(fig_fr_pie, use_container_width=True)
-        else:
-            st.info("Missing Type, LMH, or FMH columns for Pie chart.")
-
-with c_fr_bar:
-    st.markdown('<div class="section-header">9. Backlog Details (LMH & FMH)</div>', unsafe_allow_html=True)
-    if not fr_f.empty:
-        fr_latest = fr_f[fr_f["Standard_Date"] == fr_f["Standard_Date"].max()]
-        type_col = get_col(fr_latest, "TYPE")
-        
-        if type_col and 'LMH' in fr_latest.columns and 'FMH' in fr_latest.columns:
-            f_lmh = fr_latest[fr_latest[type_col].astype(str).str.upper() == 'FID']['LMH'].sum()
-            f_fmh = fr_latest[fr_latest[type_col].astype(str).str.upper() == 'FID']['FMH'].sum()
-            r_lmh = fr_latest[fr_latest[type_col].astype(str).str.upper() == 'RID']['LMH'].sum()
-            r_fmh = fr_latest[fr_latest[type_col].astype(str).str.upper() == 'RID']['FMH'].sum()
-            
-            df_lmh = pd.DataFrame([
-                {"Category": "FID LMH", "Count": f_lmh}, {"Category": "FID FMH", "Count": f_fmh},
-                {"Category": "RID LMH", "Count": r_lmh}, {"Category": "RID FMH", "Count": r_fmh}
-            ])
-            fig_lmh = px.bar(df_lmh, x="Category", y="Count", color="Category", color_discrete_sequence=["#3b82f6", "#60a5fa", "#ef4444", "#f87171"])
-            fig_lmh.update_layout(**PLOT_THEME, height=350, showlegend=False)
-            st.plotly_chart(fig_lmh, use_container_width=True)
+    fig_pct = go.Figure()
+    fig_pct.add_trace(go.Scatter(
+        x=dc_f["Date_Label"], y=dc_f["FID_Backlog_Pct"] * 100,
+        mode="lines+markers",
+        line=dict(color="#d2a8ff", width=2.5),
+        marker=dict(size=7, color="#d2a8ff"),
+        fill="tozeroy", fillcolor="rgba(210,168,255,0.08)",
+        hovertemplate="<b>FID Backlog</b>: %{y:.2f}%<extra></extra>",
+        name="Backlog %",
+    ))
+    # threshold line at 10%
+    fig_pct.add_hline(y=10, line_dash="dash", line_color="#f85149",
+                      annotation_text="10% threshold", annotation_font_color="#f85149")
+    fig_pct.update_layout(**PLOT_THEME, height=340, showlegend=False)
+    fig_pct.update_xaxes(title_text="Date")
+    fig_pct.update_yaxes(title_text="Backlog (%)")
+    st.plotly_chart(fig_pct, use_container_width=True)
 
 st.markdown("---")
 
-# ── FIFTH LAYER: Requirements 10 & 8 ──────────────────────────────────────────
-c_sort, c_aging = st.columns(2)
+# ── Row 3: Aging distribution + ISD vs OSD totals ────────────────────────────
+c_aging, c_region = st.columns([3, 2])
 
-with c_sort:
-    st.markdown('<div class="section-header">10. Sort (FID Sort vs RID Sort)</div>', unsafe_allow_html=True)
-    if not st_det_f.empty:
-        st_latest = st_det_f[st_det_f["Standard_Date"] == st_det_f["Standard_Date"].max()]
-        type_col = get_col(st_latest, "TYPE")
-        sort_col = get_col(st_latest, "SORT")
-        
-        if type_col and sort_col:
-            f_sort = st_latest[st_latest[type_col].astype(str).str.upper() == 'FID'][sort_col].sum()
-            r_sort = st_latest[st_latest[type_col].astype(str).str.upper() == 'RID'][sort_col].sum()
-            
-            df_sort = pd.DataFrame([{"Type": "FID Sort", "Parcels": f_sort}, {"Type": "RID Sort", "Parcels": r_sort}])
-            fig_sort = px.bar(df_sort, x="Type", y="Parcels", color="Type", color_discrete_sequence=["#3b82f6", "#ef4444"])
-            fig_sort.update_layout(**PLOT_THEME, height=350, showlegend=False)
-            st.plotly_chart(fig_sort, use_container_width=True)
-        else:
-            st.info("Missing 'Type' or 'Sort' column in Sort Details.")
+AGE_COLS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, "10+"]
+AGE_LABELS = ["1d", "2d", "3d", "4d", "5d", "6d", "7d", "8d", "9d", "10d", "10+d"]
 
 with c_aging:
-    st.markdown('<div class="section-header">8. Aging Distribution (%)</div>', unsafe_allow_html=True)
-    if not ag_f.empty and "Region" in ag_f.columns:
-        ag_latest = ag_f[ag_f["Standard_Date"] == ag_f["Standard_Date"].max()]
-        AGE_COLS = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "10+"]
-        
-        rows = []
-        for _, row in ag_latest.iterrows():
-            total_region = sum([row[c] for c in AGE_COLS if c in ag_latest.columns and pd.notna(row[c])])
-            for col in AGE_COLS:
-                if col in ag_latest.columns:
-                    val = row[col]
-                    pct = (val / total_region * 100) if total_region > 0 else 0
-                    rows.append({"Region": row["Region"], "Age": f"{col}d", "Count": val, "Percentage": pct})
-                    
-        ag_melt = pd.DataFrame(rows)
-        if not ag_melt.empty:
-            fig_age = px.bar(ag_melt, x="Age", y="Percentage", color="Region", color_discrete_map={"ISD": COLOR_ISD, "OSD": COLOR_OSD}, barmode="group", text=ag_melt["Percentage"].apply(lambda x: f"{x:.1f}%"))
-            fig_age.update_traces(textposition="outside", hovertemplate="<b>%{x}</b><br>Count: %{customdata[0]:,}<br>Pct: %{y:.1f}%", customdata=ag_melt[["Count"]])
-            fig_age.update_layout(**PLOT_THEME, height=350, yaxis_title="Percentage (%)")
-            st.plotly_chart(fig_age, use_container_width=True)
+    st.markdown('<div class="section-header">Aging Distribution — ISD vs OSD (Most Recent Date)</div>', unsafe_allow_html=True)
+
+    latest_ag_date = ag_f["Report Date"].max()
+    ag_latest = ag_f[ag_f["Report Date"] == latest_ag_date].copy()
+
+    rows = []
+    for _, row in ag_latest.iterrows():
+        for col, lbl in zip(AGE_COLS, AGE_LABELS):
+            if col in ag_latest.columns:
+                rows.append({"Region": row["Region"], "Age": lbl, "Count": row[col]})
+    ag_melt = pd.DataFrame(rows)
+
+    if not ag_melt.empty:
+        pal = {"ISD": COLOR_ISD, "OSD": COLOR_OSD}
+        fig_age = px.bar(
+            ag_melt, x="Age", y="Count", color="Region",
+            color_discrete_map=pal,
+            barmode="group",
+            category_orders={"Age": AGE_LABELS},
+            labels={"Count": "Parcel Count", "Age": "Age Bucket"},
+        )
+        fig_age.update_traces(hovertemplate="<b>%{x}</b><br>Count: %{y:,}<extra></extra>")
+        fig_age.update_layout(**PLOT_THEME, height=350)
+        st.plotly_chart(fig_age, use_container_width=True)
+    else:
+        st.info("No aging data for selected filters.")
+
+with c_region:
+    st.markdown('<div class="section-header">ISD vs OSD Total In Process — Trend</div>', unsafe_allow_html=True)
+
+    fig_reg = go.Figure()
+    fig_reg.add_trace(go.Bar(
+        x=dc_f["Date_Label"], y=dc_f["ISD"],
+        name="ISD", marker_color=COLOR_ISD,
+        hovertemplate="<b>ISD</b>: %{y:,}<extra></extra>",
+    ))
+    fig_reg.add_trace(go.Bar(
+        x=dc_f["Date_Label"], y=dc_f["OSD"],
+        name="OSD", marker_color=COLOR_OSD,
+        hovertemplate="<b>OSD</b>: %{y:,}<extra></extra>",
+    ))
+    fig_reg.update_layout(**PLOT_THEME, barmode="stack", height=350)
+    fig_reg.update_xaxes(title_text="Date")
+    fig_reg.update_yaxes(title_text="Parcel Count")
+    st.plotly_chart(fig_reg, use_container_width=True)
+
+st.markdown("---")
+
+# ── Row 4: Stacked aging bar over time + data table ──────────────────────────
+st.markdown('<div class="section-header">Aging Distribution Over Time — Stacked (All Selected Days)</div>', unsafe_allow_html=True)
+
+ag_all = ag_f.copy()
+rows_all = []
+for _, row in ag_all.iterrows():
+    for col, lbl in zip(AGE_COLS, AGE_LABELS):
+        if col in ag_all.columns:
+            rows_all.append({"Date": row["Date_Label"], "Region": row["Region"], "Age": lbl, "Count": row[col]})
+ag_all_melt = pd.DataFrame(rows_all)
+
+if not ag_all_melt.empty:
+    ag_all_melt["Label"] = ag_all_melt["Date"] + " · " + ag_all_melt["Region"]
+    fig_stacked = px.bar(
+        ag_all_melt, x="Label", y="Count", color="Age",
+        category_orders={"Age": AGE_LABELS},
+        labels={"Count": "Parcel Count", "Label": "Date · Region"},
+        color_discrete_sequence=px.colors.sequential.Blues_r[::-1] + px.colors.sequential.Oranges_r[::-1],
+    )
+    fig_stacked.update_traces(hovertemplate="<b>%{x}</b><br>Age: %{data.name}<br>Count: %{y:,}<extra></extra>")
+    fig_stacked.update_layout(**PLOT_THEME, height=380, barmode="stack")
+    st.plotly_chart(fig_stacked, use_container_width=True)
+
+st.markdown("---")
+
+# ── Data tables (expandable) ──────────────────────────────────────────────────
+with st.expander("📋 Raw Data — FID Tracking"):
+    disp = ft_f[["Date_Label", "Newly_Added", "Total_In_Progress", "Worked_On", "Carry_Forward"]].copy()
+    disp.columns = ["Date", "Newly Added", "Total In Progress", "Worked On", "Carry Forward"]
+    st.dataframe(disp.style.format({
+        "Newly Added": "{:,.0f}", "Total In Progress": "{:,.0f}",
+        "Worked On": "{:,.0f}", "Carry Forward": "{:,.0f}",
+    }), use_container_width=True)
+
+with st.expander("📋 Raw Data — Dashboard Card"):
+    disp2 = dc_f[["Date_Label", "ISD", "OSD", "Total", "FID_Backlog_Pct", "Zone_Transfer"]].copy()
+    disp2.columns = ["Date", "ISD", "OSD", "Total", "FID Backlog %", "Zone Transfer"]
+    st.dataframe(disp2.style.format({
+        "ISD": "{:,.0f}", "OSD": "{:,.0f}", "Total": "{:,.0f}",
+        "FID Backlog %": "{:.2%}", "Zone Transfer": "{:,.0f}",
+    }), use_container_width=True)
+
+# ── Footer ────────────────────────────────────────────────────────────────────
+st.markdown(
+    "<p style='text-align:center;color:#484f58;font-size:11px;padding-top:8px'>"
+    "Courier Logistics Dashboard • Built with Streamlit & Plotly"
+    "</p>",
+    unsafe_allow_html=True,
+)
