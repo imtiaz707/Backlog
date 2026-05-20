@@ -56,7 +56,7 @@ hr { border-color: #30363d !important; }
 """, unsafe_allow_html=True)
 
 # Replace this with the actual URL of your restricted Google Sheet
-SPREADSHEET_URL = "https://docs.google.com/spreadsheets/d/YOUR_SHEET_ID_HERE/edit"
+SPREADSHEET_URL = "https://docs.google.com/spreadsheets/d/1n9GW1UksZ-jhCQ-zmCqwx4EH20fa-Zm5wA5BiMmdZAE/edit?gid=713116247#gid=713116247"
 
 PLOT_THEME = dict(
     paper_bgcolor="rgba(0,0,0,0)",
