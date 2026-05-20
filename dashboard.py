@@ -32,10 +32,10 @@ st.markdown("""
     background: linear-gradient(135deg, #1e3a5f 0%, #2563eb 100%);
     border-radius: 16px; padding: 18px 28px; margin-bottom: 16px;
 }
-.dash-title    { color:#fff; font-size:26px; font-weight:800; margin:0; }
-.dash-subtitle { color:rgba(255,255,255,0.80); font-size:13px; margin-top:4px; }
+.dash-title    { color:#fff !important; font-size:26px; font-weight:800; margin:0; }
+.dash-subtitle { color:rgba(255,255,255,0.80) !important; font-size:13px; margin-top:4px; }
 
-/* ── KPI Cards (light pastel, black text) ── */
+/* ── KPI Cards — force ALL child text to dark, override any Streamlit theme ── */
 .kpi-card {
     border-radius: 14px; padding: 18px 20px 14px;
     box-shadow: 0 2px 12px rgba(0,0,0,0.09);
@@ -46,30 +46,36 @@ st.markdown("""
     width:90px; height:90px; border-radius:50%;
     background: rgba(255,255,255,0.30);
 }
-.bg-blue   { background:#dbeafe; border:2px solid #2563eb; }
-.bg-red    { background:#fee2e2; border:2px solid #ef4444; }
-.bg-amber  { background:#fef3c7; border:2px solid #d97706; }
-.bg-green  { background:#d1fae5; border:2px solid #059669; }
-.bg-purple { background:#ede9fe; border:2px solid #7c3aed; }
+/* Critical: wildcard override so Streamlit dark theme can't bleed in */
+.kpi-card * { color: #111827 !important; }
+
+.bg-blue   { background:#dbeafe !important; border:2px solid #2563eb; }
+.bg-red    { background:#fee2e2 !important; border:2px solid #ef4444; }
+.bg-amber  { background:#fef3c7 !important; border:2px solid #d97706; }
+.bg-green  { background:#d1fae5 !important; border:2px solid #059669; }
+.bg-purple { background:#ede9fe !important; border:2px solid #7c3aed; }
 
 .kpi-label {
     font-size:11px; font-weight:700; text-transform:uppercase;
-    letter-spacing:0.7px; margin-bottom:6px; color:#1e3a5f;
+    letter-spacing:0.7px; margin-bottom:6px; color:#1e3a5f !important;
 }
 .kpi-value {
     font-size:30px; font-weight:800; line-height:1.1;
-    margin-bottom:6px; color:#111827;
+    margin-bottom:6px; color:#111827 !important;
+}
+.kpi-sub {
+    font-size:11px; color:#374151 !important; margin-top:4px;
 }
 .kpi-delta {
     font-size:11px; padding:2px 9px; border-radius:20px;
     display:inline-block; font-weight:600;
 }
-.kpi-delta.up   { color:#065f46; background:rgba(16,185,129,0.20); }
-.kpi-delta.down { color:#991b1b; background:rgba(239,68,68,0.20); }
+.kpi-delta.up   { color:#065f46 !important; background:rgba(16,185,129,0.20); }
+.kpi-delta.down { color:#991b1b !important; background:rgba(239,68,68,0.20); }
 
 /* ── Section header ── */
 .sec-hdr {
-    font-size:13px; font-weight:700; color:#1e3a5f;
+    font-size:13px; font-weight:700; color:#1e3a5f !important;
     text-transform:uppercase; letter-spacing:0.6px;
     border-left:4px solid #2563eb;
     padding-left:10px; margin-bottom:8px; margin-top:4px;
@@ -86,7 +92,7 @@ st.markdown("""
 }
 .aging-badge {
     background:#fef3c7; border:1px solid #f59e0b; border-radius:8px;
-    padding:5px 12px; font-size:11px; color:#92400e; font-weight:700;
+    padding:5px 12px; font-size:11px; color:#92400e !important; font-weight:700;
     display:inline-block; margin-bottom:8px;
 }
 
@@ -150,7 +156,6 @@ C_PUR = "#8b5cf6"
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
 def _safe(row, col, default=0.0):
-    """Safely extract a numeric value from a Series/dict."""
     if row is None:
         return default
     try:
@@ -184,12 +189,11 @@ def _nums(df, cols):
 def load_data():
     conn = st.connection("gsheets", type=GSheetsConnection)
 
-    # ── 1. Dashboard_Card  (2-row merged header) ──────────────────────────────
-    # Row 0 of data = actual column names; data starts at row 1.
+    # ── 1. Dashboard_Card ─────────────────────────────────────────────────────
     try:
         raw = conn.read(spreadsheet=SPREADSHEET_URL, worksheet="Dashboard_Card", header=False)
-        raw.columns = [str(c).strip() for c in raw.iloc[1]]   # row 1 = real headers
-        raw = raw.iloc[2:].reset_index(drop=True)              # data from row 2 onward
+        raw.columns = [str(c).strip() for c in raw.iloc[1]]
+        raw = raw.iloc[2:].reset_index(drop=True)
         raw = raw[~raw["Date"].astype(str).str.contains(
             "Grand Total|Date|nan|Backlog|ISD Backlog", case=False, na=True
         )]
@@ -220,10 +224,6 @@ def load_data():
         ft = pd.DataFrame()
 
     # ── 3. FID_RID_Backlog_Details ────────────────────────────────────────────
-    # Exact columns (verified):
-    # Date, FID Backlog, RID Backlog, FID LMH Total, FID LMH ISD, FID LMH SUB,
-    # FID LMH OSD, FID FMH, FID Sort, RID FMH ISD, RID FMH SUB, RID FMH OSD,
-    # RID LMH ISD, RID LMH SUB, RID LMH OSD, RID LMH Sort
     try:
         raw = conn.read(spreadsheet=SPREADSHEET_URL, worksheet="FID_RID_Backlog_Details")
         raw.columns = [str(c).strip() for c in raw.columns]
@@ -241,10 +241,9 @@ def load_data():
         fr = pd.DataFrame()
 
     # ── 4. Aging_Distribution ─────────────────────────────────────────────────
-    # Exact columns: Report Date, Region, 1,2,...,10,10+,Total  (then junk %)
     try:
         raw = conn.read(spreadsheet=SPREADSHEET_URL, worksheet="Aging_Distribution")
-        raw = raw.iloc[:, :14]   # keep only the meaningful 14 columns
+        raw = raw.iloc[:, :14]
         raw.columns = ["Date", "Region"] + [str(i) for i in range(1, 11)] + ["10+", "Total"]
         raw = raw[~raw["Date"].astype(str).str.contains(
             "Grand Total|Report Date|nan", case=False, na=True
@@ -274,7 +273,7 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-# ── Date filter (driven by FID_Tracking dates) ────────────────────────────────
+# ── Date filter ───────────────────────────────────────────────────────────────
 st.markdown('<div class="filter-bar">', unsafe_allow_html=True)
 fc1, fc2, fc3, fc4 = st.columns([2, 2, 2, 2])
 
@@ -312,14 +311,12 @@ def _filt(df, region_col=None):
     return out
 
 def _latest(df):
-    """Last row (by Date) within the selected range, from the FULL sheet."""
     if df is None or df.empty:
         return None
     sub = df[df["Date"] <= sel_end].sort_values("Date")
     return sub.iloc[-1] if not sub.empty else None
 
 def _prev(df):
-    """Second-to-last row within the selected range."""
     if df is None or df.empty:
         return None
     sub = df[df["Date"] <= sel_end].sort_values("Date")
@@ -330,14 +327,13 @@ dc_f = _filt(dc)
 fr_f = _filt(fr)
 ag_f = _filt(ag, "Region")
 
-lt_dc = _latest(dc)   # latest Dashboard_Card row
-lt_fr = _latest(fr)   # latest FID_RID_Backlog_Details row
-lt_ag = ag[ag["Date"] <= sel_end] if not ag.empty else ag  # all aging ≤ sel_end
+lt_dc = _latest(dc)
+lt_fr = _latest(fr)
+lt_ag = ag[ag["Date"] <= sel_end] if not ag.empty else ag
 
-# ── KPI calculations (exact formulas per spec) ────────────────────────────────
+# ── KPI calculations ──────────────────────────────────────────────────────────
 
-# 1. Total In-Process FID = ISD + OSD from Aging_Distribution (same day)
-#    Use the most recent date in Aging_Distribution ≤ sel_end
+# 1. Total In-Process FID = ISD + OSD totals from Aging_Distribution (latest day)
 if not lt_ag.empty:
     ag_last_date = lt_ag["Date"].max()
     ag_day       = lt_ag[lt_ag["Date"] == ag_last_date]
@@ -347,7 +343,7 @@ if not lt_ag.empty:
 else:
     isd_total = osd_total = tot_fid = 0.0
 
-# 2. Overall Backlog = FID Backlog + RID Backlog (FID_RID_Backlog_Details)
+# 2. Overall Backlog = FID Backlog + RID Backlog
 fid_bl     = _safe(lt_fr, "FID Backlog")
 rid_bl     = _safe(lt_fr, "RID Backlog")
 overall_bl = fid_bl + rid_bl
@@ -355,23 +351,31 @@ overall_bl = fid_bl + rid_bl
 # 3. Zone Transfer Parcels — manually entered in Dashboard_Card
 zt_val = _safe(lt_dc, "Zone Transfer")
 
-# 4. FID Backlog % = (FID Backlog / Total_FID) * 100
-fid_pct = (fid_bl / tot_fid * 100) if tot_fid > 0 else 0.0
+# 4. FID Backlog % = (FID Backlog / Total from Dashboard_Card same day) * 100
+#    Use Dashboard_Card "Total" column (same date as lt_fr) for the denominator
+dc_total_same_day = 0.0
+if lt_fr is not None and not dc.empty:
+    fr_date = lt_fr["Date"] if hasattr(lt_fr, "__getitem__") else None
+    if fr_date is not None:
+        dc_same = dc[dc["Date"] == fr_date]
+        if not dc_same.empty:
+            dc_total_same_day = float(dc_same.iloc[-1].get("Total", 0) or 0)
+# Fallback to Aging total if Dashboard_Card total not found
+denom_fid_pct = dc_total_same_day if dc_total_same_day > 0 else tot_fid
+fid_pct = (fid_bl / denom_fid_pct * 100) if denom_fid_pct > 0 else 0.0
 
-# 5. Zone Change % = (Zone Transfer / Total_FID) * 100
-#    (stored as decimal in sheet; we also allow fallback to stored value)
-zt_pct_stored = _safe(lt_dc, "Zone Transfer (%)")
-if zt_val > 0 and tot_fid > 0:
-    zt_pct = zt_val / tot_fid * 100
-elif zt_pct_stored > 1:        # already in %
+# 5. Zone Change % = (Zone Transfer / Total from Dashboard_Card) * 100
+dc_total_latest = _safe(lt_dc, "Total")
+zt_pct_stored   = _safe(lt_dc, "Zone Transfer (%)")
+if zt_val > 0 and dc_total_latest > 0:
+    zt_pct = zt_val / dc_total_latest * 100
+elif zt_pct_stored > 1:
     zt_pct = zt_pct_stored
 else:
     zt_pct = zt_pct_stored * 100
 
-# Delta helpers (vs previous row)
-pr_dc = _prev(dc)
+# Delta helpers
 pr_fr = _prev(fr)
-pr_ag = None
 if not lt_ag.empty:
     prev_dates = ag[ag["Date"] < ag_last_date]["Date"]
     if not prev_dates.empty:
@@ -385,32 +389,55 @@ if not lt_ag.empty:
 else:
     pr_tot_fid = tot_fid
 
-d_fid  = tot_fid    - pr_tot_fid
-d_bl   = overall_bl - (_safe(pr_fr, "FID Backlog") + _safe(pr_fr, "RID Backlog"))
+d_fid      = tot_fid    - pr_tot_fid
+d_bl       = overall_bl - (_safe(pr_fr, "FID Backlog") + _safe(pr_fr, "RID Backlog"))
 pr_fid_bl  = _safe(pr_fr, "FID Backlog")
-d_fpct = ((pr_fid_bl / pr_tot_fid * 100) - fid_pct) if pr_tot_fid > 0 else 0.0
-# positive d_fpct means % went DOWN (good), negative means it went up (bad)
+d_fpct     = ((pr_fid_bl / pr_tot_fid * 100) - fid_pct) if pr_tot_fid > 0 else 0.0
 
 # ── ROW 1 — 5 KPI Cards ───────────────────────────────────────────────────────
 c1, c2, c3, c4, c5 = st.columns(5)
-def _kpi(col, label, bg, value_str, delta=None, unit=""):
+
+def _kpi(col, label, bg, value_str, delta=None, unit="", sub=None):
+    """
+    Render a KPI card with fully inlined colors so Streamlit theme cannot override.
+    All text uses inline style color attributes — no reliance on CSS classes alone.
+    """
     dh = ""
     if delta is not None:
-        arr = "▲" if delta >= 0 else "▼"
-        cls = "up" if delta >= 0 else "down"
-        dh  = f'<div class="kpi-delta {cls}">{arr} {abs(delta):,.2f} {unit}</div>'
+        arr      = "▲" if delta >= 0 else "▼"
+        d_color  = "#065f46" if delta >= 0 else "#991b1b"
+        d_bg     = "rgba(16,185,129,0.20)" if delta >= 0 else "rgba(239,68,68,0.20)"
+        dh = (
+            f'<div style="font-size:11px;padding:2px 9px;border-radius:20px;'
+            f'display:inline-block;font-weight:600;'
+            f'color:{d_color} !important;background:{d_bg};">'
+            f'{arr} {abs(delta):,.2f} {unit}</div>'
+        )
+    sub_html = ""
+    if sub:
+        sub_html = f'<div style="font-size:10px;color:#374151 !important;margin-top:3px;">{sub}</div>'
+
     col.markdown(f"""
     <div class="kpi-card {bg}">
-      <div class="kpi-label">{label}</div>
-      <div class="kpi-value">{value_str}</div>
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;
+                  letter-spacing:0.7px;margin-bottom:6px;color:#1e3a5f !important;">
+        {label}
+      </div>
+      <div style="font-size:30px;font-weight:800;line-height:1.1;
+                  margin-bottom:6px;color:#111827 !important;">
+        {value_str}
+      </div>
       {dh}
+      {sub_html}
     </div>""", unsafe_allow_html=True)
 
-_kpi(c1, "1. Total In-Process (FID)", "bg-blue",   f"{tot_fid:,.0f}",    d_fid,  "vs prev day")
-_kpi(c2, "2. Overall Backlog",         "bg-red",    f"{overall_bl:,.0f}", d_bl,   "FID+RID")
-_kpi(c3, "3. Zone Transfer Parcels",   "bg-amber",  f"{zt_val:,.0f}",     None)
+_kpi(c1, "1. Total In-Process (FID)", "bg-blue",   f"{tot_fid:,.0f}",    d_fid,   "vs prev day")
+_kpi(c2, "2. Overall Backlog",         "bg-red",    f"{overall_bl:,.0f}", d_bl,    "FID+RID")
+_kpi(c3, "3. Zone Transfer Parcels",   "bg-amber",  f"{zt_val:,.0f}",     None,    "",
+     sub="Manually updated in sheet")
 _kpi(c4, "4. FID Backlog %",           "bg-green",  f"{fid_pct:.2f}%",    -d_fpct, "pp vs prev")
-_kpi(c5, "5. Zone Change %",           "bg-purple", f"{zt_pct:.2f}%",     None)
+_kpi(c5, "5. Zone Change %",           "bg-purple", f"{zt_pct:.2f}%",     None,    "",
+     sub="Zone Transfer / Total × 100")
 
 st.markdown("<div style='height:10px'></div>", unsafe_allow_html=True)
 
@@ -455,7 +482,6 @@ with col_r:
     st.markdown('<div class="chart-card">', unsafe_allow_html=True)
     st.markdown('<div class="sec-hdr">6. Region Wise In-Process Parcels</div>', unsafe_allow_html=True)
 
-    # Values from Aging_Distribution (same-day ISD & OSD Total)
     if tot_fid > 0:
         fig_donut = go.Figure(data=[go.Pie(
             labels=["ISD", "OSD"],
@@ -522,11 +548,6 @@ with col_r3:
     st.markdown('<div class="sec-hdr">9. Backlog Details — FID &amp; RID (LMH / FMH)</div>',
                 unsafe_allow_html=True)
     if lt_fr is not None:
-        # Exact column names from FID_RID_Backlog_Details:
-        # FID LMH ISD, FID LMH SUB, FID LMH OSD, FID LMH Total
-        # FID FMH (single value, no ISD/SUB/OSD split)
-        # RID FMH ISD, RID FMH SUB, RID FMH OSD
-        # RID LMH ISD, RID LMH SUB, RID LMH OSD
         rows = [
             ("FID LMH",
              _safe(lt_fr, "FID LMH ISD"), _safe(lt_fr, "FID LMH SUB"), _safe(lt_fr, "FID LMH OSD"),
@@ -582,7 +603,6 @@ with col_l4:
     st.markdown('<div class="chart-card">', unsafe_allow_html=True)
     st.markdown('<div class="sec-hdr">10. Sort — FID Sort vs RID Sort</div>', unsafe_allow_html=True)
     if lt_fr is not None:
-        # Exact column names: "FID Sort" and "RID LMH Sort"
         fid_sort = _safe(lt_fr, "FID Sort")
         rid_sort = _safe(lt_fr, "RID LMH Sort")
         fig10 = go.Figure(data=[go.Bar(
@@ -611,7 +631,6 @@ with col_r4:
     AGE_COLS = [str(i) for i in range(1, 11)] + ["10+"]
 
     if not ag_f.empty and "Region" in ag_f.columns:
-        # Use the most recent date's data in the filtered set
         ag_max_date = ag_f["Date"].max()
         ag_day_f    = ag_f[ag_f["Date"] == ag_max_date].copy()
 
@@ -652,7 +671,7 @@ with col_r4:
                     extra={"yaxis": dict(**_AX, title="Percentage (%)")})
             st.plotly_chart(fig8, use_container_width=True)
 
-            # ── Aging raw-count table (ISD value → ISD % | OSD value → OSD %) ──
+            # ── Aging count table ──────────────────────────────────────────────
             st.markdown("**Aging Count & % by Region**", unsafe_allow_html=False)
             isd_row = ag_day_f[ag_day_f["Region"] == "ISD"].iloc[0] if "ISD" in ag_day_f["Region"].values else None
             osd_row = ag_day_f[ag_day_f["Region"] == "OSD"].iloc[0] if "OSD" in ag_day_f["Region"].values else None
@@ -682,7 +701,6 @@ with col_r4:
                     td += f"<td>{v:,.0f}</td><td>{p:.1f}%</td>"
                 body_rows += f"<tr>{td}</tr>"
 
-            # Total row
             td_tot = "<td><b>Total</b></td>"
             if isd_row is not None:
                 td_tot += f"<td><b>{isd_tot_v:,.0f}</b></td><td><b>100%</b></td>"
