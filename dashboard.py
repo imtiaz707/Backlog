@@ -349,10 +349,18 @@ rid_bl     = _safe(lt_fr, "RID Backlog")
 overall_bl = fid_bl + rid_bl
 
 # 3. Zone Transfer Parcels — manually entered in Dashboard_Card
-zt_val = _safe(lt_dc, "Zone Transfer")
+#    Raw value from sheet; None/NaN/0 treated as "Null"
+zt_raw = None
+if lt_dc is not None:
+    try:
+        v = lt_dc["Zone Transfer"] if isinstance(lt_dc, dict) else lt_dc.get("Zone Transfer")
+        if pd.notna(v) and float(v) != 0:
+            zt_raw = float(v)
+    except Exception:
+        zt_raw = None
+zt_val = zt_raw if zt_raw is not None else 0.0
 
 # 4. FID Backlog % = (FID Backlog / Total from Dashboard_Card same day) * 100
-#    Use Dashboard_Card "Total" column (same date as lt_fr) for the denominator
 dc_total_same_day = 0.0
 if lt_fr is not None and not dc.empty:
     fr_date = lt_fr["Date"] if hasattr(lt_fr, "__getitem__") else None
@@ -360,7 +368,6 @@ if lt_fr is not None and not dc.empty:
         dc_same = dc[dc["Date"] == fr_date]
         if not dc_same.empty:
             dc_total_same_day = float(dc_same.iloc[-1].get("Total", 0) or 0)
-# Fallback to Aging total if Dashboard_Card total not found
 denom_fid_pct = dc_total_same_day if dc_total_same_day > 0 else tot_fid
 fid_pct = (fid_bl / denom_fid_pct * 100) if denom_fid_pct > 0 else 0.0
 
@@ -431,9 +438,12 @@ def _kpi(col, label, bg, value_str, delta=None, unit="", sub=None):
       {sub_html}
     </div>""", unsafe_allow_html=True)
 
+# ── Zone Transfer display: show number if present, else "Null" ────────────────
+zt_display = f"{int(zt_val):,}" if zt_raw is not None else "Null"
+
 _kpi(c1, "1. Total In-Process (FID)", "bg-blue",   f"{tot_fid:,.0f}",    d_fid,   "vs prev day")
 _kpi(c2, "2. Overall Backlog",         "bg-red",    f"{overall_bl:,.0f}", d_bl,    "FID+RID")
-_kpi(c3, "3. Zone Transfer Parcels",   "bg-amber",  f"{zt_val:,.0f}",     None,    "",
+_kpi(c3, "3. Zone Transfer Parcels",   "bg-amber",  zt_display,           None,    "",
      sub="Manually updated in sheet")
 _kpi(c4, "4. FID Backlog %",           "bg-green",  f"{fid_pct:.2f}%",    -d_fpct, "pp vs prev")
 _kpi(c5, "5. Zone Change %",           "bg-purple", f"{zt_pct:.2f}%",     None,    "",
@@ -601,12 +611,12 @@ col_l4, col_r4 = st.columns(2)
 
 with col_l4:
     st.markdown('<div class="chart-card">', unsafe_allow_html=True)
-    st.markdown('<div class="sec-hdr">10. Sort — FID Sort vs RID Sort</div>', unsafe_allow_html=True)
+    st.markdown('<div class="sec-hdr">10. Sort — FID Sort vs RID LMH Sort</div>', unsafe_allow_html=True)
     if lt_fr is not None:
         fid_sort = _safe(lt_fr, "FID Sort")
         rid_sort = _safe(lt_fr, "RID LMH Sort")
         fig10 = go.Figure(data=[go.Bar(
-            x=["FID Sort", "RID Sort"],
+            x=["FID Sort", "RID LMH Sort"],
             y=[fid_sort, rid_sort],
             marker_color=[C_ISD, C_OSD],
             text=[f"{fid_sort:,.0f}", f"{rid_sort:,.0f}"],
