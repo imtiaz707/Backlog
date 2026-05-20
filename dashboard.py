@@ -4,6 +4,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import numpy as np
+from streamlit_gsheets import GSheetsConnection
 
 # ── Page config ──────────────────────────────────────────────────────────────
 st.set_page_config(
@@ -55,7 +56,8 @@ hr { border-color: #30363d !important; }
 </style>
 """, unsafe_allow_html=True)
 
-EXCEL_PATH = r"C:\Users\epty9\carry\Project_ Backlog Report.xlsx"
+# Replace this with the actual URL of your restricted Google Sheet
+SPREADSHEET_URL = "https://docs.google.com/spreadsheets/d/YOUR_SHEET_ID_HERE/edit"
 
 PLOT_THEME = dict(
     paper_bgcolor="rgba(0,0,0,0)",
@@ -75,13 +77,20 @@ COLOR_PROG  = "#ff7b72"
 COLOR_WRK   = "#58a6ff"
 COLOR_CF    = "#8b949e"
 
-# ── Data loading ──────────────────────────────────────────────────────────────
-@st.cache_data(show_spinner=False)
-def load_data(path: str):
-    xl = pd.read_excel(path, sheet_name=None)
+# ── Data loading (Connected to GSheets) ───────────────────────────────────────
+# ttl=600 tells Streamlit to re-fetch the data from Google every 10 minutes
+@st.cache_data(show_spinner=False, ttl=600)
+def load_data():
+    # Establish secure connection
+    conn = st.connection("gsheets", type=GSheetsConnection)
+
+    # Read each specific worksheet from the Google Sheet
+    dc_raw = conn.read(spreadsheet=SPREADSHEET_URL, worksheet="Dashboard_Card")
+    ft_raw = conn.read(spreadsheet=SPREADSHEET_URL, worksheet="FID_Tracking")
+    ag_raw = conn.read(spreadsheet=SPREADSHEET_URL, worksheet="Aging_Distribution")
 
     # ── Dashboard_Card ───────────────────────────────────────────────────────
-    dc = xl["Dashboard_Card"].copy()
+    dc = dc_raw.copy()
     dc.columns = dc.iloc[0]
     dc = dc.iloc[1:].reset_index(drop=True)
     dc.rename(columns={
@@ -100,7 +109,7 @@ def load_data(path: str):
     dc["Date_Label"] = dc["Date"].dt.strftime("%b %d")
 
     # ── FID_Tracking ─────────────────────────────────────────────────────────
-    ft = xl["FID_Tracking"].copy()
+    ft = ft_raw.copy()
     ft["Report Date"] = pd.to_datetime(ft["Report Date"])
     ft.rename(columns={
         "Report Date": "Report_Date",
@@ -112,7 +121,7 @@ def load_data(path: str):
     ft["Date_Label"] = ft["Report_Date"].dt.strftime("%b %d")
 
     # ── Aging_Distribution ───────────────────────────────────────────────────
-    ag = xl["Aging_Distribution"].copy()
+    ag = ag_raw.copy()
     ag["Report Date"] = pd.to_datetime(ag["Report Date"])
     age_cols = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, "10+"]
     keep_cols = ["Report Date", "Region"] + age_cols + ["Total"]
@@ -126,8 +135,8 @@ def load_data(path: str):
     return dc, ft, ag
 
 
-with st.spinner("Loading data…"):
-    dc, ft, ag = load_data(EXCEL_PATH)
+with st.spinner("Loading live data from Google Sheets…"):
+    dc, ft, ag = load_data()
 
 # ── Sidebar ───────────────────────────────────────────────────────────────────
 with st.sidebar:
@@ -156,7 +165,7 @@ with st.sidebar:
     aging_region = st.multiselect("Aging Regions", ["ISD", "OSD"], default=["ISD", "OSD"])
 
     st.markdown("---")
-    st.caption("Data source: Project Backlog Report.xlsx")
+    st.caption("Data source: Live Google Sheets DB")
 
 # ── Filter data ───────────────────────────────────────────────────────────────
 ft_f = ft[(ft["Report_Date"] >= sel_start) & (ft["Report_Date"] <= sel_end)].copy()
