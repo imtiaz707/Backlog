@@ -61,58 +61,72 @@ COLOR_ISD = "#388bfd"
 COLOR_OSD = "#3fb950"
 
 # ── Robust Data Loading & Cleaning ───────────────────────────────────────────
+# ── Robust Data Loading & Cleaning ───────────────────────────────────────────
 @st.cache_data(show_spinner=False, ttl=600)
 def load_data():
     conn = st.connection("gsheets", type=GSheetsConnection)
     
-    def safe_read(worksheet):
+    def get_sheet(sheet_name):
         try:
-            df = conn.read(spreadsheet=SPREADSHEET_URL, worksheet=worksheet)
-            if not df.empty and str(df.columns[0]).startswith("Unnamed"):
-                df.columns = df.iloc[0]
-                df = df.iloc[1:].reset_index(drop=True)
-            # Remove Grand Totals
-            df = df[~df.iloc[:, 0].astype(str).str.contains('Grand Total', case=False, na=False)]
-            return df
+            return conn.read(spreadsheet=SPREADSHEET_URL, worksheet=sheet_name)
         except Exception:
             return pd.DataFrame()
 
-    dc = safe_read("Dashboard_Card")
-    ft = safe_read("FID_Tracking")
-    ag = safe_read("Aging_Distribution")
-    fr = safe_read("FID_RID_Backlog_Details")
-    st_det = safe_read("Sort Details")
+    dc = get_sheet("Dashboard_Card")
+    ft = get_sheet("FID_Tracking")
+    ag = get_sheet("Aging_Distribution")
+    fr = get_sheet("FID_RID_Backlog_Details")
+    st_det = get_sheet("Sort Details")
 
     # 1. Clean Dashboard_Card
     if not dc.empty:
+        if "Date" not in dc.columns:
+            dc.columns = dc.iloc[0]
+            dc = dc.iloc[1:].reset_index(drop=True)
+        dc = dc[~dc.iloc[:, 0].astype(str).str.contains('Grand Total', case=False, na=False)]
         dc.rename(columns={"FID Backlog (%)": "FID_Backlog_Pct", "Zone Transfer": "Zone_Transfer", "Zone Transfer (%)": "Zone_Transfer_Pct"}, inplace=True)
-        dc["Date"] = pd.to_datetime(dc["Date"], errors='coerce')
-        dc = dc.dropna(subset=["Date"])
-        for col in ["ISD", "OSD", "Total", "FID_Backlog_Pct", "Zone_Transfer", "Zone_Transfer_Pct"]: 
-            if col in dc.columns: dc[col] = pd.to_numeric(dc[col].astype(str).str.replace(',', ''), errors="coerce").fillna(0)
-        dc["Date_Label"] = dc["Date"].dt.strftime("%b %d")
+        if "Date" in dc.columns:
+            dc["Date"] = pd.to_datetime(dc["Date"], errors='coerce')
+            dc = dc.dropna(subset=["Date"])
+            for col in ["ISD", "OSD", "Total", "FID_Backlog_Pct", "Zone_Transfer", "Zone_Transfer_Pct"]: 
+                if col in dc.columns: dc[col] = pd.to_numeric(dc[col].astype(str).str.replace(',', ''), errors="coerce").fillna(0)
+            dc["Date_Label"] = dc["Date"].dt.strftime("%b %d")
 
     # 2. Clean FID_Tracking
     if not ft.empty:
+        if "Report Date" not in ft.columns:
+            ft.columns = ft.iloc[0]
+            ft = ft.iloc[1:].reset_index(drop=True)
+        ft = ft[~ft.iloc[:, 0].astype(str).str.contains('Grand Total', case=False, na=False)]
         ft.rename(columns={"Report Date": "Report_Date", "Newly Added": "Newly_Added", "Total In Progress (Backlog)": "Total_In_Progress", "Worked On": "Worked_On", "Carry Forward": "Carry_Forward"}, inplace=True)
-        ft["Report_Date"] = pd.to_datetime(ft["Report_Date"], errors='coerce')
-        ft = ft.dropna(subset=["Report_Date"])
-        for col in ["Newly_Added", "Total_In_Progress", "Worked_On", "Carry_Forward"]:
-            if col in ft.columns: ft[col] = pd.to_numeric(ft[col].astype(str).str.replace(',', ''), errors="coerce").fillna(0)
-        ft["Date_Label"] = ft["Report_Date"].dt.strftime("%b %d")
+        if "Report_Date" in ft.columns:
+            ft["Report_Date"] = pd.to_datetime(ft["Report_Date"], errors='coerce')
+            ft = ft.dropna(subset=["Report_Date"])
+            for col in ["Newly_Added", "Total_In_Progress", "Worked_On", "Carry_Forward"]:
+                if col in ft.columns: ft[col] = pd.to_numeric(ft[col].astype(str).str.replace(',', ''), errors="coerce").fillna(0)
+            ft["Date_Label"] = ft["Report_Date"].dt.strftime("%b %d")
 
     # 3. Clean Aging_Distribution
     if not ag.empty:
+        if "Report Date" not in ag.columns:
+            ag.columns = ag.iloc[0]
+            ag = ag.iloc[1:].reset_index(drop=True)
         ag["Report Date"] = ag["Report Date"].ffill()
-        ag["Report Date"] = pd.to_datetime(ag["Report Date"], errors='coerce')
-        ag = ag.dropna(subset=["Report Date"])
-        ag.columns = [str(c).strip() for c in ag.columns]
-        ag["Region"] = ag["Region"].astype(str).str.strip()
-        for c in ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "10+", "Total"]:
-            if c in ag.columns: ag[c] = pd.to_numeric(ag[c].astype(str).str.replace(',', ''), errors="coerce").fillna(0)
+        ag = ag[~ag.iloc[:, 0].astype(str).str.contains('Grand Total', case=False, na=False)]
+        if "Report Date" in ag.columns:
+            ag["Report Date"] = pd.to_datetime(ag["Report Date"], errors='coerce')
+            ag = ag.dropna(subset=["Report Date"])
+            ag.columns = [str(c).strip() for c in ag.columns]
+            ag["Region"] = ag["Region"].astype(str).str.strip()
+            for c in ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "10+", "Total"]:
+                if c in ag.columns: ag[c] = pd.to_numeric(ag[c].astype(str).str.replace(',', ''), errors="coerce").fillna(0)
 
-    # 4. Clean FID_RID Details (Dynamic Column Search to avoid crashes)
+    # 4. Clean FID_RID Details
     if not fr.empty:
+        if "Report Date" not in fr.columns and "Date" not in fr.columns:
+            fr.columns = fr.iloc[0]
+            fr = fr.iloc[1:].reset_index(drop=True)
+        fr = fr[~fr.iloc[:, 0].astype(str).str.contains('Grand Total', case=False, na=False)]
         date_col = "Report Date" if "Report Date" in fr.columns else "Date"
         if date_col in fr.columns:
             fr[date_col] = pd.to_datetime(fr[date_col], errors='coerce')
@@ -123,6 +137,10 @@ def load_data():
 
     # 5. Clean Sort Details
     if not st_det.empty:
+        if "Report Date" not in st_det.columns and "Date" not in st_det.columns:
+            st_det.columns = st_det.iloc[0]
+            st_det = st_det.iloc[1:].reset_index(drop=True)
+        st_det = st_det[~st_det.iloc[:, 0].astype(str).str.contains('Grand Total', case=False, na=False)]
         date_col = "Report Date" if "Report Date" in st_det.columns else "Date"
         if date_col in st_det.columns:
             st_det[date_col] = pd.to_datetime(st_det[date_col], errors='coerce')
