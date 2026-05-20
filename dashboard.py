@@ -64,29 +64,40 @@ COLOR_ISD   = "#388bfd"
 COLOR_OSD   = "#3fb950"
 
 # ── Robust Data Loading & Cleaning ───────────────────────────────────────────
+# ── Robust Data Loading & Cleaning ───────────────────────────────────────────
 @st.cache_data(show_spinner=False, ttl=600)
 def load_data():
     conn = st.connection("gsheets", type=GSheetsConnection)
     
     # Read raw data
-    dc = conn.read(spreadsheet=SPREADSHEET_URL, worksheet="Dashboard_Card")
-    ft = conn.read(spreadsheet=SPREADSHEET_URL, worksheet="FID_Tracking")
-    ag = conn.read(spreadsheet=SPREADSHEET_URL, worksheet="Aging_Distribution")
+    dc_raw = conn.read(spreadsheet=SPREADSHEET_URL, worksheet="Dashboard_Card")
+    ft_raw = conn.read(spreadsheet=SPREADSHEET_URL, worksheet="FID_Tracking")
+    ag_raw = conn.read(spreadsheet=SPREADSHEET_URL, worksheet="Aging_Distribution")
 
     # 1. Clean Dashboard_Card
-    # Remove 'Grand Total' rows which break date parsing
+    dc = dc_raw.copy()
+    # Fix headers if they are stuck in the first row
+    if "Date" not in dc.columns:
+        dc.columns = dc.iloc[0]
+        dc = dc.iloc[1:].reset_index(drop=True)
+        
     dc = dc[~dc.iloc[:, 0].astype(str).str.contains('Grand Total', case=False, na=False)]
     dc.rename(columns={"FID Backlog (%)": "FID_Backlog_Pct", "Zone Transfer": "Zone_Transfer"}, inplace=True)
     dc["Date"] = pd.to_datetime(dc["Date"], errors='coerce')
     dc = dc.dropna(subset=["Date"])
     
-    # Force numeric conversion, stripping any stray commas
     for col in ["ISD", "OSD", "Total", "FID_Backlog_Pct", "Zone_Transfer"]: 
         if col in dc.columns:
             dc[col] = pd.to_numeric(dc[col].astype(str).str.replace(',', ''), errors="coerce").fillna(0)
     dc["Date_Label"] = dc["Date"].dt.strftime("%b %d")
 
     # 2. Clean FID_Tracking
+    ft = ft_raw.copy()
+    # Fix headers if they are stuck in the first row
+    if "Report Date" not in ft.columns:
+        ft.columns = ft.iloc[0]
+        ft = ft.iloc[1:].reset_index(drop=True)
+        
     ft = ft[~ft.iloc[:, 0].astype(str).str.contains('Grand Total', case=False, na=False)]
     ft.rename(columns={"Report Date": "Report_Date", "Newly Added": "Newly_Added", "Total In Progress (Backlog)": "Total_In_Progress", "Worked On": "Worked_On", "Carry Forward": "Carry_Forward"}, inplace=True)
     ft["Report_Date"] = pd.to_datetime(ft["Report_Date"], errors='coerce')
@@ -98,13 +109,17 @@ def load_data():
     ft["Date_Label"] = ft["Report_Date"].dt.strftime("%b %d")
 
     # 3. Clean Aging_Distribution
-    # Forward fill the dates to fix the "Merged Cells" issue where OSD has no date
+    ag = ag_raw.copy()
+    # Fix headers if they are stuck in the first row
+    if "Report Date" not in ag.columns:
+        ag.columns = ag.iloc[0]
+        ag = ag.iloc[1:].reset_index(drop=True)
+        
     ag["Report Date"] = ag["Report Date"].ffill()
     ag = ag[~ag.iloc[:, 0].astype(str).str.contains('Grand Total', case=False, na=False)]
     ag["Report Date"] = pd.to_datetime(ag["Report Date"], errors='coerce')
     ag = ag.dropna(subset=["Report Date"])
     
-    # Ensure columns are treated as strings to map 1, 2, 3... 10+
     ag.columns = [str(c).strip() for c in ag.columns]
     ag["Region"] = ag["Region"].astype(str).str.strip()
     
@@ -115,7 +130,6 @@ def load_data():
     ag["Date_Label"] = ag["Report Date"].dt.strftime("%b %d")
 
     return dc, ft, ag
-
 with st.spinner("Loading live data from Google Sheets…"):
     dc, ft, ag = load_data()
 
