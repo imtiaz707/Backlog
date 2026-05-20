@@ -17,6 +17,7 @@ st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 * { font-family: 'Inter', sans-serif; }
+
 [data-testid="stAppViewContainer"] { background: #f0f4f8; }
 [data-testid="stHeader"]           { background: transparent; }
 [data-testid="stToolbar"]          { display: none; }
@@ -27,6 +28,63 @@ st.markdown("""
     max-width: 100% !important;
 }
 
+/* ── Force ALL Streamlit widgets to use light background + dark text ── */
+[data-testid="stSelectbox"] > div > div,
+[data-testid="stMultiSelect"] > div > div {
+    background-color: #ffffff !important;
+    color: #111827 !important;
+    border: 1.5px solid #cbd5e1 !important;
+    border-radius: 8px !important;
+}
+/* Dropdown selected value text */
+[data-testid="stSelectbox"] div[data-baseweb="select"] span,
+[data-testid="stSelectbox"] div[data-baseweb="select"] div,
+[data-testid="stSelectbox"] div[data-baseweb="select"] input,
+[data-testid="stMultiSelect"] div[data-baseweb="select"] span,
+[data-testid="stMultiSelect"] div[data-baseweb="select"] div {
+    color: #111827 !important;
+    background-color: transparent !important;
+}
+/* Dropdown arrow icon */
+[data-testid="stSelectbox"] svg,
+[data-testid="stMultiSelect"] svg {
+    fill: #374151 !important;
+}
+/* The floating dropdown list */
+[data-baseweb="popover"] ul,
+[data-baseweb="menu"] ul,
+[role="listbox"] {
+    background-color: #ffffff !important;
+    color: #111827 !important;
+}
+[role="option"] {
+    color: #111827 !important;
+    background-color: #ffffff !important;
+}
+[role="option"]:hover {
+    background-color: #eff6ff !important;
+    color: #1d4ed8 !important;
+}
+/* Multiselect tags */
+[data-baseweb="tag"] {
+    background-color: #dbeafe !important;
+    color: #1e3a5f !important;
+}
+[data-baseweb="tag"] span { color: #1e3a5f !important; }
+
+/* Selectbox / widget labels */
+[data-testid="stSelectbox"] label,
+[data-testid="stMultiSelect"] label,
+[data-testid="stToggle"] label,
+.stSelectbox label, .stMultiSelect label {
+    color: #1e3a5f !important;
+    font-weight: 600 !important;
+    font-size: 13px !important;
+}
+
+/* Toggle label */
+[data-testid="stToggle"] p { color: #1e3a5f !important; font-weight:600 !important; }
+
 /* ── Header ── */
 .dash-header {
     background: linear-gradient(135deg, #1e3a5f 0%, #2563eb 100%);
@@ -35,7 +93,13 @@ st.markdown("""
 .dash-title    { color:#fff !important; font-size:26px; font-weight:800; margin:0; }
 .dash-subtitle { color:rgba(255,255,255,0.80) !important; font-size:13px; margin-top:4px; }
 
-/* ── KPI Cards — force ALL child text to dark, override any Streamlit theme ── */
+/* ── Filter bar ── */
+.filter-bar {
+    background:#fff; border-radius:12px; padding:12px 18px;
+    box-shadow:0 2px 8px rgba(0,0,0,0.06); margin-bottom:14px;
+}
+
+/* ── KPI Cards — all child text forced dark ── */
 .kpi-card {
     border-radius: 14px; padding: 18px 20px 14px;
     box-shadow: 0 2px 12px rgba(0,0,0,0.09);
@@ -46,7 +110,6 @@ st.markdown("""
     width:90px; height:90px; border-radius:50%;
     background: rgba(255,255,255,0.30);
 }
-/* Critical: wildcard override so Streamlit dark theme can't bleed in */
 .kpi-card * { color: #111827 !important; }
 
 .bg-blue   { background:#dbeafe !important; border:2px solid #2563eb; }
@@ -54,24 +117,6 @@ st.markdown("""
 .bg-amber  { background:#fef3c7 !important; border:2px solid #d97706; }
 .bg-green  { background:#d1fae5 !important; border:2px solid #059669; }
 .bg-purple { background:#ede9fe !important; border:2px solid #7c3aed; }
-
-.kpi-label {
-    font-size:11px; font-weight:700; text-transform:uppercase;
-    letter-spacing:0.7px; margin-bottom:6px; color:#1e3a5f !important;
-}
-.kpi-value {
-    font-size:30px; font-weight:800; line-height:1.1;
-    margin-bottom:6px; color:#111827 !important;
-}
-.kpi-sub {
-    font-size:11px; color:#374151 !important; margin-top:4px;
-}
-.kpi-delta {
-    font-size:11px; padding:2px 9px; border-radius:20px;
-    display:inline-block; font-weight:600;
-}
-.kpi-delta.up   { color:#065f46 !important; background:rgba(16,185,129,0.20); }
-.kpi-delta.down { color:#991b1b !important; background:rgba(239,68,68,0.20); }
 
 /* ── Section header ── */
 .sec-hdr {
@@ -86,17 +131,13 @@ st.markdown("""
     background:#fff; border-radius:14px; padding:16px 18px 8px;
     box-shadow:0 2px 10px rgba(0,0,0,0.06); margin-bottom:14px;
 }
-.filter-bar {
-    background:#fff; border-radius:12px; padding:12px 18px;
-    box-shadow:0 2px 8px rgba(0,0,0,0.06); margin-bottom:14px;
-}
 .aging-badge {
     background:#fef3c7; border:1px solid #f59e0b; border-radius:8px;
     padding:5px 12px; font-size:11px; color:#92400e !important; font-weight:700;
     display:inline-block; margin-bottom:8px;
 }
 
-/* ── Styled table (ALL text black) ── */
+/* ── Styled table ── */
 .styled-table { width:100%; border-collapse:collapse; font-size:12px; }
 .styled-table thead tr { background:#1e3a5f; }
 .styled-table th {
@@ -261,7 +302,7 @@ def load_data():
     return dc, ft, fr, ag
 
 
-# ── Load data ─────────────────────────────────────────────────────────────────
+# ── Load ──────────────────────────────────────────────────────────────────────
 with st.spinner("🐝 Loading live data from Google Sheets…"):
     dc, ft, fr, ag = load_data()
 
@@ -333,7 +374,7 @@ lt_ag = ag[ag["Date"] <= sel_end] if not ag.empty else ag
 
 # ── KPI calculations ──────────────────────────────────────────────────────────
 
-# 1. Total In-Process FID = ISD + OSD totals from Aging_Distribution (latest day)
+# 1. Total In-Process FID = ISD Total + OSD Total from Aging_Distribution (latest day ≤ sel_end)
 if not lt_ag.empty:
     ag_last_date = lt_ag["Date"].max()
     ag_day       = lt_ag[lt_ag["Date"] == ag_last_date]
@@ -343,105 +384,89 @@ if not lt_ag.empty:
 else:
     isd_total = osd_total = tot_fid = 0.0
 
-# 2. Overall Backlog = FID Backlog + RID Backlog
+# 2. Overall Backlog = FID Backlog + RID Backlog (FID_RID_Backlog_Details, latest day)
 fid_bl     = _safe(lt_fr, "FID Backlog")
 rid_bl     = _safe(lt_fr, "RID Backlog")
 overall_bl = fid_bl + rid_bl
 
-# 3. Zone Transfer Parcels — manually entered in Dashboard_Card
+# 3. Zone Transfer Parcels — from Dashboard_Card "Zone Transfer" column, same day as sel_end
+#    Find the Dashboard_Card row whose Date == sel_end (or the latest available ≤ sel_end)
 zt_val = _safe(lt_dc, "Zone Transfer")
 
-# 4. FID Backlog % = (FID Backlog / Total from Dashboard_Card same day) * 100
-#    Use Dashboard_Card "Total" column (same date as lt_fr) for the denominator
-dc_total_same_day = 0.0
-if lt_fr is not None and not dc.empty:
-    fr_date = lt_fr["Date"] if hasattr(lt_fr, "__getitem__") else None
-    if fr_date is not None:
-        dc_same = dc[dc["Date"] == fr_date]
-        if not dc_same.empty:
-            dc_total_same_day = float(dc_same.iloc[-1].get("Total", 0) or 0)
-# Fallback to Aging total if Dashboard_Card total not found
-denom_fid_pct = dc_total_same_day if dc_total_same_day > 0 else tot_fid
-fid_pct = (fid_bl / denom_fid_pct * 100) if denom_fid_pct > 0 else 0.0
+# 4. FID Backlog % = (FID Backlog / Dashboard_Card Total same day) * 100
+dc_total_for_pct = _safe(lt_dc, "Total")
+fid_pct = (fid_bl / dc_total_for_pct * 100) if dc_total_for_pct > 0 else 0.0
 
-# 5. Zone Change % = (Zone Transfer / Total from Dashboard_Card) * 100
-dc_total_latest = _safe(lt_dc, "Total")
-zt_pct_stored   = _safe(lt_dc, "Zone Transfer (%)")
-if zt_val > 0 and dc_total_latest > 0:
-    zt_pct = zt_val / dc_total_latest * 100
-elif zt_pct_stored > 1:
-    zt_pct = zt_pct_stored
-else:
-    zt_pct = zt_pct_stored * 100
+# 5. Zone Change % = (Dashboard_Card Zone Transfer / Dashboard_Card Total) * 100
+#    Both values come from the SAME Dashboard_Card row (latest day ≤ sel_end)
+dc_total_for_zt = _safe(lt_dc, "Total")
+zt_pct = (zt_val / dc_total_for_zt * 100) if dc_total_for_zt > 0 else 0.0
 
-# Delta helpers
+# Delta helpers (vs previous day)
 pr_fr = _prev(fr)
 if not lt_ag.empty:
     prev_dates = ag[ag["Date"] < ag_last_date]["Date"]
     if not prev_dates.empty:
         prev_ag_date = prev_dates.max()
         pr_ag_day    = ag[ag["Date"] == prev_ag_date]
-        pr_isd = pr_ag_day[pr_ag_day["Region"] == "ISD"]["Total"].sum()
-        pr_osd = pr_ag_day[pr_ag_day["Region"] == "OSD"]["Total"].sum()
-        pr_tot_fid = pr_isd + pr_osd
+        pr_isd       = pr_ag_day[pr_ag_day["Region"] == "ISD"]["Total"].sum()
+        pr_osd       = pr_ag_day[pr_ag_day["Region"] == "OSD"]["Total"].sum()
+        pr_tot_fid   = pr_isd + pr_osd
     else:
         pr_tot_fid = tot_fid
 else:
     pr_tot_fid = tot_fid
 
-d_fid      = tot_fid    - pr_tot_fid
-d_bl       = overall_bl - (_safe(pr_fr, "FID Backlog") + _safe(pr_fr, "RID Backlog"))
-pr_fid_bl  = _safe(pr_fr, "FID Backlog")
-d_fpct     = ((pr_fid_bl / pr_tot_fid * 100) - fid_pct) if pr_tot_fid > 0 else 0.0
+d_fid     = tot_fid    - pr_tot_fid
+d_bl      = overall_bl - (_safe(pr_fr, "FID Backlog") + _safe(pr_fr, "RID Backlog"))
+pr_fid_bl = _safe(pr_fr, "FID Backlog")
+pr_dc     = _prev(dc)
+pr_dc_tot = _safe(pr_dc, "Total")
+pr_fid_pct = (pr_fid_bl / pr_dc_tot * 100) if pr_dc_tot > 0 else 0.0
+d_fpct    = pr_fid_pct - fid_pct   # positive = % went down (good)
 
-# ── ROW 1 — 5 KPI Cards ───────────────────────────────────────────────────────
-c1, c2, c3, c4, c5 = st.columns(5)
-
+# ── KPI render helper — fully inlined colors, theme-proof ─────────────────────
 def _kpi(col, label, bg, value_str, delta=None, unit="", sub=None):
-    """
-    Render a KPI card with fully inlined colors so Streamlit theme cannot override.
-    All text uses inline style color attributes — no reliance on CSS classes alone.
-    """
     dh = ""
     if delta is not None:
-        arr      = "▲" if delta >= 0 else "▼"
-        d_color  = "#065f46" if delta >= 0 else "#991b1b"
-        d_bg     = "rgba(16,185,129,0.20)" if delta >= 0 else "rgba(239,68,68,0.20)"
+        arr     = "▲" if delta >= 0 else "▼"
+        d_color = "#065f46" if delta >= 0 else "#991b1b"
+        d_bg    = "rgba(16,185,129,0.20)" if delta >= 0 else "rgba(239,68,68,0.20)"
         dh = (
             f'<div style="font-size:11px;padding:2px 9px;border-radius:20px;'
-            f'display:inline-block;font-weight:600;'
+            f'display:inline-block;font-weight:600;margin-top:4px;'
             f'color:{d_color} !important;background:{d_bg};">'
             f'{arr} {abs(delta):,.2f} {unit}</div>'
         )
     sub_html = ""
     if sub:
-        sub_html = f'<div style="font-size:10px;color:#374151 !important;margin-top:3px;">{sub}</div>'
-
+        sub_html = (
+            f'<div style="font-size:10px;color:#6b7280 !important;'
+            f'margin-top:5px;font-style:italic;">{sub}</div>'
+        )
     col.markdown(f"""
     <div class="kpi-card {bg}">
       <div style="font-size:11px;font-weight:700;text-transform:uppercase;
-                  letter-spacing:0.7px;margin-bottom:6px;color:#1e3a5f !important;">
-        {label}
-      </div>
+                  letter-spacing:0.7px;margin-bottom:6px;
+                  color:#1e3a5f !important;">{label}</div>
       <div style="font-size:30px;font-weight:800;line-height:1.1;
-                  margin-bottom:6px;color:#111827 !important;">
-        {value_str}
-      </div>
-      {dh}
-      {sub_html}
+                  margin-bottom:4px;color:#111827 !important;">{value_str}</div>
+      {dh}{sub_html}
     </div>""", unsafe_allow_html=True)
 
+# ── ROW 1 — 5 KPI Cards ───────────────────────────────────────────────────────
+c1, c2, c3, c4, c5 = st.columns(5)
 _kpi(c1, "1. Total In-Process (FID)", "bg-blue",   f"{tot_fid:,.0f}",    d_fid,   "vs prev day")
 _kpi(c2, "2. Overall Backlog",         "bg-red",    f"{overall_bl:,.0f}", d_bl,    "FID+RID")
 _kpi(c3, "3. Zone Transfer Parcels",   "bg-amber",  f"{zt_val:,.0f}",     None,    "",
-     sub="Manually updated in sheet")
-_kpi(c4, "4. FID Backlog %",           "bg-green",  f"{fid_pct:.2f}%",    -d_fpct, "pp vs prev")
+     sub="From Dashboard_Card · manually updated")
+_kpi(c4, "4. FID Backlog %",           "bg-green",  f"{fid_pct:.2f}%",    d_fpct,  "pp vs prev")
 _kpi(c5, "5. Zone Change %",           "bg-purple", f"{zt_pct:.2f}%",     None,    "",
-     sub="Zone Transfer / Total × 100")
+     sub="Zone Transfer ÷ Total × 100")
 
 st.markdown("<div style='height:10px'></div>", unsafe_allow_html=True)
 
-# ── ROW 2 — Chart 11 (FID Tracking combo) + Chart 6 (Region bar/donut) ───────
+# ── ROW 2 — Chart 11 + Chart 6 ───────────────────────────────────────────────
 col_l, col_r = st.columns([3, 2])
 
 with col_l:
@@ -451,27 +476,19 @@ with col_l:
     if not ft_f.empty:
         fig = go.Figure()
         if "Total In Progress (Backlog)" in ft_f.columns:
-            fig.add_trace(go.Bar(
-                x=ft_f["Date_Label"], y=ft_f["Total In Progress (Backlog)"],
-                name="Total In Process", marker_color=C_ISD,
-            ))
+            fig.add_trace(go.Bar(x=ft_f["Date_Label"], y=ft_f["Total In Progress (Backlog)"],
+                                 name="Total In Process", marker_color=C_ISD))
         if "Newly Added" in ft_f.columns:
-            fig.add_trace(go.Bar(
-                x=ft_f["Date_Label"], y=ft_f["Newly Added"],
-                name="Newly Added", marker_color=C_AMB,
-            ))
+            fig.add_trace(go.Bar(x=ft_f["Date_Label"], y=ft_f["Newly Added"],
+                                 name="Newly Added", marker_color=C_AMB))
         if "Carry Forward" in ft_f.columns:
-            fig.add_trace(go.Bar(
-                x=ft_f["Date_Label"], y=ft_f["Carry Forward"],
-                name="Carry Forward", marker_color=C_PUR,
-            ))
+            fig.add_trace(go.Bar(x=ft_f["Date_Label"], y=ft_f["Carry Forward"],
+                                 name="Carry Forward", marker_color=C_PUR))
         if show_worked and "Worked On" in ft_f.columns:
-            fig.add_trace(go.Scatter(
-                x=ft_f["Date_Label"], y=ft_f["Worked On"],
-                name="Worked On", mode="lines+markers",
-                line=dict(color="#10b981", width=3),
-                marker=dict(size=7, line=dict(color="#fff", width=1.5)),
-            ))
+            fig.add_trace(go.Scatter(x=ft_f["Date_Label"], y=ft_f["Worked On"],
+                                     name="Worked On", mode="lines+markers",
+                                     line=dict(color="#10b981", width=3),
+                                     marker=dict(size=7, line=dict(color="#fff", width=1.5))))
         _layout(fig, height=330, extra={"barmode": "group"})
         st.plotly_chart(fig, use_container_width=True)
     else:
@@ -481,16 +498,12 @@ with col_l:
 with col_r:
     st.markdown('<div class="chart-card">', unsafe_allow_html=True)
     st.markdown('<div class="sec-hdr">6. Region Wise In-Process Parcels</div>', unsafe_allow_html=True)
-
     if tot_fid > 0:
         fig_donut = go.Figure(data=[go.Pie(
-            labels=["ISD", "OSD"],
-            values=[isd_total, osd_total],
-            hole=0.55,
-            marker_colors=[C_ISD, C_OSD],
+            labels=["ISD", "OSD"], values=[isd_total, osd_total],
+            hole=0.55, marker_colors=[C_ISD, C_OSD],
             textinfo="label+percent",
-            textfont=dict(size=12, color="#111827"),
-            pull=[0.04, 0],
+            textfont=dict(size=12, color="#111827"), pull=[0.04, 0],
         )])
         fig_donut.add_annotation(
             text=f"<b>{tot_fid:,.0f}</b><br><span style='font-size:10px'>Total</span>",
@@ -499,19 +512,15 @@ with col_r:
         )
         _layout(fig_donut, height=240,
                 extra={"legend": dict(orientation="h", yanchor="bottom", y=-0.18,
-                                      xanchor="center", x=0.5,
-                                      font=dict(color="#111827"))})
+                                      xanchor="center", x=0.5, font=dict(color="#111827"))})
         st.plotly_chart(fig_donut, use_container_width=True)
 
         df_reg = pd.DataFrame({"Region": ["ISD", "OSD"], "Parcels": [isd_total, osd_total]})
         fig_bar = px.bar(df_reg, x="Parcels", y="Region", orientation="h",
-                         color="Region",
-                         color_discrete_map={"ISD": C_ISD, "OSD": C_OSD},
+                         color="Region", color_discrete_map={"ISD": C_ISD, "OSD": C_OSD},
                          text="Parcels")
-        fig_bar.update_traces(
-            texttemplate="%{text:,.0f}", textposition="outside",
-            textfont=dict(color="#111827"),
-        )
+        fig_bar.update_traces(texttemplate="%{text:,.0f}", textposition="outside",
+                              textfont=dict(color="#111827"))
         _layout(fig_bar, height=130,
                 extra={"showlegend": False, "margin": dict(l=10, r=90, t=5, b=5)})
         st.plotly_chart(fig_bar, use_container_width=True)
@@ -521,7 +530,7 @@ with col_r:
 
 st.markdown("<div style='height:4px'></div>", unsafe_allow_html=True)
 
-# ── ROW 3 — Chart 7 (FID vs RID Backlog) + Chart 9 (Backlog Details) ─────────
+# ── ROW 3 — Chart 7 + Chart 9 ────────────────────────────────────────────────
 col_l3, col_r3 = st.columns([2, 3])
 
 with col_l3:
@@ -529,13 +538,10 @@ with col_l3:
     st.markdown('<div class="sec-hdr">7. Backlog — FID vs RID</div>', unsafe_allow_html=True)
     if lt_fr is not None and (fid_bl + rid_bl) > 0:
         fig7 = go.Figure(data=[go.Bar(
-            x=["FID Backlog", "RID Backlog"],
-            y=[fid_bl, rid_bl],
+            x=["FID Backlog", "RID Backlog"], y=[fid_bl, rid_bl],
             marker_color=[C_ISD, C_OSD],
             text=[f"{fid_bl:,.0f}", f"{rid_bl:,.0f}"],
-            textposition="outside",
-            textfont=dict(size=13, color="#111827"),
-            width=0.5,
+            textposition="outside", textfont=dict(size=13, color="#111827"), width=0.5,
         )])
         _layout(fig7, height=300, extra={"showlegend": False})
         st.plotly_chart(fig7, use_container_width=True)
@@ -549,18 +555,15 @@ with col_r3:
                 unsafe_allow_html=True)
     if lt_fr is not None:
         rows = [
-            ("FID LMH",
-             _safe(lt_fr, "FID LMH ISD"), _safe(lt_fr, "FID LMH SUB"), _safe(lt_fr, "FID LMH OSD"),
-             _safe(lt_fr, "FID LMH Total")),
-            ("FID FMH",
-             _safe(lt_fr, "FID FMH"), 0, 0,
-             _safe(lt_fr, "FID FMH")),
-            ("RID FMH",
-             _safe(lt_fr, "RID FMH ISD"), _safe(lt_fr, "RID FMH SUB"), _safe(lt_fr, "RID FMH OSD"),
-             _safe(lt_fr, "RID FMH ISD") + _safe(lt_fr, "RID FMH SUB") + _safe(lt_fr, "RID FMH OSD")),
-            ("RID LMH",
-             _safe(lt_fr, "RID LMH ISD"), _safe(lt_fr, "RID LMH SUB"), _safe(lt_fr, "RID LMH OSD"),
-             _safe(lt_fr, "RID LMH ISD") + _safe(lt_fr, "RID LMH SUB") + _safe(lt_fr, "RID LMH OSD")),
+            ("FID LMH", _safe(lt_fr,"FID LMH ISD"), _safe(lt_fr,"FID LMH SUB"),
+             _safe(lt_fr,"FID LMH OSD"), _safe(lt_fr,"FID LMH Total")),
+            ("FID FMH", _safe(lt_fr,"FID FMH"), 0, 0, _safe(lt_fr,"FID FMH")),
+            ("RID FMH", _safe(lt_fr,"RID FMH ISD"), _safe(lt_fr,"RID FMH SUB"),
+             _safe(lt_fr,"RID FMH OSD"),
+             _safe(lt_fr,"RID FMH ISD")+_safe(lt_fr,"RID FMH SUB")+_safe(lt_fr,"RID FMH OSD")),
+            ("RID LMH", _safe(lt_fr,"RID LMH ISD"), _safe(lt_fr,"RID LMH SUB"),
+             _safe(lt_fr,"RID LMH OSD"),
+             _safe(lt_fr,"RID LMH ISD")+_safe(lt_fr,"RID LMH SUB")+_safe(lt_fr,"RID LMH OSD")),
         ]
         labels = [r[0] for r in rows]
         isd_v  = [r[1] for r in rows]
@@ -569,21 +572,18 @@ with col_r3:
         tots   = [r[4] for r in rows]
 
         fig9 = go.Figure()
-        for vals, name, color in [(isd_v, "ISD", C_ISD), (sub_v, "SUB", C_SUB), (osd_v, "OSD", C_OSD)]:
+        for vals, name, color in [(isd_v,"ISD",C_ISD),(sub_v,"SUB",C_SUB),(osd_v,"OSD",C_OSD)]:
             fig9.add_trace(go.Bar(
-                name=name, y=labels, x=vals, orientation="h",
-                marker_color=color,
+                name=name, y=labels, x=vals, orientation="h", marker_color=color,
                 text=[f"{v:,.0f}" if v > 0 else "" for v in vals],
                 textposition="inside", insidetextanchor="middle",
                 textfont=dict(color="#ffffff", size=11),
             ))
         for lbl, tot in zip(labels, tots):
             if tot > 0:
-                fig9.add_annotation(
-                    x=tot, y=lbl, text=f"  <b>{tot:,.0f}</b>",
-                    showarrow=False, xanchor="left",
-                    font=dict(size=12, color="#111827"),
-                )
+                fig9.add_annotation(x=tot, y=lbl, text=f"  <b>{tot:,.0f}</b>",
+                                    showarrow=False, xanchor="left",
+                                    font=dict(size=12, color="#111827"))
         _layout(fig9, height=320, extra={
             "barmode": "stack",
             "xaxis": dict(**_AX, title="Count"),
@@ -596,7 +596,7 @@ with col_r3:
 
 st.markdown("<div style='height:4px'></div>", unsafe_allow_html=True)
 
-# ── ROW 4 — Chart 10 (Sort) + Chart 8 (Aging Distribution %) ─────────────────
+# ── ROW 4 — Chart 10 + Chart 8 ───────────────────────────────────────────────
 col_l4, col_r4 = st.columns(2)
 
 with col_l4:
@@ -606,13 +606,10 @@ with col_l4:
         fid_sort = _safe(lt_fr, "FID Sort")
         rid_sort = _safe(lt_fr, "RID LMH Sort")
         fig10 = go.Figure(data=[go.Bar(
-            x=["FID Sort", "RID Sort"],
-            y=[fid_sort, rid_sort],
+            x=["FID Sort", "RID Sort"], y=[fid_sort, rid_sort],
             marker_color=[C_ISD, C_OSD],
             text=[f"{fid_sort:,.0f}", f"{rid_sort:,.0f}"],
-            textposition="outside",
-            textfont=dict(size=13, color="#111827"),
-            width=0.5,
+            textposition="outside", textfont=dict(size=13, color="#111827"), width=0.5,
         )])
         _layout(fig10, height=300, extra={"showlegend": False})
         st.plotly_chart(fig10, use_container_width=True)
@@ -627,7 +624,6 @@ with col_r4:
         '<div class="aging-badge">ISD &amp; SUB = 4 Days+ &nbsp;|&nbsp; OSD = 5 Days+</div>',
         unsafe_allow_html=True,
     )
-
     AGE_COLS = [str(i) for i in range(1, 11)] + ["10+"]
 
     if not ag_f.empty and "Region" in ag_f.columns:
@@ -647,50 +643,41 @@ with col_r4:
                 if c in ag_day_f.columns:
                     val = float(row[c]) if pd.notna(row[c]) else 0.0
                     pct = val / total * 100 if total > 0 else 0.0
-                    rows8.append({"Region": region, "Age": f"{c}d",
-                                  "Count": val, "Pct": pct})
+                    rows8.append({"Region": region, "Age": f"{c}d", "Count": val, "Pct": pct})
 
         ag_melt = pd.DataFrame(rows8)
         if not ag_melt.empty:
-            fig8 = px.bar(
-                ag_melt, x="Age", y="Pct", color="Region",
-                color_discrete_map={"ISD": C_ISD, "OSD": C_OSD},
-                barmode="group",
-                text=ag_melt["Pct"].apply(lambda x: f"{x:.1f}%"),
-            )
+            fig8 = px.bar(ag_melt, x="Age", y="Pct", color="Region",
+                          color_discrete_map={"ISD": C_ISD, "OSD": C_OSD},
+                          barmode="group",
+                          text=ag_melt["Pct"].apply(lambda x: f"{x:.1f}%"))
             fig8.update_traces(
-                textposition="outside",
-                textfont=dict(color="#111827", size=9),
+                textposition="outside", textfont=dict(color="#111827", size=9),
                 customdata=ag_melt[["Count", "Region"]],
                 hovertemplate=(
                     "<b>%{x}</b><br>Region: %{customdata[1]}"
                     "<br>Count: %{customdata[0]:,.0f}<br>Pct: %{y:.1f}%"
                 ),
             )
-            _layout(fig8, height=300,
-                    extra={"yaxis": dict(**_AX, title="Percentage (%)")})
+            _layout(fig8, height=300, extra={"yaxis": dict(**_AX, title="Percentage (%)")})
             st.plotly_chart(fig8, use_container_width=True)
 
-            # ── Aging count table ──────────────────────────────────────────────
-            st.markdown("**Aging Count & % by Region**", unsafe_allow_html=False)
-            isd_row = ag_day_f[ag_day_f["Region"] == "ISD"].iloc[0] if "ISD" in ag_day_f["Region"].values else None
-            osd_row = ag_day_f[ag_day_f["Region"] == "OSD"].iloc[0] if "OSD" in ag_day_f["Region"].values else None
-
+            st.markdown("**Aging Count & % by Region**")
+            isd_row = ag_day_f[ag_day_f["Region"]=="ISD"].iloc[0] if "ISD" in ag_day_f["Region"].values else None
+            osd_row = ag_day_f[ag_day_f["Region"]=="OSD"].iloc[0] if "OSD" in ag_day_f["Region"].values else None
             isd_tot_v = float(isd_row["Total"]) if isd_row is not None else 0
             osd_tot_v = float(osd_row["Total"]) if osd_row is not None else 0
 
-            age_labels = [f"{c}d" for c in AGE_COLS]
             th = "<th>Days</th>"
-            if isd_row is not None:
-                th += "<th>ISD Count</th><th>ISD %</th>"
-            if osd_row is not None:
-                th += "<th>OSD Count</th><th>OSD %</th>"
+            if isd_row is not None: th += "<th>ISD Count</th><th>ISD %</th>"
+            if osd_row is not None: th += "<th>OSD Count</th><th>OSD %</th>"
 
             body_rows = ""
-            for c, lbl in zip(AGE_COLS, age_labels):
+            for c in AGE_COLS:
                 if c not in ag_day_f.columns:
                     continue
-                td = f"<td><b>{lbl}</b></td>"
+                lbl = f"{c}d"
+                td  = f"<td><b>{lbl}</b></td>"
                 if isd_row is not None:
                     v = float(isd_row[c]) if pd.notna(isd_row[c]) else 0
                     p = v / isd_tot_v * 100 if isd_tot_v > 0 else 0
@@ -702,10 +689,8 @@ with col_r4:
                 body_rows += f"<tr>{td}</tr>"
 
             td_tot = "<td><b>Total</b></td>"
-            if isd_row is not None:
-                td_tot += f"<td><b>{isd_tot_v:,.0f}</b></td><td><b>100%</b></td>"
-            if osd_row is not None:
-                td_tot += f"<td><b>{osd_tot_v:,.0f}</b></td><td><b>100%</b></td>"
+            if isd_row is not None: td_tot += f"<td><b>{isd_tot_v:,.0f}</b></td><td><b>100%</b></td>"
+            if osd_row is not None: td_tot += f"<td><b>{osd_tot_v:,.0f}</b></td><td><b>100%</b></td>"
             body_rows += f"<tr style='background:#fef9c3;font-weight:700'>{td_tot}</tr>"
 
             st.markdown(f"""
@@ -729,7 +714,6 @@ st.markdown(
     '<div class="sec-hdr">11. Date-wise Backlog Progress Tracking — Full Table (FID)</div>',
     unsafe_allow_html=True,
 )
-
 if not ft_f.empty:
     tbl = ft_f.sort_values("Date").copy()
     COL_MAP = {
@@ -765,7 +749,6 @@ if not ft_f.empty:
     </div>""", unsafe_allow_html=True)
 else:
     st.info("No FID tracking data to display.")
-
 st.markdown('</div>', unsafe_allow_html=True)
 
 # ── Footer ────────────────────────────────────────────────────────────────────
