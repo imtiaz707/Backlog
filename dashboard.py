@@ -125,26 +125,40 @@ def _safe(row, col, default=0.0):
     if row is None:
         return default
     try:
-        # Use direct index access (works for both Series and dict)
         if isinstance(row, dict):
             v = row.get(col, default)
         else:
-            # pandas Series — use direct bracket access which raises KeyError if missing
             v = row[col] if col in row.index else default
         return float(v) if pd.notna(v) else default
     except Exception:
         return default
 
 def _safe_multi(row, *cols, default=0.0):
-    """
-    Try multiple column names and return the first non-zero match.
-    Useful when live sheet may have different column names than Excel.
-    """
+    """Try multiple column names and return the first non-zero match."""
     for col in cols:
         v = _safe(row, col, default=None)
         if v is not None and v != 0.0:
             return v
     return default
+
+def _find_col(row, *keywords, exclude=None):
+    """
+    Fuzzy-find a column whose name contains ALL keywords (case-insensitive).
+    Optionally exclude columns containing any of the exclude strings.
+    Returns the numeric value of the first match, or 0.0.
+    """
+    if row is None:
+        return 0.0
+    exclude = exclude or []
+    index = row.keys() if isinstance(row, dict) else row.index
+    for col in index:
+        col_lower = str(col).lower()
+        if all(kw.lower() in col_lower for kw in keywords):
+            if not any(ex.lower() in col_lower for ex in exclude):
+                v = _safe(row, col, default=0.0)
+                if v != 0.0:
+                    return v
+    return 0.0
 
 def _fix_year(s):
     """Replace year < 2000 with current year (handles date strings with no year)."""
@@ -162,12 +176,7 @@ def _parse_dates(col):
     )
 
 def _to_date(ts_series):
-    """
-    FIX: Normalize timestamps to date-only (midnight).
-    Dashboard_Card rows have timestamps like '2026-05-20 12:06:23'.
-    When sel_end = '2026-05-20 00:00:00' (from FID_Tracking), those rows get excluded.
-    Stripping the time component fixes the mismatch.
-    """
+    """Normalize timestamps to date-only (midnight)."""
     return pd.to_datetime(ts_series.dt.date)
 
 def _nums(df, cols):
@@ -185,7 +194,6 @@ def load_data():
     conn = st.connection("gsheets", type=GSheetsConnection)
 
     # ── Dashboard_Card ────────────────────────────────────────────────────────
-    # Has a 2-row header: row 0 = title, row 1 = real column names.
     try:
         raw = conn.read(spreadsheet=SPREADSHEET_URL, worksheet="Dashboard_Card", header=False)
         raw.columns = [str(c).strip() for c in raw.iloc[1]]
@@ -195,9 +203,10 @@ def load_data():
         )]
         raw["Date"] = _parse_dates(raw["Date"])
         raw = raw.dropna(subset=["Date"])
-        # FIX ① — normalize timestamps → date-only so date comparisons work correctly
         raw["Date"] = _to_date(raw["Date"])
-        raw = _nums(raw, ["ISD", "OSD", "Total", "FID Backlog (%)", "Zone Transfer", "Zone Transfer (%)"])
+        # Numeric-ify all columns except Date
+        num_cols = [c for c in raw.columns if c != "Date"]
+        raw = _nums(raw, num_cols)
         raw["Date_Label"] = raw["Date"].dt.strftime("%d %b")
         dc = raw
     except Exception as e:
@@ -214,7 +223,6 @@ def load_data():
         raw.rename(columns={raw.columns[0]: "Date"}, inplace=True)
         raw["Date"] = _parse_dates(raw["Date"])
         raw = raw.dropna(subset=["Date"])
-        # Also normalize FID_Tracking dates (already midnight, but be consistent)
         raw["Date"] = _to_date(raw["Date"])
         raw = _nums(raw, list(raw.columns[1:]))
         raw["Date_Label"] = raw["Date"].dt.strftime("%d %b")
@@ -224,9 +232,6 @@ def load_data():
         ft = pd.DataFrame()
 
     # ── FID_RID_Backlog_Details ───────────────────────────────────────────────
-    # FIX ② — The live Google Sheet may name the RID sort column "RID Sort"
-    #          while the Excel file uses "RID LMH Sort". We keep both and
-    #          resolve at query time with _safe_multi().
     try:
         raw = conn.read(spreadsheet=SPREADSHEET_URL, worksheet="FID_RID_Backlog_Details")
         raw.columns = [str(c).strip() for c in raw.columns]
@@ -293,9 +298,7 @@ if all_dates:
     if ei < si:
         ei = si
     sel_start = pd.Timestamp(all_dates[si])
-    # FIX ①: sel_end extended to end of day so DC rows with timestamps like
-    # '2026-05-20 12:06:23' are included when the user selects '20 May 2026'
-    sel_end = pd.Timestamp(all_dates[ei]) + pd.Timedelta(days=1) - pd.Timedelta(seconds=1)
+    sel_end   = pd.Timestamp(all_dates[ei]) + pd.Timedelta(days=1) - pd.Timedelta(seconds=1)
 else:
     sel_start = pd.Timestamp.now().normalize()
     sel_end   = sel_start + pd.Timedelta(days=1) - pd.Timedelta(seconds=1)
@@ -339,6 +342,11 @@ ag_f = _filt(ag, "Region")
 lt_dc = _latest(dc)
 lt_fr = _latest(fr)
 
+# ── DEBUG (uncomment to inspect exact column names from Dashboard_Card) ───────
+# if lt_dc is not None:
+#     with st.expander("🔍 Debug — Dashboard_Card columns & values"):
+#         st.write(dict(lt_dc))
+
 # ── KPI 1: Total In-Process (FID) from Aging_Distribution ─────────────────────
 ag_le = ag[ag["Date"] <= sel_end] if not ag.empty else ag
 if not ag_le.empty:
@@ -355,45 +363,43 @@ fid_bl     = _safe(lt_fr, "FID Backlog")
 rid_bl     = _safe(lt_fr, "RID Backlog")
 overall_bl = fid_bl + rid_bl
 
-# ── DEBUG: Uncomment temporarily to see exact DC column names ─────────────────
-# if lt_dc is not None:
-#     with st.expander("🔍 Debug — Dashboard_Card columns"):
-#         st.write(dict(lt_dc))   # shows every column name + its value
-
-# ── KPI 3: Zone Transfer Parcels ─────────────────────────────────────────────
+# ── KPI 3: Zone Transfer Parcels ──────────────────────────────────────────────
+# Fuzzy-search for a column containing "zone" + "transfer" but NOT "%" or "pct"
+# This handles: "Zone Transfer", "Zone Transfer Parcel", "Zone Transfer Parcels", etc.
 zt_val = 0.0
 if lt_dc is not None:
-    # Fuzzy search: find any column whose name contains "zone" and "transfer"
-    # but NOT "%" — picks up "Zone Transfer", "Zone Transfer Parcel", etc.
-    for col in lt_dc.index:
+    index_cols = lt_dc.keys() if isinstance(lt_dc, dict) else lt_dc.index
+    for col in index_cols:
         col_lower = str(col).lower()
-        if "zone" in col_lower and "transfer" in col_lower and "%" not in col_lower:
+        if ("zone" in col_lower and "transfer" in col_lower
+                and "%" not in col_lower and "pct" not in col_lower):
             v = _safe(lt_dc, col, default=0.0)
             if v != 0.0:
                 zt_val = v
-                break   # take the first match
+                break
 
-# ── KPI 4: FID Backlog % ─────────────────────────────────────────────────────
+# ── KPI 4: FID Backlog % ──────────────────────────────────────────────────────
 dc_total_val = _safe(lt_dc, "Total")
 denom        = dc_total_val if dc_total_val > 0 else tot_fid
 fid_pct      = (fid_bl / denom * 100) if denom > 0 else 0.0
 
 # ── KPI 5: Zone Change % = Zone Transfer / Total (both from Dashboard_Card) ───
+# Formula: Zone Transfer / Total * 100
 if zt_val > 0 and dc_total_val > 0:
     zt_pct = (zt_val / dc_total_val) * 100
 else:
-    # Fallback: find the stored % column (contains "zone","transfer","%")
+    # Fallback: read stored % column (contains "zone" + "transfer" + "%" or "pct")
     zt_pct = 0.0
     if lt_dc is not None:
-        for col in lt_dc.index:
+        index_cols = lt_dc.keys() if isinstance(lt_dc, dict) else lt_dc.index
+        for col in index_cols:
             col_lower = str(col).lower()
-            if "zone" in col_lower and "transfer" in col_lower and "%" in col_lower:
+            if ("zone" in col_lower and "transfer" in col_lower
+                    and ("%" in col_lower or "pct" in col_lower)):
                 stored = _safe(lt_dc, col, default=0.0)
                 zt_pct = stored * 100 if stored <= 1 else stored
                 break
 
-# ── KPI display ──────────────────────────────────────────────────────────────
-zt_display = f"{int(zt_val):,}" if zt_val > 0 else "0"
 # ── Deltas ────────────────────────────────────────────────────────────────────
 pr_fr = _prev(fr)
 if not ag_le.empty:
@@ -437,7 +443,8 @@ def _kpi(col_w, label, bg, value_str, delta=None, unit="", sub=None):
       {dh}{sub_html}
     </div>""", unsafe_allow_html=True)
 
-zt_display = f"{int(zt_val):,}" if zt_raw is not None else "Null"
+# Zone Transfer display: show value if found, else "0"
+zt_display = f"{int(zt_val):,}" if zt_val > 0 else "0"
 
 _kpi(c1, "1. Total In-Process (FID)", "bg-blue",   f"{tot_fid:,.0f}",    d_fid,   "vs prev day")
 _kpi(c2, "2. Overall Backlog",         "bg-red",    f"{overall_bl:,.0f}", d_bl,    "FID+RID")
@@ -588,14 +595,9 @@ col_l4, col_r4 = st.columns(2)
 
 with col_l4:
     st.markdown('<div class="chart-card">', unsafe_allow_html=True)
-    # FIX ②: renamed label from "RID LMH Sort" → "RID Sort"
     st.markdown('<div class="sec-hdr">10. Sort — FID Sort vs RID Sort</div>', unsafe_allow_html=True)
     if lt_fr is not None:
         fid_sort = _safe(lt_fr, "FID Sort")
-        # FIX ②: Try "RID Sort" first (live Google Sheet column name),
-        #         fall back to "RID LMH Sort" (Excel column name).
-        #         Both are tried so the dashboard works regardless of which name
-        #         the sheet uses on a given day.
         rid_sort = _safe_multi(lt_fr, "RID Sort", "RID LMH Sort")
 
         fig10 = go.Figure(data=[go.Bar(
@@ -623,7 +625,7 @@ with col_r4:
     AGE_COLS = [str(i) for i in range(1, 11)] + ["10+"]
 
     if not ag_f.empty and "Region" in ag_f.columns:
-        ag_max = ag_f["Date"].max()
+        ag_max   = ag_f["Date"].max()
         ag_day_f = ag_f[ag_f["Date"] == ag_max].copy()
 
         rows8 = []
@@ -662,8 +664,8 @@ with col_r4:
 
             # Aging count table
             st.markdown("**Aging Count &amp; % by Region**", unsafe_allow_html=True)
-            isd_row = ag_day_f[ag_day_f["Region"] == "ISD"].iloc[0] if "ISD" in ag_day_f["Region"].values else None
-            osd_row = ag_day_f[ag_day_f["Region"] == "OSD"].iloc[0] if "OSD" in ag_day_f["Region"].values else None
+            isd_row   = ag_day_f[ag_day_f["Region"] == "ISD"].iloc[0] if "ISD" in ag_day_f["Region"].values else None
+            osd_row   = ag_day_f[ag_day_f["Region"] == "OSD"].iloc[0] if "OSD" in ag_day_f["Region"].values else None
             isd_tot_v = float(isd_row["Total"]) if isd_row is not None else 0
             osd_tot_v = float(osd_row["Total"]) if osd_row is not None else 0
 
