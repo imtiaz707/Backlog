@@ -86,8 +86,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 SPREADSHEET_URL = (
-    "https://docs.google.com/spreadsheets/d/"
-    "1n9GW1UksZ-jhCQ-zmCqwx4EH20fa-Zm5wA5BiMmdZAE/edit?gid=713116247#gid=713116247"
+    "https://docs.google.com/spreadsheets/d/1n9GW1UksZ-jhCQ-zmCqwx4EH20fa-Zm5wA5BiMmdZAE/edit?gid=2108632369#gid=2108632369"
 )
 
 _AX = dict(
