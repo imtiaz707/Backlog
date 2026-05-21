@@ -364,41 +364,28 @@ rid_bl     = _safe(lt_fr, "RID Backlog")
 overall_bl = fid_bl + rid_bl
 
 # ── KPI 3: Zone Transfer Parcels ──────────────────────────────────────────────
-# Fuzzy-search for a column containing "zone" + "transfer" but NOT "%" or "pct"
-# This handles: "Zone Transfer", "Zone Transfer Parcel", "Zone Transfer Parcels", etc.
 zt_val = 0.0
 if lt_dc is not None:
-    index_cols = lt_dc.keys() if isinstance(lt_dc, dict) else lt_dc.index
-    for col in index_cols:
-        col_lower = str(col).lower()
-        if ("zone" in col_lower and "transfer" in col_lower
-                and "%" not in col_lower and "pct" not in col_lower):
-            v = _safe(lt_dc, col, default=0.0)
-            if v != 0.0:
-                zt_val = v
-                break
+    zt_val = _safe(lt_dc, "Zone Transfer", default=0.0)
 
 # ── KPI 4: FID Backlog % ──────────────────────────────────────────────────────
 dc_total_val = _safe(lt_dc, "Total")
 denom        = dc_total_val if dc_total_val > 0 else tot_fid
 fid_pct      = (fid_bl / denom * 100) if denom > 0 else 0.0
 
-# ── KPI 5: Zone Change % = Zone Transfer / Total (both from Dashboard_Card) ───
-# Formula: Zone Transfer / Total * 100
-if zt_val > 0 and dc_total_val > 0:
-    zt_pct = (zt_val / dc_total_val) * 100
-else:
-    # Fallback: read stored % column (contains "zone" + "transfer" + "%" or "pct")
-    zt_pct = 0.0
-    if lt_dc is not None:
-        index_cols = lt_dc.keys() if isinstance(lt_dc, dict) else lt_dc.index
-        for col in index_cols:
-            col_lower = str(col).lower()
-            if ("zone" in col_lower and "transfer" in col_lower
-                    and ("%" in col_lower or "pct" in col_lower)):
-                stored = _safe(lt_dc, col, default=0.0)
-                zt_pct = stored * 100 if stored <= 1 else stored
-                break
+# ── KPI 5: Zone Change % = Zone Transfer / Total ──────────────────────────────
+zt_pct = 0.0
+if lt_dc is not None:
+    zt_pct_stored = _safe(lt_dc, "Zone Transfer (%)", default=0.0)
+    if zt_val > 0 and dc_total_val > 0:
+        # Calculate directly: Zone Transfer / Total * 100
+        zt_pct = (zt_val / dc_total_val) * 100
+    elif zt_pct_stored > 0:
+        # Fallback: use stored column — convert decimal to % if needed
+        zt_pct = zt_pct_stored * 100 if zt_pct_stored <= 1 else zt_pct_stored
+
+# ── KPI display ───────────────────────────────────────────────────────────────
+
 
 # ── Deltas ────────────────────────────────────────────────────────────────────
 pr_fr = _prev(fr)
