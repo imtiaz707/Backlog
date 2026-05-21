@@ -15,92 +15,107 @@ st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 * { font-family: 'Inter', sans-serif; }
-[data-testid="stAppViewContainer"] { background: #f0f4f8; }
+
+/* Background / base: Deep Navy (#1C2B3A) */
+[data-testid="stAppViewContainer"] { background: #1C2B3A; }
 [data-testid="stHeader"]           { background: transparent; }
 [data-testid="stToolbar"]          { display: none; }
 [data-testid="stDecoration"]       { display: none; }
 .block-container { padding-top:1rem !important; padding-bottom:1rem !important; max-width:100% !important; }
 
+/* Dashboard Header: Golden Yellow gradient */
 .dash-header {
-    background: linear-gradient(135deg, #1e3a5f 0%, #2563eb 100%);
+    background: linear-gradient(135deg, #F5C200 0%, #C99B00 100%);
     border-radius: 16px; padding: 18px 28px; margin-bottom: 16px;
 }
-.dash-title    { color:#fff !important; font-size:26px; font-weight:800; margin:0; }
-.dash-subtitle { color:rgba(255,255,255,0.80) !important; font-size:13px; margin-top:4px; }
+.dash-title    { color:#1C2B3A !important; font-size:26px; font-weight:800; margin:0; }
+.dash-subtitle { color:#8A6A00 !important; font-size:13px; margin-top:4px; font-weight: 500; }
 
+/* Cards / Surface: Warm White (#F0EDE5) */
 .kpi-card {
+    background: #F0EDE5;
     border-radius: 14px; padding: 18px 20px 14px;
-    box-shadow: 0 2px 12px rgba(0,0,0,0.09);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.15);
     position: relative; overflow: hidden; min-height: 120px;
 }
 .kpi-card::after {
     content:''; position:absolute; top:-20px; right:-20px;
-    width:90px; height:90px; border-radius:50%; background:rgba(255,255,255,0.30);
+    width:90px; height:90px; border-radius:50%; background:rgba(255,255,255,0.40);
 }
-.kpi-card * { color:#111827 !important; }
-.bg-blue   { background:#dbeafe !important; border:2px solid #2563eb; }
-.bg-red    { background:#fee2e2 !important; border:2px solid #ef4444; }
-.bg-amber  { background:#fef3c7 !important; border:2px solid #d97706; }
-.bg-green  { background:#d1fae5 !important; border:2px solid #059669; }
-.bg-purple { background:#ede9fe !important; border:2px solid #7c3aed; }
+
+/* KPI Color Variations based on the new palette */
+.bg-blue   { background:#FDF3BF !important; border:2px solid #F5C200; } /* Highlight bg / Primary */
+.bg-red    { background:#F9DCD5 !important; border:2px solid #E05C3A; } /* Alert tint / Burnt Coral */
+.bg-amber  { background:#F9DE7A !important; border:2px solid #C99B00; } /* Hover state / Active */
+.bg-green  { background:#D7E7E3 !important; border:2px solid #2E7D6B; } /* Teal Green tint */
+.bg-purple { background:#E2E6EA !important; border:2px solid #6B7E91; } /* Slate Gray tint */
 
 .kpi-label { font-size:11px; font-weight:700; text-transform:uppercase;
-             letter-spacing:0.7px; margin-bottom:6px; color:#1e3a5f !important; }
+             letter-spacing:0.7px; margin-bottom:6px; color:#6B7E91 !important; }
 .kpi-value { font-size:30px; font-weight:800; line-height:1.1;
-             margin-bottom:6px; color:#111827 !important; }
+             margin-bottom:6px; color:#1C2B3A !important; }
 .kpi-delta { font-size:11px; padding:2px 9px; border-radius:20px;
              display:inline-block; font-weight:600; }
-.kpi-delta.up   { color:#065f46 !important; background:rgba(16,185,129,0.20); }
-.kpi-delta.down { color:#991b1b !important; background:rgba(239,68,68,0.20); }
+.kpi-delta.up   { color:#2E7D6B !important; background:rgba(46,125,107,0.20); }
+.kpi-delta.down { color:#E05C3A !important; background:rgba(224,92,58,0.20); }
 
+/* Section Headers */
 .sec-hdr {
-    font-size:13px; font-weight:700; color:#1e3a5f !important;
+    font-size:13px; font-weight:700; color:#1C2B3A !important;
     text-transform:uppercase; letter-spacing:0.6px;
-    border-left:4px solid #2563eb;
+    border-left:4px solid #F5C200;
     padding-left:10px; margin-bottom:8px; margin-top:4px;
 }
+
+/* Chart and Filter Containers */
 .chart-card {
-    background:#fff; border-radius:14px; padding:16px 18px 8px;
-    box-shadow:0 2px 10px rgba(0,0,0,0.06); margin-bottom:14px;
+    background:#F0EDE5; border-radius:14px; padding:16px 18px 8px;
+    box-shadow:0 4px 15px rgba(0,0,0,0.15); margin-bottom:14px;
 }
 .filter-bar {
-    background:#fff; border-radius:12px; padding:12px 18px;
-    box-shadow:0 2px 8px rgba(0,0,0,0.06); margin-bottom:14px;
+    background:#F0EDE5; border-radius:12px; padding:12px 18px;
+    box-shadow:0 4px 15px rgba(0,0,0,0.15); margin-bottom:14px;
 }
+
+/* Badges */
 .aging-badge {
-    background:#fef3c7; border:1px solid #f59e0b; border-radius:8px;
-    padding:5px 12px; font-size:11px; color:#92400e !important; font-weight:700;
+    background:#FDF3BF; border:1px solid #F5C200; border-radius:8px;
+    padding:5px 12px; font-size:11px; color:#8A6A00 !important; font-weight:700;
     display:inline-block; margin-bottom:8px;
 }
+
+/* Tables */
 .styled-table { width:100%; border-collapse:collapse; font-size:12px; }
-.styled-table thead tr { background:#1e3a5f; }
+.styled-table thead tr { background:#1C2B3A; }
 .styled-table th { padding:8px 10px; text-align:center;
-                   font-weight:700; font-size:11px; color:#ffffff !important; }
-.styled-table tbody tr:nth-child(even) { background:#f8fafc; }
-.styled-table tbody tr:last-child      { background:#fef9c3; font-weight:700; }
+                   font-weight:700; font-size:11px; color:#F0EDE5 !important; }
+.styled-table tbody tr:nth-child(even) { background:rgba(28,43,58,0.05); }
+.styled-table tbody tr:last-child      { background:#FDF3BF; font-weight:700; }
 .styled-table td { padding:7px 10px; text-align:center;
-                   border-bottom:1px solid #e2e8f0; color:#111827 !important; }
-.styled-table .col-date { text-align:left; font-weight:600; color:#1e3a5f !important; }
-.styled-table .col-high { color:#dc2626 !important; font-weight:700; }
+                   border-bottom:1px solid rgba(28,43,58,0.1); color:#1C2B3A !important; }
+.styled-table .col-date { text-align:left; font-weight:600; color:#2E7D6B !important; }
+.styled-table .col-high { color:#E05C3A !important; font-weight:700; }
 </style>
 """, unsafe_allow_html=True)
 
 SPREADSHEET_URL = (
-    "https://docs.google.com/spreadsheets/d/1n9GW1UksZ-jhCQ-zmCqwx4EH20fa-Zm5wA5BiMmdZAE/edit?gid=2108632369#gid=2108632369"
+    "https://docs.google.com/spreadsheets/d/"
+    "1n9GW1UksZ-jhCQ-zmCqwx4EH20fa-Zm5wA5BiMmdZAE/edit?gid=713116247#gid=713116247"
 )
 
+# Base Plotly styling adjusted to the new palette
 _AX = dict(
-    gridcolor="#e2e8f0", linecolor="#cbd5e1", tickcolor="#94a3b8",
+    gridcolor="rgba(28,43,58,0.1)", linecolor="rgba(28,43,58,0.2)", tickcolor="rgba(28,43,58,0.3)",
     showgrid=True,
-    tickfont=dict(color="#111827", size=11),
-    title_font=dict(color="#111827"),
+    tickfont=dict(color="#6B7E91", size=11),
+    title_font=dict(color="#1C2B3A"),
 )
 _BASE = dict(
     paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
-    font=dict(color="#111827", family="Inter, sans-serif", size=11),
-    legend=dict(bgcolor="rgba(255,255,255,0.9)", bordercolor="#e2e8f0",
-                borderwidth=1, font=dict(size=11, color="#111827")),
-    hoverlabel=dict(bgcolor="#1e293b", bordercolor="#3b82f6", font_color="#f1f5f9"),
+    font=dict(color="#1C2B3A", family="Inter, sans-serif", size=11),
+    legend=dict(bgcolor="rgba(240,237,229,0.9)", bordercolor="#6B7E91",
+                borderwidth=1, font=dict(size=11, color="#1C2B3A")),
+    hoverlabel=dict(bgcolor="#1C2B3A", bordercolor="#F5C200", font_color="#F0EDE5"),
     margin=dict(l=10, r=10, t=36, b=10),
     xaxis=_AX, yaxis=_AX,
 )
@@ -112,11 +127,12 @@ def _layout(fig, height=None, extra=None):
     fig.update_layout(**kw)
     return fig
 
-C_ISD = "#1d4ed8"
-C_OSD = "#ef4444"
-C_SUB = "#10b981"
-C_AMB = "#f59e0b"
-C_PUR = "#8b5cf6"
+# Map new palette colors to charting variables
+C_ISD = "#F5C200" # Golden Yellow
+C_OSD = "#E05C3A" # Burnt Coral
+C_SUB = "#2E7D6B" # Teal Green
+C_AMB = "#F9DE7A" # Hover state / Secondary Yellow
+C_PUR = "#6B7E91" # Slate Gray
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
 def _safe(row, col, default=0.0):
@@ -341,11 +357,6 @@ ag_f = _filt(ag, "Region")
 lt_dc = _latest(dc)
 lt_fr = _latest(fr)
 
-# ── DEBUG (uncomment to inspect exact column names from Dashboard_Card) ───────
-# if lt_dc is not None:
-#     with st.expander("🔍 Debug — Dashboard_Card columns & values"):
-#         st.write(dict(lt_dc))
-
 # ── KPI 1: Total In-Process (FID) from Aging_Distribution ─────────────────────
 ag_le = ag[ag["Date"] <= sel_end] if not ag.empty else ag
 if not ag_le.empty:
@@ -363,20 +374,18 @@ rid_bl     = _safe(lt_fr, "RID Backlog")
 overall_bl = fid_bl + rid_bl
 
 # ── KPI 3: Zone Transfer Parcels ──────────────────────────────────────────────
-# Directly fetch the "Zone Transfer" column from the Dashboard_Card
 zt_val = _safe(lt_dc, "Zone Transfer", default=0.0)
+
 # ── KPI 4: FID Backlog % ──────────────────────────────────────────────────────
 dc_total_val = _safe(lt_dc, "Total")
 denom        = dc_total_val if dc_total_val > 0 else tot_fid
 fid_pct      = (fid_bl / denom * 100) if denom > 0 else 0.0
+
 # ── KPI 5: Zone Change % = Zone Transfer / Total ──────────────────────────────
-# Formula: (Zone Transfer / Total) * 100
 if zt_val > 0 and dc_total_val > 0:
     zt_pct = (zt_val / dc_total_val) * 100
 else:
     zt_pct = 0.0
-# ── KPI display ───────────────────────────────────────────────────────────────
-
 
 # ── Deltas ────────────────────────────────────────────────────────────────────
 pr_fr = _prev(fr)
@@ -404,24 +413,21 @@ def _kpi(col_w, label, bg, value_str, delta=None, unit="", sub=None):
     dh = ""
     if delta is not None:
         arr     = "▲" if delta >= 0 else "▼"
-        d_color = "#065f46" if delta >= 0 else "#991b1b"
-        d_bg    = "rgba(16,185,129,0.20)" if delta >= 0 else "rgba(239,68,68,0.20)"
+        d_color = "#2E7D6B" if delta >= 0 else "#E05C3A"
+        d_bg    = "rgba(46,125,107,0.20)" if delta >= 0 else "rgba(224,92,58,0.20)"
         dh = (f'<div style="font-size:11px;padding:2px 9px;border-radius:20px;'
               f'display:inline-block;font-weight:600;color:{d_color} !important;'
               f'background:{d_bg};">'
               f'{arr} {abs(delta):,.2f} {unit}</div>')
-    sub_html = (f'<div style="font-size:10px;color:#374151 !important;margin-top:3px;">{sub}</div>'
+    sub_html = (f'<div style="font-size:10px;color:#6B7E91 !important;margin-top:3px;">{sub}</div>'
                 if sub else "")
     col_w.markdown(f"""
     <div class="kpi-card {bg}">
-      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.7px;
-                  margin-bottom:6px;color:#1e3a5f !important;">{label}</div>
-      <div style="font-size:30px;font-weight:800;line-height:1.1;margin-bottom:6px;
-                  color:#111827 !important;">{value_str}</div>
+      <div class="kpi-label">{label}</div>
+      <div class="kpi-value">{value_str}</div>
       {dh}{sub_html}
     </div>""", unsafe_allow_html=True)
 
-# Zone Transfer display: show value if found, else "0"
 zt_display = f"{int(zt_val):,}" if zt_val > 0 else "0"
 
 _kpi(c1, "1. Total In-Process (FID)", "bg-blue",   f"{tot_fid:,.0f}",    d_fid,   "vs prev day")
@@ -453,8 +459,8 @@ with col_l:
         if show_worked and "Worked On" in ft_f.columns:
             fig11.add_trace(go.Scatter(x=ft_f["Date_Label"], y=ft_f["Worked On"],
                                        name="Worked On", mode="lines+markers",
-                                       line=dict(color="#10b981", width=3),
-                                       marker=dict(size=7, line=dict(color="#fff", width=1.5))))
+                                       line=dict(color="#2E7D6B", width=3),
+                                       marker=dict(size=7, line=dict(color="#F0EDE5", width=1.5))))
         _layout(fig11, height=330, extra={"barmode": "group"})
         st.plotly_chart(fig11, use_container_width=True)
     else:
@@ -469,17 +475,17 @@ with col_r:
             labels=["ISD", "OSD"], values=[isd_total, osd_total],
             hole=0.55, marker_colors=[C_ISD, C_OSD],
             textinfo="label+percent",
-            textfont=dict(size=12, color="#111827"), pull=[0.04, 0],
+            textfont=dict(size=12, color="#1C2B3A"), pull=[0.04, 0],
         )])
         fig_d.add_annotation(
             text=f"<b>{tot_fid:,.0f}</b><br><span style='font-size:10px'>Total</span>",
             x=0.5, y=0.5, showarrow=False,
-            font=dict(size=14, color="#111827"), xanchor="center",
+            font=dict(size=14, color="#1C2B3A"), xanchor="center",
         )
         _layout(fig_d, height=240,
                 extra={"legend": dict(orientation="h", yanchor="bottom", y=-0.18,
                                       xanchor="center", x=0.5,
-                                      font=dict(color="#111827"))})
+                                      font=dict(color="#1C2B3A"))})
         st.plotly_chart(fig_d, use_container_width=True)
 
         df_reg = pd.DataFrame({"Region": ["ISD", "OSD"], "Parcels": [isd_total, osd_total]})
@@ -487,7 +493,7 @@ with col_r:
                         color="Region", color_discrete_map={"ISD": C_ISD, "OSD": C_OSD},
                         text="Parcels")
         fig_rb.update_traces(texttemplate="%{text:,.0f}", textposition="outside",
-                             textfont=dict(color="#111827"))
+                             textfont=dict(color="#1C2B3A"))
         _layout(fig_rb, height=130,
                 extra={"showlegend": False, "margin": dict(l=10, r=90, t=5, b=5)})
         st.plotly_chart(fig_rb, use_container_width=True)
@@ -508,7 +514,7 @@ with col_l3:
             x=["FID Backlog", "RID Backlog"], y=[fid_bl, rid_bl],
             marker_color=[C_ISD, C_OSD],
             text=[f"{fid_bl:,.0f}", f"{rid_bl:,.0f}"],
-            textposition="outside", textfont=dict(size=13, color="#111827"),
+            textposition="outside", textfont=dict(size=13, color="#1C2B3A"),
             width=0.5,
         )])
         _layout(fig7, height=300, extra={"showlegend": False})
@@ -549,13 +555,13 @@ with col_r3:
                 marker_color=color,
                 text=[f"{v:,.0f}" if v > 0 else "" for v in vals],
                 textposition="inside", insidetextanchor="middle",
-                textfont=dict(color="#ffffff", size=11),
+                textfont=dict(color="#1C2B3A", size=11),
             ))
         for lbl, tot in zip(labels, tots):
             if tot > 0:
                 fig9.add_annotation(x=tot, y=lbl, text=f"  <b>{tot:,.0f}</b>",
                                     showarrow=False, xanchor="left",
-                                    font=dict(size=12, color="#111827"))
+                                    font=dict(size=12, color="#1C2B3A"))
         _layout(fig9, height=320, extra={
             "barmode": "stack",
             "xaxis": dict(**_AX, title="Count"),
@@ -584,7 +590,7 @@ with col_l4:
             marker_color=[C_ISD, C_OSD],
             text=[f"{fid_sort:,.0f}", f"{rid_sort:,.0f}"],
             textposition="outside",
-            textfont=dict(size=13, color="#111827"),
+            textfont=dict(size=13, color="#1C2B3A"),
             width=0.5,
         )])
         _layout(fig10, height=300, extra={"showlegend": False})
@@ -629,7 +635,7 @@ with col_r4:
                           text=ag_melt["Pct"].apply(lambda x: f"{x:.1f}%"))
             fig8.update_traces(
                 textposition="outside",
-                textfont=dict(color="#111827", size=9),
+                textfont=dict(color="#1C2B3A", size=9),
                 customdata=ag_melt[["Count", "Region"]],
                 hovertemplate=(
                     "<b>%{x}</b><br>Region: %{customdata[1]}"
@@ -641,7 +647,7 @@ with col_r4:
             st.plotly_chart(fig8, use_container_width=True)
 
           # Aging count table
-            st.markdown("<div style='color: black; font-weight: bold; font-size: 14px; margin-bottom: 8px;'>Aging Count &amp; % by Region</div>", unsafe_allow_html=True)
+            st.markdown("<div style='color: #1C2B3A; font-weight: bold; font-size: 14px; margin-bottom: 8px;'>Aging Count &amp; % by Region</div>", unsafe_allow_html=True)
             isd_row   = ag_day_f[ag_day_f["Region"] == "ISD"].iloc[0] if "ISD" in ag_day_f["Region"].values else None
             osd_row   = ag_day_f[ag_day_f["Region"] == "OSD"].iloc[0] if "OSD" in ag_day_f["Region"].values else None
             isd_tot_v = float(isd_row["Total"]) if isd_row is not None else 0
@@ -666,7 +672,7 @@ with col_r4:
             td_tot = "<td><b>Total</b></td>"
             if isd_row is not None: td_tot += f"<td><b>{isd_tot_v:,.0f}</b></td><td><b>100%</b></td>"
             if osd_row is not None: td_tot += f"<td><b>{osd_tot_v:,.0f}</b></td><td><b>100%</b></td>"
-            body_rows += f"<tr style='background:#fef9c3;font-weight:700'>{td_tot}</tr>"
+            body_rows += f"<tr style='background:#FDF3BF;font-weight:700'>{td_tot}</tr>"
 
             st.markdown(f"""
             <div style="overflow-x:auto;max-height:240px;overflow-y:auto">
@@ -726,7 +732,7 @@ st.markdown('</div>', unsafe_allow_html=True)
 
 # ── Footer ────────────────────────────────────────────────────────────────────
 st.markdown("""
-<div style="text-align:center;color:#64748b;font-size:11px;padding:16px 0 6px;">
+<div style="text-align:center;color:#6B7E91;font-size:11px;padding:16px 0 6px;">
   🐝 Carrybee Delivery Intelligence &nbsp;·&nbsp;
   Data refreshes every 10 min &nbsp;·&nbsp; Powered by Google Sheets
 </div>
