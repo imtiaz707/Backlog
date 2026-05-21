@@ -355,13 +355,25 @@ fid_bl     = _safe(lt_fr, "FID Backlog")
 rid_bl     = _safe(lt_fr, "RID Backlog")
 overall_bl = fid_bl + rid_bl
 
+# ── DEBUG: Uncomment temporarily to see exact DC column names ─────────────────
+# if lt_dc is not None:
+#     with st.expander("🔍 Debug — Dashboard_Card columns"):
+#         st.write(dict(lt_dc))   # shows every column name + its value
+
 # ── KPI 3: Zone Transfer Parcels ─────────────────────────────────────────────
 zt_val = 0.0
 if lt_dc is not None:
-    # Try both possible column name variations
-    zt_val = _safe_multi(lt_dc, "Zone Transfer", "Zone Transfer Parcel", "Zone Transfer Parcels")
+    # Fuzzy search: find any column whose name contains "zone" and "transfer"
+    # but NOT "%" — picks up "Zone Transfer", "Zone Transfer Parcel", etc.
+    for col in lt_dc.index:
+        col_lower = str(col).lower()
+        if "zone" in col_lower and "transfer" in col_lower and "%" not in col_lower:
+            v = _safe(lt_dc, col, default=0.0)
+            if v != 0.0:
+                zt_val = v
+                break   # take the first match
 
-# ── KPI 4: FID Backlog % ──────────────────────────────────────────────────────
+# ── KPI 4: FID Backlog % ─────────────────────────────────────────────────────
 dc_total_val = _safe(lt_dc, "Total")
 denom        = dc_total_val if dc_total_val > 0 else tot_fid
 fid_pct      = (fid_bl / denom * 100) if denom > 0 else 0.0
@@ -370,10 +382,18 @@ fid_pct      = (fid_bl / denom * 100) if denom > 0 else 0.0
 if zt_val > 0 and dc_total_val > 0:
     zt_pct = (zt_val / dc_total_val) * 100
 else:
-    # Fallback: read stored percentage column directly
-    zt_pct_stored = _safe(lt_dc, "Zone Transfer (%)")
-    zt_pct = zt_pct_stored * 100 if zt_pct_stored <= 1 else zt_pct_stored
+    # Fallback: find the stored % column (contains "zone","transfer","%")
+    zt_pct = 0.0
+    if lt_dc is not None:
+        for col in lt_dc.index:
+            col_lower = str(col).lower()
+            if "zone" in col_lower and "transfer" in col_lower and "%" in col_lower:
+                stored = _safe(lt_dc, col, default=0.0)
+                zt_pct = stored * 100 if stored <= 1 else stored
+                break
 
+# ── KPI display ──────────────────────────────────────────────────────────────
+zt_display = f"{int(zt_val):,}" if zt_val > 0 else "0"
 # ── Deltas ────────────────────────────────────────────────────────────────────
 pr_fr = _prev(fr)
 if not ag_le.empty:
