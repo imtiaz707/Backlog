@@ -195,7 +195,7 @@ def load_data():
 
     # ── Dashboard_Card ────────────────────────────────────────────────────────
     try:
-        raw = conn.read(spreadsheet=SPREADSHEET_URL, worksheet="Dashboard_Card", header=False)
+        raw = conn.read(spreadsheet=SPREADSHEET_URL, worksheet="Dashboard_Card", header=None)
         raw.columns = [str(c).strip() for c in raw.iloc[1]]
         raw = raw.iloc[2:].reset_index(drop=True)
         raw = raw[~raw["Date"].astype(str).str.contains(
@@ -364,26 +364,18 @@ rid_bl     = _safe(lt_fr, "RID Backlog")
 overall_bl = fid_bl + rid_bl
 
 # ── KPI 3: Zone Transfer Parcels ──────────────────────────────────────────────
-zt_val = 0.0
-if lt_dc is not None:
-    zt_val = _safe(lt_dc, "Zone Transfer", default=0.0)
-
+# Directly fetch the "Zone Transfer" column from the Dashboard_Card
+zt_val = _safe(lt_dc, "Zone Transfer", default=0.0)
 # ── KPI 4: FID Backlog % ──────────────────────────────────────────────────────
 dc_total_val = _safe(lt_dc, "Total")
 denom        = dc_total_val if dc_total_val > 0 else tot_fid
 fid_pct      = (fid_bl / denom * 100) if denom > 0 else 0.0
-
 # ── KPI 5: Zone Change % = Zone Transfer / Total ──────────────────────────────
-zt_pct = 0.0
-if lt_dc is not None:
-    zt_pct_stored = _safe(lt_dc, "Zone Transfer (%)", default=0.0)
-    if zt_val > 0 and dc_total_val > 0:
-        # Calculate directly: Zone Transfer / Total * 100
-        zt_pct = (zt_val / dc_total_val) * 100
-    elif zt_pct_stored > 0:
-        # Fallback: use stored column — convert decimal to % if needed
-        zt_pct = zt_pct_stored * 100 if zt_pct_stored <= 1 else zt_pct_stored
-
+# Formula: (Zone Transfer / Total) * 100
+if zt_val > 0 and dc_total_val > 0:
+    zt_pct = (zt_val / dc_total_val) * 100
+else:
+    zt_pct = 0.0
 # ── KPI display ───────────────────────────────────────────────────────────────
 
 
