@@ -355,33 +355,24 @@ fid_bl     = _safe(lt_fr, "FID Backlog")
 rid_bl     = _safe(lt_fr, "RID Backlog")
 overall_bl = fid_bl + rid_bl
 
-# ── KPI 3: Zone Transfer ──────────────────────────────────────────────────────
-# After FIX ①, lt_dc now correctly picks up the same-day DC row even when it
-# has a timestamp like '2026-05-20 12:06:23'.
-zt_raw = None
+# ── KPI 3: Zone Transfer Parcels ─────────────────────────────────────────────
+zt_val = 0.0
 if lt_dc is not None:
-    try:
-        v = _safe(lt_dc, "Zone Transfer", default=None)
-        if v is not None and pd.notna(v) and float(v) != 0:
-            zt_raw = float(v)
-    except Exception:
-        zt_raw = None
-zt_val = zt_raw if zt_raw is not None else 0.0
+    # Try both possible column name variations
+    zt_val = _safe_multi(lt_dc, "Zone Transfer", "Zone Transfer Parcel", "Zone Transfer Parcels")
 
 # ── KPI 4: FID Backlog % ──────────────────────────────────────────────────────
 dc_total_val = _safe(lt_dc, "Total")
 denom        = dc_total_val if dc_total_val > 0 else tot_fid
 fid_pct      = (fid_bl / denom * 100) if denom > 0 else 0.0
 
-# ── KPI 5: Zone Change % ──────────────────────────────────────────────────────
-# Stored as decimal (0.077) in the sheet → multiply by 100
-zt_pct_stored = _safe(lt_dc, "Zone Transfer (%)")
+# ── KPI 5: Zone Change % = Zone Transfer / Total (both from Dashboard_Card) ───
 if zt_val > 0 and dc_total_val > 0:
-    zt_pct = zt_val / dc_total_val * 100
-elif zt_pct_stored > 1:
-    zt_pct = zt_pct_stored            # already a percentage
+    zt_pct = (zt_val / dc_total_val) * 100
 else:
-    zt_pct = zt_pct_stored * 100      # decimal → percentage
+    # Fallback: read stored percentage column directly
+    zt_pct_stored = _safe(lt_dc, "Zone Transfer (%)")
+    zt_pct = zt_pct_stored * 100 if zt_pct_stored <= 1 else zt_pct_stored
 
 # ── Deltas ────────────────────────────────────────────────────────────────────
 pr_fr = _prev(fr)
