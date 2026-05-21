@@ -641,8 +641,8 @@ with col_r4:
                     extra={"yaxis": dict(**_AX, title="Percentage (%)")})
             st.plotly_chart(fig8, use_container_width=True)
 
-            # Aging count table
-            st.markdown("**Aging Count &amp; % by Region**", unsafe_allow_html=True)
+          # Aging count table
+            st.markdown("<div style='color: black; font-weight: bold; font-size: 14px; margin-bottom: 8px;'>Aging Count &amp; % by Region</div>", unsafe_allow_html=True)
             isd_row   = ag_day_f[ag_day_f["Region"] == "ISD"].iloc[0] if "ISD" in ag_day_f["Region"].values else None
             osd_row   = ag_day_f[ag_day_f["Region"] == "OSD"].iloc[0] if "OSD" in ag_day_f["Region"].values else None
             isd_tot_v = float(isd_row["Total"]) if isd_row is not None else 0
