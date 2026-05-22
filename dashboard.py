@@ -17,14 +17,14 @@ st.markdown("""
 
 * { font-family: 'DM Sans', sans-serif; box-sizing: border-box; }
 
-/* ── App Background: Clean Light Gray ── */
+/* ── App Background ── */
 [data-testid="stAppViewContainer"] { background: #F4F7F9; }
 [data-testid="stHeader"]           { background: transparent; }
 [data-testid="stToolbar"]          { display: none; }
 [data-testid="stDecoration"]       { display: none; }
 .block-container { padding-top:1.2rem !important; padding-bottom:2rem !important; max-width:98% !important; }
 
-/* ── Premium Header: Deep Navy & Golden Yellow ── */
+/* ── Premium Header ── */
 .dash-header {
     background: #1C2B3A;
     border-left: 6px solid #F5C200;
@@ -43,13 +43,17 @@ st.markdown("""
     box-shadow: 0 2px 8px rgba(0,0,0,0.04);
 }
 
-/* ── Cards: Warm White / Pure White ── */
-.chart-card {
-    background: #FFFFFF; border-radius: 12px; padding: 18px 20px 12px;
-    border: 1px solid #E2E8F0;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.04); margin-bottom: 16px;
+/* ── Streamlit Native Container Styling (Replaces .chart-card) ── */
+[data-testid="stVerticalBlockBorderWrapper"] {
+    background: #FFFFFF !important;
+    border-radius: 12px !important;
+    border: 1px solid #E2E8F0 !important;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04) !important;
+    padding: 18px 20px 12px !important;
+    height: 100%; /* Makes columns stretch equally */
 }
 
+/* ── Section Headers ── */
 .sec-hdr {
     font-size:14px; font-weight:700; color:#1C2B3A !important;
     text-transform:uppercase; letter-spacing:0.8px;
@@ -58,13 +62,13 @@ st.markdown("""
     border-bottom: 1px solid #F1F5F9; padding-bottom: 8px;
 }
 
-/* ── KPI Sparkline Cards ── */
+/* ── HTML KPI Sparkline Cards ── */
 .kpi-spark {
     background: #FFFFFF;
     border-radius: 12px; padding: 18px 20px 14px;
     border: 1px solid #E2E8F0;
     box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-    position: relative; overflow: hidden; min-height: 140px;
+    position: relative; overflow: hidden; min-height: 140px; height: 100%;
 }
 .kpi-spark-label {
     font-size: 12px; font-weight: 700; text-transform: uppercase;
@@ -143,10 +147,10 @@ SPREADSHEET_URL = (
 )
 
 # ── Industry Standard Palette ──
-C_ISD  = "#1C2B3A" # Deep Navy (Primary/ISD)
-C_OSD  = "#E05C3A" # Burnt Coral (OSD)
-C_SUB  = "#2E7D6B" # Teal Green (SUB/Worked)
-C_AMB  = "#F5C200" # Golden Yellow (Totals)
+C_ISD  = "#1C2B3A" # Deep Navy
+C_OSD  = "#E05C3A" # Burnt Coral
+C_SUB  = "#2E7D6B" # Teal Green
+C_AMB  = "#F5C200" # Golden Yellow
 C_PUR  = "#6B7E91" # Slate Gray
 
 _AX = dict(
@@ -391,7 +395,6 @@ spark_fid = _last7_ag_total()
 spark_bl  = _last7_bl()
 spark_zt  = _last7_zt()
 
-# ── Sparkline SVG ─────────────────────────────────────────────────────────────
 def _sparkline_svg(values, color, width=110, height=40):
     if not values or len(values) < 2: return ""
     mn, mx = min(values), max(values)
@@ -461,30 +464,30 @@ with kc3:
     zt_display = f"{int(zt_val):,}" if zt_val > 0 else "0"
     _spark_kpi(kc3, 3, "Zone Transfer Parcels", zt_display, "#1C2B3A", _sparkline_svg(spark_zt, zt_color), d_zt_v, "vs prev day", False)
 
+# FIX: Replaced raw HTML with st.container(border=True) to prevent DOM breakage
 with kc4:
-    st.markdown('<div class="kpi-spark" style="padding:14px 16px 10px;">', unsafe_allow_html=True)
-    st.markdown('<div class="kpi-spark-label">4. Backlog — FID vs RID</div>', unsafe_allow_html=True)
-    if (fid_bl + rid_bl) > 0:
-        fig_donut = go.Figure(data=[go.Pie(
-            labels=["FID", "RID"], values=[fid_bl, rid_bl],
-            hole=0.62, marker_colors=[C_ISD, C_OSD],
-            textinfo="label+percent",
-            textfont=dict(size=12, color="#FFFFFF", weight="bold"),
-            pull=[0.03, 0],
-        )])
-        fig_donut.add_annotation(
-            text=f"<b>{fid_bl+rid_bl:,.0f}</b><br><span style='font-size:11px; color:#6B7E91;'>Total</span>",
-            x=0.5, y=0.5, showarrow=False,
-            font=dict(size=18, color="#1C2B3A"), xanchor="center",
-        )
-        _layout(fig_donut, height=158,
-                extra={"margin": dict(l=0,r=0,t=0,b=0),
-                       "legend": dict(orientation="h", yanchor="bottom", y=-0.18,
-                                      xanchor="center", x=0.5, font=dict(size=11, color="#1C2B3A"))})
-        st.plotly_chart(fig_donut, use_container_width=True)
-    else:
-        st.info("No backlog data.")
-    st.markdown('</div>', unsafe_allow_html=True)
+    with st.container(border=True):
+        st.markdown('<div class="kpi-spark-label" style="margin-bottom:0px;">4. Backlog — FID vs RID</div>', unsafe_allow_html=True)
+        if (fid_bl + rid_bl) > 0:
+            fig_donut = go.Figure(data=[go.Pie(
+                labels=["FID", "RID"], values=[fid_bl, rid_bl],
+                hole=0.62, marker_colors=[C_ISD, C_OSD],
+                textinfo="label+percent",
+                textfont=dict(size=12, color="#FFFFFF", weight="bold"),
+                pull=[0.03, 0],
+            )])
+            fig_donut.add_annotation(
+                text=f"<b>{fid_bl+rid_bl:,.0f}</b><br><span style='font-size:11px; color:#6B7E91;'>Total</span>",
+                x=0.5, y=0.5, showarrow=False,
+                font=dict(size=18, color="#1C2B3A"), xanchor="center",
+            )
+            _layout(fig_donut, height=140,
+                    extra={"margin": dict(l=0,r=0,t=0,b=0),
+                           "legend": dict(orientation="h", yanchor="bottom", y=-0.18,
+                                          xanchor="center", x=0.5, font=dict(size=11, color="#1C2B3A"))})
+            st.plotly_chart(fig_donut, use_container_width=True)
+        else:
+            st.info("No backlog data.")
 
 st.markdown("<div style='height:10px'></div>", unsafe_allow_html=True)
 
@@ -517,110 +520,110 @@ st.markdown("<div style='height:10px'></div>", unsafe_allow_html=True)
 # ── ROW 3: Backlog Details + FID/RID Sort (horizontal bars) ──────────────────
 col_bl, col_sort = st.columns([3, 2])
 
+# FIX: Wrapped in st.container(border=True)
 with col_bl:
-    st.markdown('<div class="chart-card">', unsafe_allow_html=True)
-    st.markdown('<div class="sec-hdr">7. Backlog Details — FID &amp; RID (LMH / FMH)</div>', unsafe_allow_html=True)
-    if lt_fr is not None:
-        detail_rows = [
-            ("FID LMH", _safe(lt_fr,"FID LMH ISD"), _safe(lt_fr,"FID LMH SUB"), _safe(lt_fr,"FID LMH OSD"), _safe(lt_fr,"FID LMH Total")),
-            ("FID FMH", _safe(lt_fr,"FID FMH"), 0, 0, _safe(lt_fr,"FID FMH")),
-            ("RID FMH", _safe(lt_fr,"RID FMH ISD"), _safe(lt_fr,"RID FMH SUB"), _safe(lt_fr,"RID FMH OSD"), _safe(lt_fr,"RID FMH ISD")+_safe(lt_fr,"RID FMH SUB")+_safe(lt_fr,"RID FMH OSD")),
-            ("RID LMH", _safe(lt_fr,"RID LMH ISD"), _safe(lt_fr,"RID LMH SUB"), _safe(lt_fr,"RID LMH OSD"), _safe(lt_fr,"RID LMH ISD")+_safe(lt_fr,"RID LMH SUB")+_safe(lt_fr,"RID LMH OSD")),
-        ]
-        labels, isd_v, sub_v, osd_v, tots = zip(*detail_rows)
-        fig9 = go.Figure()
-        for vals, name, color in [(isd_v,"ISD",C_ISD),(sub_v,"SUB",C_SUB),(osd_v,"OSD",C_OSD)]:
-            fig9.add_trace(go.Bar(
-                name=name, y=labels, x=vals, orientation="h", marker_color=color,
-                text=[f"{v:,.0f}" if v>0 else "" for v in vals],
-                textposition="inside", insidetextanchor="middle",
-                textfont=dict(color="#FFFFFF", size=12, weight="bold"),
-            ))
-        for lbl, tot in zip(labels, tots):
-            if tot > 0:
-                fig9.add_annotation(x=tot, y=lbl, text=f"  <b>{tot:,.0f}</b>",
-                                    showarrow=False, xanchor="left",
-                                    font=dict(size=13, color="#1C2B3A"))
-        _layout(fig9, height=280, extra={"barmode":"stack", "xaxis": dict(**_AX, title="Count"), "yaxis": dict(**_AX, autorange="reversed")})
-        st.plotly_chart(fig9, use_container_width=True)
-    else: st.info("No backlog detail data.")
-    st.markdown('</div>', unsafe_allow_html=True)
+    with st.container(border=True):
+        st.markdown('<div class="sec-hdr">7. Backlog Details — FID &amp; RID (LMH / FMH)</div>', unsafe_allow_html=True)
+        if lt_fr is not None:
+            detail_rows = [
+                ("FID LMH", _safe(lt_fr,"FID LMH ISD"), _safe(lt_fr,"FID LMH SUB"), _safe(lt_fr,"FID LMH OSD"), _safe(lt_fr,"FID LMH Total")),
+                ("FID FMH", _safe(lt_fr,"FID FMH"), 0, 0, _safe(lt_fr,"FID FMH")),
+                ("RID FMH", _safe(lt_fr,"RID FMH ISD"), _safe(lt_fr,"RID FMH SUB"), _safe(lt_fr,"RID FMH OSD"), _safe(lt_fr,"RID FMH ISD")+_safe(lt_fr,"RID FMH SUB")+_safe(lt_fr,"RID FMH OSD")),
+                ("RID LMH", _safe(lt_fr,"RID LMH ISD"), _safe(lt_fr,"RID LMH SUB"), _safe(lt_fr,"RID LMH OSD"), _safe(lt_fr,"RID LMH ISD")+_safe(lt_fr,"RID LMH SUB")+_safe(lt_fr,"RID LMH OSD")),
+            ]
+            labels, isd_v, sub_v, osd_v, tots = zip(*detail_rows)
+            fig9 = go.Figure()
+            for vals, name, color in [(isd_v,"ISD",C_ISD),(sub_v,"SUB",C_SUB),(osd_v,"OSD",C_OSD)]:
+                fig9.add_trace(go.Bar(
+                    name=name, y=labels, x=vals, orientation="h", marker_color=color,
+                    text=[f"{v:,.0f}" if v>0 else "" for v in vals],
+                    textposition="inside", insidetextanchor="middle",
+                    textfont=dict(color="#FFFFFF", size=12, weight="bold"),
+                ))
+            for lbl, tot in zip(labels, tots):
+                if tot > 0:
+                    fig9.add_annotation(x=tot, y=lbl, text=f"  <b>{tot:,.0f}</b>",
+                                        showarrow=False, xanchor="left",
+                                        font=dict(size=13, color="#1C2B3A"))
+            _layout(fig9, height=280, extra={"barmode":"stack", "xaxis": dict(**_AX, title="Count"), "yaxis": dict(**_AX, autorange="reversed")})
+            st.plotly_chart(fig9, use_container_width=True)
+        else: st.info("No backlog detail data.")
 
+# FIX: Wrapped in st.container(border=True)
 with col_sort:
-    st.markdown('<div class="chart-card">', unsafe_allow_html=True)
-    st.markdown('<div class="sec-hdr">8. Sort — FID Sort vs RID Sort</div>', unsafe_allow_html=True)
-    if lt_fr is not None:
-        fid_sort = _safe(lt_fr, "FID Sort")
-        rid_sort = _safe_multi(lt_fr, "RID Sort", "RID LMH Sort")
-        fig10 = go.Figure(data=[go.Bar(
-            y=["FID Sort", "RID Sort"], x=[fid_sort, rid_sort],
-            orientation="h", marker_color=[C_ISD, C_OSD], marker_line=dict(color="#FFFFFF", width=1),
-            text=[f"{fid_sort:,.0f}", f"{rid_sort:,.0f}"], textposition="outside",
-            textfont=dict(size=14, color="#1C2B3A", weight="bold"), width=0.5,
-        )])
-        _layout(fig10, height=280, extra={"showlegend": False, "xaxis": dict(**_AX, title="Count"), "yaxis": dict(**_AX), "margin": dict(l=8, r=70, t=32, b=8)})
-        st.plotly_chart(fig10, use_container_width=True)
-    else: st.info("No sort data.")
-    st.markdown('</div>', unsafe_allow_html=True)
+    with st.container(border=True):
+        st.markdown('<div class="sec-hdr">8. Sort — FID Sort vs RID Sort</div>', unsafe_allow_html=True)
+        if lt_fr is not None:
+            fid_sort = _safe(lt_fr, "FID Sort")
+            rid_sort = _safe_multi(lt_fr, "RID Sort", "RID LMH Sort")
+            fig10 = go.Figure(data=[go.Bar(
+                y=["FID Sort", "RID Sort"], x=[fid_sort, rid_sort],
+                orientation="h", marker_color=[C_ISD, C_OSD], marker_line=dict(color="#FFFFFF", width=1),
+                text=[f"{fid_sort:,.0f}", f"{rid_sort:,.0f}"], textposition="outside",
+                textfont=dict(size=14, color="#1C2B3A", weight="bold"), width=0.5,
+            )])
+            _layout(fig10, height=280, extra={"showlegend": False, "xaxis": dict(**_AX, title="Count"), "yaxis": dict(**_AX), "margin": dict(l=8, r=70, t=32, b=8)})
+            st.plotly_chart(fig10, use_container_width=True)
+        else: st.info("No sort data.")
 
 st.markdown("<div style='height:4px'></div>", unsafe_allow_html=True)
 
 # ── ROW 4: Date-range Backlog Tracking + Region Vertical Bar ─────────────────
 col_track, col_region = st.columns([3, 2])
 
+# FIX: Wrapped in st.container(border=True)
 with col_track:
-    st.markdown('<div class="chart-card">', unsafe_allow_html=True)
-    st.markdown('<div class="sec-hdr">9. Date-wise Backlog Progress Tracking (FID)</div>', unsafe_allow_html=True)
+    with st.container(border=True):
+        st.markdown('<div class="sec-hdr">9. Date-wise Backlog Progress Tracking (FID)</div>', unsafe_allow_html=True)
 
-    if all_dates and len(all_dates) >= 1:
-        t_opts = [pd.Timestamp(d).strftime("%d %b %Y") for d in all_dates]
-        tc1, tc2 = st.columns(2)
-        with tc1: t_si = st.selectbox("📅 From", range(len(t_opts)), format_func=lambda i: t_opts[i], index=0, key="track_from")
-        with tc2: t_ei = st.selectbox("📅 To", range(len(t_opts)), format_func=lambda i: t_opts[i], index=len(t_opts)-1, key="track_to")
-        if t_ei < t_si: t_ei = t_si
-        t_start  = pd.Timestamp(all_dates[t_si])
-        t_end    = pd.Timestamp(all_dates[t_ei]) + pd.Timedelta(days=1) - pd.Timedelta(seconds=1)
-        ft_range = ft[(ft["Date"] >= t_start) & (ft["Date"] <= t_end)].sort_values("Date") if not ft.empty else pd.DataFrame()
-    else:
-        ft_range = pd.DataFrame(); t_start = sel_start; t_end = sel_end
+        if all_dates and len(all_dates) >= 1:
+            t_opts = [pd.Timestamp(d).strftime("%d %b %Y") for d in all_dates]
+            tc1, tc2 = st.columns(2)
+            with tc1: t_si = st.selectbox("📅 From", range(len(t_opts)), format_func=lambda i: t_opts[i], index=0, key="track_from")
+            with tc2: t_ei = st.selectbox("📅 To", range(len(t_opts)), format_func=lambda i: t_opts[i], index=len(t_opts)-1, key="track_to")
+            if t_ei < t_si: t_ei = t_si
+            t_start  = pd.Timestamp(all_dates[t_si])
+            t_end    = pd.Timestamp(all_dates[t_ei]) + pd.Timedelta(days=1) - pd.Timedelta(seconds=1)
+            ft_range = ft[(ft["Date"] >= t_start) & (ft["Date"] <= t_end)].sort_values("Date") if not ft.empty else pd.DataFrame()
+        else:
+            ft_range = pd.DataFrame(); t_start = sel_start; t_end = sel_end
 
-    if not ft_range.empty:
-        fig_track = go.Figure()
-        if "Total In Progress (Backlog)" in ft_range.columns:
-            fig_track.add_trace(go.Bar(x=ft_range["Date_Label"], y=ft_range["Total In Progress (Backlog)"], name="Total In Process (FID)", marker_color=C_ISD, opacity=0.9))
-        if "Worked On" in ft_range.columns:
-            fig_track.add_trace(go.Bar(x=ft_range["Date_Label"], y=ft_range["Worked On"], name="Worked On", marker_color=C_SUB, opacity=0.9))
-        _layout(fig_track, height=300, extra={"barmode": "group"})
-        st.plotly_chart(fig_track, use_container_width=True)
-    else: st.info("No FID tracking data for selected period.")
-    st.markdown('</div>', unsafe_allow_html=True)
+        if not ft_range.empty:
+            fig_track = go.Figure()
+            if "Total In Progress (Backlog)" in ft_range.columns:
+                fig_track.add_trace(go.Bar(x=ft_range["Date_Label"], y=ft_range["Total In Progress (Backlog)"], name="Total In Process (FID)", marker_color=C_ISD, opacity=0.9))
+            if "Worked On" in ft_range.columns:
+                fig_track.add_trace(go.Bar(x=ft_range["Date_Label"], y=ft_range["Worked On"], name="Worked On", marker_color=C_SUB, opacity=0.9))
+            _layout(fig_track, height=300, extra={"barmode": "group"})
+            st.plotly_chart(fig_track, use_container_width=True)
+        else: st.info("No FID tracking data for selected period.")
 
+# FIX: Wrapped in st.container(border=True)
 with col_region:
-    st.markdown('<div class="chart-card">', unsafe_allow_html=True)
-    st.markdown('<div class="sec-hdr">10. Region Wise In-Process Parcels</div>', unsafe_allow_html=True)
-    if tot_fid > 0:
-        df_reg = pd.DataFrame({"Region": ["ISD", "OSD"], "Parcels": [isd_total, osd_total]})
-        fig_reg = px.bar(df_reg, x="Region", y="Parcels", color="Region", color_discrete_map={"ISD": C_ISD, "OSD": C_OSD}, text="Parcels")
-        fig_reg.update_traces(texttemplate="%{text:,.0f}", textposition="outside", textfont=dict(color="#1C2B3A", size=14, weight="bold"), width=0.45)
-        _layout(fig_reg, height=260, extra={"showlegend": False, "yaxis": dict(**_AX, title="Parcels"), "xaxis": dict(**_AX, title="")})
-        st.plotly_chart(fig_reg, use_container_width=True)
-        st.markdown(f"""
-        <div style="display:flex; gap:16px; justify-content:center; padding:12px 0 4px; border-top: 1px solid #E2E8F0;">
-          <div style="text-align:center; flex:1; border-right: 1px solid #E2E8F0;">
-            <div style="font-size:11px; color:#6B7E91; text-transform:uppercase; font-weight:700; margin-bottom:2px;">ISD</div>
-            <div style="font-size:22px; font-weight:700; color:{C_ISD}; font-family:'DM Mono',monospace;">{isd_total:,.0f}</div>
-          </div>
-          <div style="text-align:center; flex:1; border-right: 1px solid #E2E8F0;">
-            <div style="font-size:11px; color:#6B7E91; text-transform:uppercase; font-weight:700; margin-bottom:2px;">OSD</div>
-            <div style="font-size:22px; font-weight:700; color:{C_OSD}; font-family:'DM Mono',monospace;">{osd_total:,.0f}</div>
-          </div>
-          <div style="text-align:center; flex:1;">
-            <div style="font-size:11px; color:#6B7E91; text-transform:uppercase; font-weight:700; margin-bottom:2px;">Total</div>
-            <div style="font-size:22px; font-weight:700; color:#1C2B3A; font-family:'DM Mono',monospace;">{tot_fid:,.0f}</div>
-          </div>
-        </div>""", unsafe_allow_html=True)
-    else: st.info("No region data.")
-    st.markdown('</div>', unsafe_allow_html=True)
+    with st.container(border=True):
+        st.markdown('<div class="sec-hdr">10. Region Wise In-Process Parcels</div>', unsafe_allow_html=True)
+        if tot_fid > 0:
+            df_reg = pd.DataFrame({"Region": ["ISD", "OSD"], "Parcels": [isd_total, osd_total]})
+            fig_reg = px.bar(df_reg, x="Region", y="Parcels", color="Region", color_discrete_map={"ISD": C_ISD, "OSD": C_OSD}, text="Parcels")
+            fig_reg.update_traces(texttemplate="%{text:,.0f}", textposition="outside", textfont=dict(color="#1C2B3A", size=14, weight="bold"), width=0.45)
+            _layout(fig_reg, height=260, extra={"showlegend": False, "yaxis": dict(**_AX, title="Parcels"), "xaxis": dict(**_AX, title="")})
+            st.plotly_chart(fig_reg, use_container_width=True)
+            st.markdown(f"""
+            <div style="display:flex; gap:16px; justify-content:center; padding:12px 0 4px; border-top: 1px solid #E2E8F0;">
+              <div style="text-align:center; flex:1; border-right: 1px solid #E2E8F0;">
+                <div style="font-size:11px; color:#6B7E91; text-transform:uppercase; font-weight:700; margin-bottom:2px;">ISD</div>
+                <div style="font-size:22px; font-weight:700; color:{C_ISD}; font-family:'DM Mono',monospace;">{isd_total:,.0f}</div>
+              </div>
+              <div style="text-align:center; flex:1; border-right: 1px solid #E2E8F0;">
+                <div style="font-size:11px; color:#6B7E91; text-transform:uppercase; font-weight:700; margin-bottom:2px;">OSD</div>
+                <div style="font-size:22px; font-weight:700; color:{C_OSD}; font-family:'DM Mono',monospace;">{osd_total:,.0f}</div>
+              </div>
+              <div style="text-align:center; flex:1;">
+                <div style="font-size:11px; color:#6B7E91; text-transform:uppercase; font-weight:700; margin-bottom:2px;">Total</div>
+                <div style="font-size:22px; font-weight:700; color:#1C2B3A; font-family:'DM Mono',monospace;">{tot_fid:,.0f}</div>
+              </div>
+            </div>""", unsafe_allow_html=True)
+        else: st.info("No region data.")
 
 st.markdown("<div style='height:4px'></div>", unsafe_allow_html=True)
 
@@ -631,102 +634,102 @@ if not ag_f.empty and "Region" in ag_f.columns: ag_f = ag_f[ag_f["Region"].isin(
 
 col_aging, col_aging_tbl = st.columns([3, 2])
 
+# FIX: Wrapped in st.container(border=True)
 with col_aging:
-    st.markdown('<div class="chart-card">', unsafe_allow_html=True)
-    st.markdown('<div class="sec-hdr">11. Aging Distribution</div>', unsafe_allow_html=True)
-    st.markdown('<div class="aging-badge">ISD &amp; SUB = 4 Days+ &nbsp;|&nbsp; OSD = 5 Days+</div>', unsafe_allow_html=True)
-    if not ag_f.empty:
-        ag_max   = ag_f["Date"].max()
-        ag_day_f = ag_f[ag_f["Date"] == ag_max].copy()
-        rows8 = []
-        for _, row in ag_day_f.iterrows():
-            region = str(row.get("Region","")).strip()
-            if region not in region_filter: continue
-            total = float(row.get("Total", 0) or 0)
-            if total == 0: total = sum(float(row[c]) for c in AGE_COLS if c in ag_day_f.columns and pd.notna(row[c]))
-            for c in AGE_COLS:
-                if c in ag_day_f.columns:
-                    val = float(row[c]) if pd.notna(row[c]) else 0.0
-                    pct = val / total * 100 if total > 0 else 0.0
-                    rows8.append({"Region": region, "Age": f"{c}d", "Count": val, "Pct": pct})
-        ag_melt = pd.DataFrame(rows8)
-        if not ag_melt.empty:
-            fig8 = px.bar(ag_melt, x="Age", y="Pct", color="Region", color_discrete_map={"ISD": C_ISD, "OSD": C_OSD}, barmode="group", text=ag_melt["Pct"].apply(lambda x: f"{x:.1f}%"))
-            fig8.update_traces(textposition="outside", textfont=dict(color="#1C2B3A", size=10), customdata=ag_melt[["Count","Region"]], hovertemplate="<b>%{x}</b><br>Region: %{customdata[1]}<br>Count: %{customdata[0]:,.0f}<br>Pct: %{y:.1f}%")
-            _layout(fig8, height=300, extra={"yaxis": dict(**_AX, title="Percentage (%)")})
-            st.plotly_chart(fig8, use_container_width=True)
-        else: st.info("No aging data.")
-    else: st.info("No aging distribution data available.")
-    st.markdown('</div>', unsafe_allow_html=True)
+    with st.container(border=True):
+        st.markdown('<div class="sec-hdr">11. Aging Distribution</div>', unsafe_allow_html=True)
+        st.markdown('<div class="aging-badge">ISD &amp; SUB = 4 Days+ &nbsp;|&nbsp; OSD = 5 Days+</div>', unsafe_allow_html=True)
+        if not ag_f.empty:
+            ag_max   = ag_f["Date"].max()
+            ag_day_f = ag_f[ag_f["Date"] == ag_max].copy()
+            rows8 = []
+            for _, row in ag_day_f.iterrows():
+                region = str(row.get("Region","")).strip()
+                if region not in region_filter: continue
+                total = float(row.get("Total", 0) or 0)
+                if total == 0: total = sum(float(row[c]) for c in AGE_COLS if c in ag_day_f.columns and pd.notna(row[c]))
+                for c in AGE_COLS:
+                    if c in ag_day_f.columns:
+                        val = float(row[c]) if pd.notna(row[c]) else 0.0
+                        pct = val / total * 100 if total > 0 else 0.0
+                        rows8.append({"Region": region, "Age": f"{c}d", "Count": val, "Pct": pct})
+            ag_melt = pd.DataFrame(rows8)
+            if not ag_melt.empty:
+                fig8 = px.bar(ag_melt, x="Age", y="Pct", color="Region", color_discrete_map={"ISD": C_ISD, "OSD": C_OSD}, barmode="group", text=ag_melt["Pct"].apply(lambda x: f"{x:.1f}%"))
+                fig8.update_traces(textposition="outside", textfont=dict(color="#1C2B3A", size=10), customdata=ag_melt[["Count","Region"]], hovertemplate="<b>%{x}</b><br>Region: %{customdata[1]}<br>Count: %{customdata[0]:,.0f}<br>Pct: %{y:.1f}%")
+                _layout(fig8, height=300, extra={"yaxis": dict(**_AX, title="Percentage (%)")})
+                st.plotly_chart(fig8, use_container_width=True)
+            else: st.info("No aging data.")
+        else: st.info("No aging distribution data available.")
 
+# FIX: Wrapped in st.container(border=True)
 with col_aging_tbl:
-    st.markdown('<div class="chart-card">', unsafe_allow_html=True)
-    st.markdown('<div class="sec-hdr">Aging Count &amp; % by Region</div>', unsafe_allow_html=True)
-    if not ag_f.empty:
-        ag_day_f2 = ag_f[ag_f["Date"] == ag_f["Date"].max()].copy()
-        isd_row   = ag_day_f2[ag_day_f2["Region"]=="ISD"].iloc[0] if "ISD" in ag_day_f2["Region"].values else None
-        osd_row   = ag_day_f2[ag_day_f2["Region"]=="OSD"].iloc[0] if "OSD" in ag_day_f2["Region"].values else None
-        isd_tot_v = float(isd_row["Total"]) if isd_row is not None else 0
-        osd_tot_v = float(osd_row["Total"]) if osd_row is not None else 0
+    with st.container(border=True):
+        st.markdown('<div class="sec-hdr">Aging Count &amp; % by Region</div>', unsafe_allow_html=True)
+        if not ag_f.empty:
+            ag_day_f2 = ag_f[ag_f["Date"] == ag_f["Date"].max()].copy()
+            isd_row   = ag_day_f2[ag_day_f2["Region"]=="ISD"].iloc[0] if "ISD" in ag_day_f2["Region"].values else None
+            osd_row   = ag_day_f2[ag_day_f2["Region"]=="OSD"].iloc[0] if "OSD" in ag_day_f2["Region"].values else None
+            isd_tot_v = float(isd_row["Total"]) if isd_row is not None else 0
+            osd_tot_v = float(osd_row["Total"]) if osd_row is not None else 0
 
-        th = "<th>Days</th>"
-        if isd_row is not None: th += "<th>ISD Count</th><th>ISD %</th>"
-        if osd_row is not None: th += "<th>OSD Count</th><th>OSD %</th>"
-        body_rows = ""
-        for c in AGE_COLS:
-            if c not in ag_day_f2.columns: continue
-            td = f"<td><b>{c}d</b></td>"
-            if isd_row is not None:
-                v = float(isd_row[c]) if pd.notna(isd_row[c]) else 0
-                td += f"<td>{v:,.0f}</td><td>{v/isd_tot_v*100:.1f}%</td>" if isd_tot_v else "<td>—</td><td>—</td>"
-            if osd_row is not None:
-                v = float(osd_row[c]) if pd.notna(osd_row[c]) else 0
-                td += f"<td>{v:,.0f}</td><td>{v/osd_tot_v*100:.1f}%</td>" if osd_tot_v else "<td>—</td><td>—</td>"
-            body_rows += f"<tr>{td}</tr>"
-        td_tot = "<td><b>Total</b></td>"
-        if isd_row is not None: td_tot += f"<td><b>{isd_tot_v:,.0f}</b></td><td><b>100%</b></td>"
-        if osd_row is not None: td_tot += f"<td><b>{osd_tot_v:,.0f}</b></td><td><b>100%</b></td>"
-        body_rows += f"<tr>{td_tot}</tr>"
-        st.markdown(f"""
-        <div style="overflow-x:auto; max-height:340px; overflow-y:auto; border: 1px solid #E2E8F0; border-radius: 8px;">
-        <table class="styled-table" style="margin: 0;">
-          <thead><tr>{th}</tr></thead>
-          <tbody>{body_rows}</tbody>
-        </table></div>""", unsafe_allow_html=True)
-    else: st.info("No aging data.")
-    st.markdown('</div>', unsafe_allow_html=True)
+            th = "<th>Days</th>"
+            if isd_row is not None: th += "<th>ISD Count</th><th>ISD %</th>"
+            if osd_row is not None: th += "<th>OSD Count</th><th>OSD %</th>"
+            body_rows = ""
+            for c in AGE_COLS:
+                if c not in ag_day_f2.columns: continue
+                td = f"<td><b>{c}d</b></td>"
+                if isd_row is not None:
+                    v = float(isd_row[c]) if pd.notna(isd_row[c]) else 0
+                    td += f"<td>{v:,.0f}</td><td>{v/isd_tot_v*100:.1f}%</td>" if isd_tot_v else "<td>—</td><td>—</td>"
+                if osd_row is not None:
+                    v = float(osd_row[c]) if pd.notna(osd_row[c]) else 0
+                    td += f"<td>{v:,.0f}</td><td>{v/osd_tot_v*100:.1f}%</td>" if osd_tot_v else "<td>—</td><td>—</td>"
+                body_rows += f"<tr>{td}</tr>"
+            td_tot = "<td><b>Total</b></td>"
+            if isd_row is not None: td_tot += f"<td><b>{isd_tot_v:,.0f}</b></td><td><b>100%</b></td>"
+            if osd_row is not None: td_tot += f"<td><b>{osd_tot_v:,.0f}</b></td><td><b>100%</b></td>"
+            body_rows += f"<tr>{td_tot}</tr>"
+            st.markdown(f"""
+            <div style="overflow-x:auto; max-height:340px; overflow-y:auto; border: 1px solid #E2E8F0; border-radius: 8px;">
+            <table class="styled-table" style="margin: 0;">
+              <thead><tr>{th}</tr></thead>
+              <tbody>{body_rows}</tbody>
+            </table></div>""", unsafe_allow_html=True)
+        else: st.info("No aging data.")
 
 st.markdown("<div style='height:4px'></div>", unsafe_allow_html=True)
 
 # ── ROW 6: Full FID Tracking Table ───────────────────────────────────────────
-st.markdown('<div class="chart-card">', unsafe_allow_html=True)
-st.markdown('<div class="sec-hdr">12. Date-wise Backlog Progress Tracking — Full Table (FID)</div>', unsafe_allow_html=True)
-try: ft_tbl = ft[(ft["Date"] >= t_start) & (ft["Date"] <= t_end)].sort_values("Date").copy() if not ft.empty else pd.DataFrame()
-except Exception: ft_tbl = ft.sort_values("Date").copy() if not ft.empty else pd.DataFrame()
+# FIX: Wrapped in st.container(border=True)
+with st.container(border=True):
+    st.markdown('<div class="sec-hdr">12. Date-wise Backlog Progress Tracking — Full Table (FID)</div>', unsafe_allow_html=True)
+    try: ft_tbl = ft[(ft["Date"] >= t_start) & (ft["Date"] <= t_end)].sort_values("Date").copy() if not ft.empty else pd.DataFrame()
+    except Exception: ft_tbl = ft.sort_values("Date").copy() if not ft.empty else pd.DataFrame()
 
-if not ft_tbl.empty:
-    COL_MAP = {"Date_Label": "Date", "Newly Added": "Newly Added", "Total In Progress (Backlog)": "Total In Process (Backlog)", "Worked On": "Worked On", "Carry Forward": "Carry Forward"}
-    show_cols = [c for c in COL_MAP if c in ft_tbl.columns]
-    df_tbl    = ft_tbl[show_cols].rename(columns=COL_MAP)
-    headers   = "".join(f"<th>{c}</th>" for c in df_tbl.columns)
-    body      = ""
-    for i, (_, r) in enumerate(df_tbl.iterrows()):
-        is_last = i == len(df_tbl) - 1
-        cells   = ""
-        for j, v in enumerate(r):
-            cls = "col-date" if j==0 else ("col-high" if is_last else "")
-            try: disp = v if j==0 else (f"{int(float(v)):,}" if float(v)!=0 else "—")
-            except: disp = "—"
-            cells += f"<td class='{cls}'>{disp}</td>"
-        body += f"<tr>{cells}</tr>"
-    st.markdown(f"""
-    <div style="overflow-x:auto; border: 1px solid #E2E8F0; border-radius: 8px;">
-    <table class="styled-table" style="margin: 0;">
-      <thead><tr>{headers}</tr></thead>
-      <tbody>{body}</tbody>
-    </table></div>""", unsafe_allow_html=True)
-else: st.info("No FID tracking data to display.")
-st.markdown('</div>', unsafe_allow_html=True)
+    if not ft_tbl.empty:
+        COL_MAP = {"Date_Label": "Date", "Newly Added": "Newly Added", "Total In Progress (Backlog)": "Total In Process (Backlog)", "Worked On": "Worked On", "Carry Forward": "Carry Forward"}
+        show_cols = [c for c in COL_MAP if c in ft_tbl.columns]
+        df_tbl    = ft_tbl[show_cols].rename(columns=COL_MAP)
+        headers   = "".join(f"<th>{c}</th>" for c in df_tbl.columns)
+        body      = ""
+        for i, (_, r) in enumerate(df_tbl.iterrows()):
+            is_last = i == len(df_tbl) - 1
+            cells   = ""
+            for j, v in enumerate(r):
+                cls = "col-date" if j==0 else ("col-high" if is_last else "")
+                try: disp = v if j==0 else (f"{int(float(v)):,}" if float(v)!=0 else "—")
+                except: disp = "—"
+                cells += f"<td class='{cls}'>{disp}</td>"
+            body += f"<tr>{cells}</tr>"
+        st.markdown(f"""
+        <div style="overflow-x:auto; border: 1px solid #E2E8F0; border-radius: 8px;">
+        <table class="styled-table" style="margin: 0;">
+          <thead><tr>{headers}</tr></thead>
+          <tbody>{body}</tbody>
+        </table></div>""", unsafe_allow_html=True)
+    else: st.info("No FID tracking data to display.")
 
 st.markdown("<div style='height:4px'></div>", unsafe_allow_html=True)
 
