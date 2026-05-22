@@ -22,13 +22,20 @@ st.markdown("""
 [data-testid="stHeader"]           { background: transparent; }
 [data-testid="stToolbar"]          { display: none; }
 [data-testid="stDecoration"]       { display: none; }
-.block-container { padding-top:1.2rem !important; padding-bottom:2rem !important; max-width:98% !important; }
+
+/* Tighter block container to reduce empty space */
+.block-container { 
+    padding-top: 1rem !important; 
+    padding-bottom: 1rem !important; 
+    max-width: 98% !important; 
+    gap: 1rem !important;
+}
 
 /* ── Premium Header ── */
 .dash-header {
     background: linear-gradient(135deg, #1a2a3a 0%, #0F1923 100%);
     border: 1px solid rgba(245,194,0,0.25);
-    border-radius: 16px; padding: 24px 32px; margin-bottom: 24px;
+    border-radius: 16px; padding: 24px 32px; margin-bottom: 0px;
     display: flex; align-items: center; gap: 20px;
     box-shadow: 0 8px 32px rgba(0,0,0,0.4);
 }
@@ -38,20 +45,31 @@ st.markdown("""
 
 /* ── Filter Bar ── */
 .filter-bar {
-    background: #1a2434; border-radius: 14px; padding: 16px 24px;
-    border: 1px solid rgba(255,255,255,0.08); margin-bottom: 24px;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+    background: #1a2434; border-radius: 16px; padding: 16px 24px;
+    border: 1px solid rgba(255,255,255,0.08); margin-bottom: 0px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
 }
 
-/* ── NATIVE STREAMLIT CONTAINERS (The Fix for the Cards) ── */
-[data-testid="stVerticalBlockBorderWrapper"] {
+/* ── UNIFIED CARD STYLING FOR EVERYTHING (KPIs AND GRAPHS) ── */
+/* This targets the native st.container() wraps so they look exactly like your custom HTML cards */
+[data-testid="stVerticalBlockBorderWrapper"], .kpi-spark, .kpi-small, .appendix-card {
     background: #1a2434 !important;
     border-radius: 16px !important;
     border: 1px solid rgba(255,255,255,0.08) !important;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.4) !important; /* 3D Shadow */
-    padding: 24px 24px 16px 24px !important; /* Bigger padding */
-    height: 100%; 
+    box-shadow: 0 10px 30px rgba(0,0,0,0.4) !important; /* Deep 3D Shadow */
+    height: 100% !important; /* Force cards to stretch and align */
 }
+
+[data-testid="stVerticalBlockBorderWrapper"] {
+    padding: 20px 24px 16px !important;
+}
+
+.kpi-spark, .kpi-small {
+    padding: 24px 24px 16px;
+    position: relative; overflow: hidden; 
+}
+.kpi-spark { min-height: 160px; }
+.kpi-small { min-height: 120px; }
 
 /* ── Section Headers ── */
 .sec-hdr {
@@ -61,29 +79,20 @@ st.markdown("""
     padding-left:12px; margin-bottom:18px;
 }
 
-/* ── Text KPI Cards ── */
-.kpi-spark, .kpi-small {
-    background: #1a2434;
-    border-radius: 16px; padding: 24px 24px 16px;
-    border: 1px solid rgba(255,255,255,0.08);
-    box-shadow: 0 10px 30px rgba(0,0,0,0.4);
-    position: relative; overflow: hidden; height: 100%;
-}
-.kpi-spark { min-height: 150px; }
-.kpi-small { min-height: 120px; }
-
+/* ── KPI Text & Values ── */
 .kpi-spark-label {
     font-size: 12px; font-weight: 600; text-transform: uppercase;
     letter-spacing: 0.8px; color: rgba(255,255,255,0.5) !important; margin-bottom: 8px;
 }
 .kpi-spark-value {
-    font-size: 38px; font-weight: 700; line-height: 1;
+    font-size: 40px; font-weight: 700; line-height: 1;
     font-family: 'DM Mono', monospace; margin-bottom: 8px;
 }
 .kpi-spark-value.green { color: #34D399 !important; }
 .kpi-spark-value.red   { color: #F87171 !important; }
 .kpi-spark-value.amber { color: #F5C200 !important; }
 
+/* ── Delta Badges ── */
 .kpi-delta-row { font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 6px; }
 .delta-up-good, .delta-down-good { color: #34D399 !important; }
 .delta-up-bad, .delta-down-bad  { color: #F87171 !important; }
@@ -97,22 +106,13 @@ st.markdown("""
 }
 .styled-table { width:100%; border-collapse:collapse; font-size:13px; }
 .styled-table thead tr { background: rgba(245,194,0,0.12); }
-.styled-table th { padding:10px 12px; text-align:center; font-weight:600; color:rgba(255,255,255,0.9) !important; border-bottom:1px solid rgba(245,194,0,0.2); }
+.styled-table th { padding:12px 14px; text-align:center; font-weight:600; color:rgba(255,255,255,0.9) !important; border-bottom:1px solid rgba(245,194,0,0.2); text-transform:uppercase; letter-spacing:0.5px;}
 .styled-table tbody tr:hover { background: rgba(255,255,255,0.04); }
 .styled-table tbody tr:last-child { background:rgba(245,194,0,0.08); font-weight:700; }
-.styled-table td { padding:10px 12px; text-align:center; border-bottom:1px solid rgba(255,255,255,0.05); color:rgba(255,255,255,0.85) !important; }
+.styled-table td { padding:12px 14px; text-align:center; border-bottom:1px solid rgba(255,255,255,0.05); color:rgba(255,255,255,0.85) !important; }
 .styled-table .col-date { text-align:left; font-weight:600; color:rgba(245,194,0,0.95) !important; }
 
-/* ── Appendix ── */
-.appendix-card {
-    background: #1a2434; border-radius:16px; padding:24px 28px;
-    border:1px solid rgba(255,255,255,0.08); box-shadow: 0 10px 30px rgba(0,0,0,0.4); margin-bottom:8px;
-}
-.appendix-title { font-size:16px; font-weight:700; color:#F5C200 !important; margin-bottom:16px; }
-.appendix-row { display:flex; gap:10px; margin-bottom:12px; align-items:flex-start; }
-.appendix-key { font-size:13px; font-weight:600; color:rgba(255,255,255,0.9) !important; min-width:230px; }
-.appendix-val { font-size:13px; color:rgba(255,255,255,0.6) !important; }
-
+/* ── Streamlit Overrides ── */
 label, .stSelectbox label, .stMultiSelect label, .stToggle label {
     color: rgba(255,255,255,0.7) !important; font-size: 13px !important;
 }
@@ -197,8 +197,7 @@ def load_data():
         raw = conn.read(spreadsheet=SPREADSHEET_URL, worksheet="Dashboard_Card", header=None)
         raw.columns = [str(c).strip() for c in raw.iloc[1]]
         raw = raw.iloc[2:].reset_index(drop=True)
-        raw = raw[~raw["Date"].astype(str).str.contains(
-            "Grand Total|Date|nan|Backlog|ISD Backlog", case=False, na=True)]
+        raw = raw[~raw["Date"].astype(str).str.contains("Grand Total|Date|nan|Backlog|ISD Backlog", case=False, na=True)]
         raw["Date"] = _parse_dates(raw["Date"])
         raw = raw.dropna(subset=["Date"])
         raw["Date"] = _to_date(raw["Date"])
@@ -206,15 +205,12 @@ def load_data():
         raw = _nums(raw, num_cols)
         raw["Date_Label"] = raw["Date"].dt.strftime("%d %b")
         dc = raw
-    except Exception as e:
-        st.warning(f"Dashboard_Card error: {e}")
-        dc = pd.DataFrame()
+    except Exception: dc = pd.DataFrame()
 
     try:
         raw = conn.read(spreadsheet=SPREADSHEET_URL, worksheet="FID_Tracking")
         raw.columns = [str(c).strip() for c in raw.columns]
-        raw = raw[~raw.iloc[:, 0].astype(str).str.contains(
-            "Grand Total|Report Date|nan", case=False, na=True)]
+        raw = raw[~raw.iloc[:, 0].astype(str).str.contains("Grand Total|Report Date|nan", case=False, na=True)]
         raw.rename(columns={raw.columns[0]: "Date"}, inplace=True)
         raw["Date"] = _parse_dates(raw["Date"])
         raw = raw.dropna(subset=["Date"])
@@ -222,15 +218,12 @@ def load_data():
         raw = _nums(raw, list(raw.columns[1:]))
         raw["Date_Label"] = raw["Date"].dt.strftime("%d %b")
         ft = raw
-    except Exception as e:
-        st.warning(f"FID_Tracking error: {e}")
-        ft = pd.DataFrame()
+    except Exception: ft = pd.DataFrame()
 
     try:
         raw = conn.read(spreadsheet=SPREADSHEET_URL, worksheet="FID_RID_Backlog_Details")
         raw.columns = [str(c).strip() for c in raw.columns]
-        raw = raw[~raw.iloc[:, 0].astype(str).str.contains(
-            "Grand Total|Date|nan", case=False, na=True)]
+        raw = raw[~raw.iloc[:, 0].astype(str).str.contains("Grand Total|Date|nan", case=False, na=True)]
         raw.rename(columns={raw.columns[0]: "Date"}, inplace=True)
         raw["Date"] = _parse_dates(raw["Date"])
         raw = raw.dropna(subset=["Date"])
@@ -238,16 +231,13 @@ def load_data():
         raw = _nums(raw, list(raw.columns[1:]))
         raw["Date_Label"] = raw["Date"].dt.strftime("%d %b")
         fr = raw
-    except Exception as e:
-        st.warning(f"FID_RID_Backlog_Details error: {e}")
-        fr = pd.DataFrame()
+    except Exception: fr = pd.DataFrame()
 
     try:
         raw = conn.read(spreadsheet=SPREADSHEET_URL, worksheet="Aging_Distribution")
         raw = raw.iloc[:, :14]
         raw.columns = ["Date", "Region"] + [str(i) for i in range(1, 11)] + ["10+", "Total"]
-        raw = raw[~raw["Date"].astype(str).str.contains(
-            "Grand Total|Report Date|nan", case=False, na=True)]
+        raw = raw[~raw["Date"].astype(str).str.contains("Grand Total|Report Date|nan", case=False, na=True)]
         raw["Date"] = _parse_dates(raw["Date"])
         raw = raw.dropna(subset=["Date"])
         raw["Date"] = _to_date(raw["Date"])
@@ -255,9 +245,7 @@ def load_data():
         raw = _nums(raw, [str(i) for i in range(1, 11)] + ["10+", "Total"])
         raw["Date_Label"] = raw["Date"].dt.strftime("%d %b")
         ag = raw
-    except Exception as e:
-        st.warning(f"Aging_Distribution error: {e}")
-        ag = pd.DataFrame()
+    except Exception: ag = pd.DataFrame()
 
     return dc, ft, fr, ag
 
@@ -296,7 +284,6 @@ else:
     sel_date  = pd.Timestamp.now().normalize()
     sel_start = sel_date
     sel_end   = sel_date + pd.Timedelta(days=1) - pd.Timedelta(seconds=1)
-    st.error("No dates found — check sheet format.")
 
 with fc2:
     region_filter = st.multiselect("🗺️ Region", ["ISD", "OSD"], default=["ISD", "OSD"])
@@ -376,8 +363,7 @@ spark_fid = _last7_ag_total()
 spark_bl  = _last7_bl()
 spark_zt  = _last7_zt()
 
-# ── Sparkline SVG ─────────────────────────────────────────────────────────────
-def _sparkline_svg(values, color, width=120, height=45):
+def _sparkline_svg(values, color, width=110, height=40):
     if not values or len(values) < 2: return ""
     mn, mx = min(values), max(values)
     rng = mx - mn if mx != mn else 1
@@ -397,8 +383,8 @@ def _sparkline_svg(values, color, width=120, height=45):
     <stop offset="100%" stop-color="{color}" stop-opacity="0.02"/>
   </linearGradient></defs>
   <path d="{area}" fill="url(#g{uid})"/>
-  <polyline points="{' '.join(pts)}" fill="none" stroke="{color}" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
-  <circle cx="{last_x}" cy="{last_y}" r="4.5" fill="{color}"/>
+  <polyline points="{' '.join(pts)}" fill="none" stroke="{color}" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>
+  <circle cx="{last_x}" cy="{last_y}" r="3.5" fill="{color}"/>
 </svg>"""
 
 def _trend_color(values, lower_is_better=True):
@@ -423,7 +409,7 @@ def _spark_kpi(col_w, number, label, value_str, val_class, spark_svg, delta_val,
     col_w.markdown(f"""
     <div class="kpi-spark">
       <div class="kpi-spark-label">{number}. {label}</div>
-      <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px;">
+      <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;">
         <div class="kpi-spark-value {val_class}">{value_str}</div>
         <div style="margin-top:6px;">{spark_svg}</div>
       </div>
@@ -450,24 +436,24 @@ with kc3:
     zt_display = f"{int(zt_val):,}" if zt_val > 0 else "0"
     _spark_kpi(kc3, 3, "Zone Transfer Parcels", zt_display, zt_cls, _sparkline_svg(spark_zt, zt_color), d_zt_v, "vs prev day", False)
 
-# NATIVE CONTAINER FIX
 with kc4:
     with st.container(border=True):
-        st.markdown('<div class="sec-hdr" style="margin-bottom:0px; border:none;">4. Backlog — FID vs RID</div>', unsafe_allow_html=True)
+        st.markdown('<div class="sec-hdr" style="margin-bottom:0px; border:none; padding-left:0px;">4. Backlog — FID vs RID</div>', unsafe_allow_html=True)
         if (fid_bl + rid_bl) > 0:
             fig_donut = go.Figure(data=[go.Pie(
                 labels=["FID", "RID"], values=[fid_bl, rid_bl],
                 hole=0.62, marker_colors=[C_ISD, C_OSD],
                 textinfo="label+percent",
-                textfont=dict(size=13, color="#FFFFFF"),
+                textfont=dict(size=12, color="#FFFFFF"),
                 pull=[0.03, 0],
             )])
             fig_donut.add_annotation(
-                text=f"<b>{fid_bl+rid_bl:,.0f}</b><br><span style='font-size:11px'>Total</span>",
+                text=f"<b>{fid_bl+rid_bl:,.0f}</b><br><span style='font-size:10px'>Total</span>",
                 x=0.5, y=0.5, showarrow=False,
-                font=dict(size=16, color="#FFFFFF"), xanchor="center",
+                font=dict(size=14, color="#FFFFFF"), xanchor="center",
             )
-            _layout(fig_donut, height=170,
+            # Increased height slightly to fill the square card layout better
+            _layout(fig_donut, height=180,
                     extra={"margin": dict(l=0,r=0,t=0,b=0),
                            "legend": dict(orientation="h", yanchor="bottom", y=-0.18,
                                           xanchor="center", x=0.5, font=dict(size=11))})
@@ -475,7 +461,6 @@ with kc4:
         else:
             st.info("No backlog data.")
 
-st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
 
 # ── ROW 2: FID Backlog % + Zone Change % ─────────────────────────────────────
 kr1, kr2, _sp1, _sp2 = st.columns([1, 1, 1, 1])
@@ -504,12 +489,10 @@ with kr1:
 with kr2:
     _pct_kpi(kr2, 6, "Zone Change %", zt_pct, pr_zt_pct, lower_is_better=True)
 
-st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
 
 # ── ROW 3: Backlog Details + FID/RID Sort (horizontal bars) ──────────────────
 col_bl, col_sort = st.columns([3, 2])
 
-# NATIVE CONTAINER FIX
 with col_bl:
     with st.container(border=True):
         st.markdown('<div class="sec-hdr">7. Backlog Details — FID &amp; RID (LMH / FMH)</div>', unsafe_allow_html=True)
@@ -529,14 +512,15 @@ with col_bl:
                     name=name, y=labels, x=vals, orientation="h", marker_color=color,
                     text=[f"{v:,.0f}" if v>0 else "" for v in vals],
                     textposition="inside", insidetextanchor="middle",
-                    textfont=dict(color="#FFFFFF", size=12, weight="bold"),
+                    textfont=dict(color="#FFFFFF", size=13, weight="bold"),
                 ))
             for lbl, tot in zip(labels, tots):
                 if tot > 0:
                     fig9.add_annotation(x=tot, y=lbl, text=f"  <b>{tot:,.0f}</b>",
                                         showarrow=False, xanchor="left",
                                         font=dict(size=14, color="rgba(255,255,255,0.95)"))
-            _layout(fig9, height=320, extra={
+            # Increased height to fill out the container and make cards more square/balanced
+            _layout(fig9, height=380, extra={
                 "barmode":"stack",
                 "xaxis": dict(**_AX, title="Count"),
                 "yaxis": dict(**_AX, autorange="reversed"),
@@ -545,7 +529,6 @@ with col_bl:
         else:
             st.info("No backlog detail data.")
 
-# NATIVE CONTAINER FIX
 with col_sort:
     with st.container(border=True):
         st.markdown('<div class="sec-hdr">8. Sort — FID Sort vs RID Sort</div>', unsafe_allow_html=True)
@@ -554,14 +537,12 @@ with col_sort:
             rid_sort = _safe_multi(lt_fr, "RID Sort", "RID LMH Sort")
             fig10 = go.Figure(data=[go.Bar(
                 y=["FID Sort", "RID Sort"], x=[fid_sort, rid_sort],
-                orientation="h",
-                marker_color=[C_ISD, C_OSD],
-                text=[f"{fid_sort:,.0f}", f"{rid_sort:,.0f}"],
-                textposition="outside",
-                textfont=dict(size=14, color="rgba(255,255,255,0.95)", weight="bold"),
-                width=0.5,
+                orientation="h", marker_color=[C_ISD, C_OSD], marker_line=dict(color="#FFFFFF", width=1),
+                text=[f"{fid_sort:,.0f}", f"{rid_sort:,.0f}"], textposition="outside",
+                textfont=dict(size=14, color="rgba(255,255,255,0.95)", weight="bold"), width=0.5,
             )])
-            _layout(fig10, height=320, extra={
+            # Increased height to fill out the container
+            _layout(fig10, height=380, extra={
                 "showlegend": False,
                 "xaxis": dict(**_AX, title="Count"),
                 "yaxis": dict(**_AX),
@@ -571,12 +552,10 @@ with col_sort:
         else:
             st.info("No sort data.")
 
-st.markdown("<div style='height:4px'></div>", unsafe_allow_html=True)
 
 # ── ROW 4: Date-range Backlog Tracking + Region Vertical Bar ─────────────────
 col_track, col_region = st.columns([3, 2])
 
-# NATIVE CONTAINER FIX
 with col_track:
     with st.container(border=True):
         st.markdown('<div class="sec-hdr">9. Date-wise Backlog Progress Tracking (FID)</div>', unsafe_allow_html=True)
@@ -613,12 +592,12 @@ with col_track:
                     x=ft_range["Date_Label"], y=ft_range["Worked On"],
                     name="Worked On", marker_color=C_SUB, opacity=0.9,
                 ))
-            _layout(fig_track, height=340, extra={"barmode": "group"})
+            # Increased height
+            _layout(fig_track, height=380, extra={"barmode": "group"})
             st.plotly_chart(fig_track, use_container_width=True)
         else:
             st.info("No FID tracking data for selected period.")
 
-# NATIVE CONTAINER FIX
 with col_region:
     with st.container(border=True):
         st.markdown('<div class="sec-hdr">10. Region Wise In-Process Parcels</div>', unsafe_allow_html=True)
@@ -632,7 +611,8 @@ with col_region:
                 textfont=dict(color="rgba(255,255,255,0.95)", size=14, weight="bold"),
                 width=0.5,
             )
-            _layout(fig_reg, height=260, extra={
+            # Adjusted height to balance the column layout
+            _layout(fig_reg, height=300, extra={
                 "showlegend": False,
                 "yaxis": dict(**_AX, title="Parcels"),
                 "xaxis": dict(**_AX, title=""),
@@ -656,7 +636,6 @@ with col_region:
         else:
             st.info("No region data.")
 
-st.markdown("<div style='height:4px'></div>", unsafe_allow_html=True)
 
 # ── ROW 5: Aging Distribution + Aging Table ───────────────────────────────────
 AGE_COLS = [str(i) for i in range(1, 11)] + ["10+"]
@@ -666,7 +645,6 @@ if not ag_f.empty and "Region" in ag_f.columns:
 
 col_aging, col_aging_tbl = st.columns([3, 2])
 
-# NATIVE CONTAINER FIX
 with col_aging:
     with st.container(border=True):
         st.markdown('<div class="sec-hdr">11. Aging Distribution</div>', unsafe_allow_html=True)
@@ -698,14 +676,14 @@ with col_aging:
                     customdata=ag_melt[["Count","Region"]],
                     hovertemplate="<b>%{x}</b><br>Region: %{customdata[1]}<br>Count: %{customdata[0]:,.0f}<br>Pct: %{y:.1f}%",
                 )
-                _layout(fig8, height=340, extra={"yaxis": dict(**_AX, title="Percentage (%)")})
+                # Increased height
+                _layout(fig8, height=380, extra={"yaxis": dict(**_AX, title="Percentage (%)")})
                 st.plotly_chart(fig8, use_container_width=True)
             else:
                 st.info("No aging data.")
         else:
             st.info("No aging distribution data available.")
 
-# NATIVE CONTAINER FIX
 with col_aging_tbl:
     with st.container(border=True):
         st.markdown('<div class="sec-hdr">Aging Count &amp; % by Region</div>', unsafe_allow_html=True)
@@ -735,7 +713,7 @@ with col_aging_tbl:
             if osd_row is not None: td_tot += f"<td><b>{osd_tot_v:,.0f}</b></td><td><b>100%</b></td>"
             body_rows += f"<tr>{td_tot}</tr>"
             st.markdown(f"""
-            <div style="overflow-x:auto; max-height:380px; overflow-y:auto; border:1px solid rgba(255,255,255,0.08); border-radius:12px;">
+            <div style="overflow-x:auto; max-height:430px; overflow-y:auto; border:1px solid rgba(255,255,255,0.08); border-radius:12px;">
             <table class="styled-table" style="margin:0;">
               <thead><tr>{th}</tr></thead>
               <tbody>{body_rows}</tbody>
@@ -743,10 +721,8 @@ with col_aging_tbl:
         else:
             st.info("No aging data.")
 
-st.markdown("<div style='height:4px'></div>", unsafe_allow_html=True)
 
 # ── ROW 6: Full FID Tracking Table ───────────────────────────────────────────
-# NATIVE CONTAINER FIX
 with st.container(border=True):
     st.markdown('<div class="sec-hdr">12. Date-wise Backlog Progress Tracking — Full Table (FID)</div>',
                 unsafe_allow_html=True)
@@ -784,8 +760,6 @@ with st.container(border=True):
         </table></div>""", unsafe_allow_html=True)
     else:
         st.info("No FID tracking data to display.")
-
-st.markdown("<div style='height:4px'></div>", unsafe_allow_html=True)
 
 # ── Appendix ──────────────────────────────────────────────────────────────────
 with st.expander("📖 Appendix — Definitions & Calculation Methods", expanded=False):
