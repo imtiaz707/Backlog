@@ -286,7 +286,8 @@ label,
 
 # ── Constants ─────────────────────────────────────────────────────────────────
 SPREADSHEET_URL = (
-    "https://docs.google.com/spreadsheets/d/1n9GW1UksZ-jhCQ-zmCqwx4EH20fa-Zm5wA5BiMmdZAE/edit?gid=713116247#gid=713116247"
+    "https://docs.google.com/spreadsheets/d/"
+    "1n9GW1UksZ-jhCQ-zmCqwx4EH20fa-Zm5wA5BiMmdZAE/edit?gid=713116247#gid=713116247"
 )
 
 C_ISD = "#4A9EFF"
@@ -641,13 +642,13 @@ d_fid = tot_fid    - pr_fid
 d_bl  = overall_bl - pr_overall
 d_zt  = zt_val     - pr_zt_val
 
-def _delta_html(val, lower_is_better=True, fmt=",0f"):
+def _delta_html(val, lower_is_better=True):
     if val == 0:
         return '<span class="kpi-delta dn">— unchanged</span>'
-    good = (val < 0 and lower_is_better) or (val > 0 and not lower_is_better)
-    cls  = "dg" if good else "dr"
+    good  = (val < 0 and lower_is_better) or (val > 0 and not lower_is_better)
+    cls   = "dg" if good else "dr"
     arrow = "↓" if val < 0 else "↑"
-    formatted = f"{abs(val):{fmt}}"
+    formatted = f"{abs(val):,.0f}"
     return f'<span class="kpi-delta {cls}">{arrow} {formatted}</span>'
 
 # ── ════════════════════════════════════════════════════════════════════ ──
