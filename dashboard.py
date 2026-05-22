@@ -286,8 +286,7 @@ label,
 
 # ── Constants ─────────────────────────────────────────────────────────────────
 SPREADSHEET_URL = (
-    "https://docs.google.com/spreadsheets/d/"
-    "1n9GW1UksZ-jhCQ-zmCqwx4EH20fa-Zm5wA5BiMmdZAE/edit?gid=713116247#gid=713116247"
+    "https://docs.google.com/spreadsheets/d/1n9GW1UksZ-jhCQ-zmCqwx4EH20fa-Zm5wA5BiMmdZAE/edit?gid=713116247#gid=713116247"
 )
 
 C_ISD = "#4A9EFF"
