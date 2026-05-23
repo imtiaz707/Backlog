@@ -45,15 +45,16 @@ st.markdown("""
 
 /* ── Filter Bar ── */
 .filter-bar {
-    background: #FDF3BF; /* Highlight bg */
+    background: #FDF3BF; /* Warmer distinct background sitting between background and primary */
     border-radius: 12px; padding: 16px 24px;
     border: 1px solid #F9DE7A; margin-bottom: 0px;
     box-shadow: 0 4px 12px rgba(0,0,0,0.05);
 }
 
 /* ── UNIFIED CARD STYLING FOR EVERYTHING (KPIs AND GRAPHS) ── */
+/* Set a visually recognizable card background warmer than the background to distinguish cards by eye */
 [data-testid="stVerticalBlockBorderWrapper"], .kpi-spark, .kpi-small, .appendix-card {
-    background: #F5C200 !important; /* Golden Yellow cards matching inspiration */
+    background: #FDF3BF !important; /* Lighter distinct warm-white color sitting on background */
     border-radius: 12px !important;
     border: 1px solid #C99B00 !important;
     box-shadow: 0 6px 16px rgba(0,0,0,0.08) !important; 
@@ -114,7 +115,7 @@ label, .stSelectbox label, .stMultiSelect label, .stToggle label {
     color: #1C2B3A !important; font-size: 14px !important; font-weight: 600 !important;
 }
 
-/* Fix Slicer / Dropdown Input Text Colors */
+/* Fix Slicer / Dropdown Input Text Colors - Make text dark navy sitting clearly visible on light inputs */
 .stSelectbox div[data-baseweb="select"] *, 
 .stMultiSelect div[data-baseweb="select"] * {
     color: #1C2B3A !important;
@@ -130,7 +131,7 @@ div[data-baseweb="popover"] * { color: #1C2B3A !important; }
     font-weight: 700 !important;
 }
 [data-testid="stExpander"] {
-    background-color: #FDF3BF !important;
+    background-color: #FDF3BF !important; /* recognizable expander card sitting on bg */
     border: 1px solid #C99B00 !important;
     border-radius: 12px !important;
 }
@@ -682,7 +683,7 @@ with col_aging:
                 max_slider_val = max(5.0, float(ag_melt["Pct"].max()) + 5.0)
                 
                 # --- SAFE ZOOM SLICER ---
-                # Placed horizontally above the chart to avoid Streamlit version TypeErrors
+                # Placed horizontally sitting above the chart area as horizontal sliders are safer than vertical on deploy.
                 y_zoom = st.slider(
                     "🔍 Adjust Y-Axis Zoom (%)", 
                     min_value=0.0, 
@@ -701,7 +702,7 @@ with col_aging:
                     hovertemplate="<b>%{x}</b><br>Region: %{customdata[1]}<br>Count: %{customdata[0]:,.0f}<br>Pct: %{y:.1f}%",
                 )
                 
-                # Apply the dynamically selected Y-Axis range from the slider
+                # Apply the dynamically selected Y-Axis range sitting safely sitting cleanly here.
                 _layout(fig8, height=380, extra={"yaxis": dict(**_AX, title="Percentage (%)", range=[y_zoom[0], y_zoom[1]])})
                 st.plotly_chart(fig8, use_container_width=True)
             else:
