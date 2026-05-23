@@ -28,7 +28,7 @@ st.markdown("""
     padding-top: 1rem !important; 
     padding-bottom: 1rem !important; 
     max-width: 98% !important; 
-    gap: 0.5rem !important; /* Tightened gap between elements */
+    gap: 0.9rem !important; /* Tightened gap between elements */
 }
 
 /* ── Premium Header ── */
@@ -49,7 +49,7 @@ st.markdown("""
 .filter-bar {
     background: #FFFFFF; 
     border-radius: 12px; padding: 16px 24px;
-    border: 1px solid #2E7D6B; margin-bottom: 0px;
+    border: 1px solid #F9DE7A; margin-bottom: 0px;
     box-shadow: 0 4px 12px rgba(0,0,0,0.05);
 }
 
@@ -294,32 +294,36 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-# ── SINGLE DATE SLICER ────────────────────────────────────────────────────────
-st.markdown('<div class="filter-bar">', unsafe_allow_html=True)
-fc1, fc2, _sp = st.columns([2, 2, 4])
+# ── SINGLE DATE SLICER (FIXED LAYOUT CONTAINER) ──────────────────────────────
+# We wrap the columns natively inside an explicit layout container so everything stays bound
+with st.container():
+    st.markdown('<div class="filter-bar">', unsafe_allow_html=True)
+    
+    # Restructure columns directly within the container context
+    fc1, fc2, _sp = st.columns([2, 2, 4])
+    
+    all_dates_ft = sorted(ft["Date"].dropna().unique()) if not ft.empty else []
+    all_dates_ag = sorted(ag["Date"].dropna().unique()) if not ag.empty else []
+    all_dates    = sorted(set(list(all_dates_ft) + list(all_dates_ag)))
 
-all_dates_ft = sorted(ft["Date"].dropna().unique()) if not ft.empty else []
-all_dates_ag = sorted(ag["Date"].dropna().unique()) if not ag.empty else []
-all_dates    = sorted(set(list(all_dates_ft) + list(all_dates_ag)))
+    if all_dates:
+        date_opts = [pd.Timestamp(d).strftime("%d %b %Y") for d in all_dates]
+        with fc1:
+            sel_di = st.selectbox("📅 Report Date", range(len(date_opts)),
+                                  format_func=lambda i: date_opts[i],
+                                  index=len(date_opts) - 1)
+        sel_date  = pd.Timestamp(all_dates[sel_di])
+        sel_start = sel_date
+        sel_end   = sel_date + pd.Timedelta(days=1) - pd.Timedelta(seconds=1)
+    else:
+        sel_date  = pd.Timestamp.now().normalize()
+        sel_start = sel_date
+        sel_end   = sel_date + pd.Timedelta(days=1) - pd.Timedelta(seconds=1)
 
-if all_dates:
-    date_opts = [pd.Timestamp(d).strftime("%d %b %Y") for d in all_dates]
-    with fc1:
-        sel_di = st.selectbox("📅 Report Date", range(len(date_opts)),
-                              format_func=lambda i: date_opts[i],
-                              index=len(date_opts) - 1)
-    sel_date  = pd.Timestamp(all_dates[sel_di])
-    sel_start = sel_date
-    sel_end   = sel_date + pd.Timedelta(days=1) - pd.Timedelta(seconds=1)
-else:
-    sel_date  = pd.Timestamp.now().normalize()
-    sel_start = sel_date
-    sel_end   = sel_date + pd.Timedelta(days=1) - pd.Timedelta(seconds=1)
-
-with fc2:
-    region_filter = st.multiselect("🗺️ Region", ["ISD", "OSD"], default=["ISD", "OSD"])
-st.markdown('</div>', unsafe_allow_html=True)
-
+    with fc2:
+        region_filter = st.multiselect("🗺️ Region", ["ISD", "OSD"], default=["ISD", "OSD"])
+        
+    st.markdown('</div>', unsafe_allow_html=True)
 # ── Helpers ───────────────────────────────────────────────────────────────────
 def _latest(df):
     if df is None or df.empty: return None
