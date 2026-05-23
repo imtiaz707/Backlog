@@ -70,8 +70,20 @@ st.markdown("""
     padding: 16px 20px 14px;
     position: relative; overflow: hidden; 
 }
-.kpi-spark { min-height: 0; } 
-.kpi-small { min-height: 0; } 
+
+/* ── INCREASED HEIGHTS HERE TO UTILIZE MIDDLE GAP ── */
+.kpi-spark { 
+    min-height: 230px; 
+    display: flex; 
+    flex-direction: column; 
+    justify-content: space-between; 
+} 
+.kpi-small { 
+    min-height: 180px; 
+    display: flex; 
+    flex-direction: column; 
+    justify-content: space-between; 
+} 
 
 .sec-hdr {
     font-size:15px; font-weight:700; color:#1C2B3A !important;
