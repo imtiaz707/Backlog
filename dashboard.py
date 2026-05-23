@@ -515,9 +515,10 @@ with kc3:
 
 with kc4:
     with st.container(border=True):
-        st.markdown('<div class="sec-hdr" style="margin-bottom:0px; border:none; padding-left:0px;">4. Backlog — FID vs RID</div>', unsafe_allow_html=True)
+        st.markdown('<div class="sec-hdr" style="margin-bottom:8px;">4. Backlog — FID vs RID</div>', unsafe_allow_html=True)
         if (fid_bl + rid_bl) > 0:
-            # We increase height to match the kpi-spark height (220px)
+            fid_pct_donut = fid_bl / (fid_bl + rid_bl) * 100
+            rid_pct_donut = rid_bl / (fid_bl + rid_bl) * 100
             fig_donut = go.Figure(data=[go.Pie(
                 labels=["FID", "RID"], values=[fid_bl, rid_bl],
                 hole=0.55,
@@ -527,36 +528,32 @@ with kc4:
                 pull=[0.05, 0.05],
                 hovertemplate="<b>%{label}</b><br>Count: %{value:,.0f}<br>Share: %{percent}<extra></extra>",
             )])
-            
-            # Using annotations to perfectly center the text
             fig_donut.add_annotation(
-                text=f"<b>{int(fid_bl+rid_bl):,}</b>",
+                text=f"<b>{int(fid_bl+rid_bl):,}</b><br><span style='font-size:10px;color:#6B7E91'>Total</span>",
                 x=0.5, y=0.5, showarrow=False, xanchor="center", yanchor="middle",
-                font=dict(size=24, color="#1C2B3A"),
+                font=dict(size=15, color="#1C2B3A"),
             )
-            
-            # Updated layout to center vertically in the card
-            _layout(fig_donut, height=170, 
-                    extra={
-                        "margin": dict(l=20, r=20, t=10, b=10), 
-                        "showlegend": False
-                    })
+            # Increased height so it matches the newly extended kpi-spark height
+            _layout(fig_donut, height=210,
+                    extra={"margin": dict(l=10, r=10, t=20, b=0), "showlegend": False})
             st.plotly_chart(fig_donut, use_container_width=True)
-            
-            # Footer metrics centered
             st.markdown(f"""
-            <div style="display:flex; justify-content:center; gap:20px; margin-top:-10px;">
-              <div style="text-align:center;">
-                <div style="font-size:10px; font-weight:700; color:#8A6A00;">FID</div>
-                <div style="font-size:16px; font-weight:700; color:#1C2B3A;">{fid_bl:,.0f}</div>
+            <div style="display:flex; gap:0; border-top:1px solid #E8E4DB; padding-top:8px;">
+              <div style="flex:1; text-align:center; border-right:1px solid #E8E4DB;">
+                <div style="font-size:10px; font-weight:700; text-transform:uppercase; color:#8A6A00; margin-bottom:2px;">FID</div>
+                <div style="font-size:18px; font-weight:700; color:#1C2B3A; font-family:'DM Mono',monospace;">{fid_bl:,.0f}</div>
+                <div style="font-size:10px; color:#6B7E91; font-weight:600;">{fid_pct_donut:.1f}%</div>
               </div>
-              <div style="text-align:center;">
-                <div style="font-size:10px; font-weight:700; color:#1C2B3A;">RID</div>
-                <div style="font-size:16px; font-weight:700; color:#1C2B3A;">{rid_bl:,.0f}</div>
+              <div style="flex:1; text-align:center;">
+                <div style="font-size:10px; font-weight:700; text-transform:uppercase; color:#1C2B3A; margin-bottom:2px;">RID</div>
+                <div style="font-size:18px; font-weight:700; color:#1C2B3A; font-family:'DM Mono',monospace;">{rid_bl:,.0f}</div>
+                <div style="font-size:10px; color:#6B7E91; font-weight:600;">{rid_pct_donut:.1f}%</div>
               </div>
             </div>""", unsafe_allow_html=True)
         else:
             st.info("No backlog data.")
+
+
 
 # ── ROW 2: Cards 5 & 6 (percentage KPIs) ─────────────────────────────────────
 kr1, kr2, _sp1, _sp2 = st.columns([1, 1, 1, 1])
