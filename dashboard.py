@@ -130,7 +130,7 @@ label, .stSelectbox label, .stMultiSelect label, .stToggle label {
     color: #1C2B3A !important;
 }
 div[data-baseweb="select"] > div { background-color: #FFFFFF; border-color: #C4C0B3; }
-div[data-baseweb="popover"] * { color: #1C2B3A !important; }
+div[data-baseweb="popover"] * { color: #FFFFFF !important; }
 
 /* Fix Appendix / Expander Text Colors */
 [data-testid="stExpander"] details summary p, 
