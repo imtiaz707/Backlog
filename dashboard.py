@@ -327,8 +327,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ── SINGLE DATE SLICER ────────────────────────────────────────────────────────
-with st.container():
-    st.markdown('<div class="filter-bar">', unsafe_allow_html=True)
+with st.container(border=True): # Use native border for perfect alignment
     fc1, fc2, _sp = st.columns([2, 2, 4])
     
     all_dates_ft = sorted(ft["Date"].dropna().unique()) if not ft.empty else []
@@ -351,8 +350,6 @@ with st.container():
 
     with fc2:
         region_filter = st.multiselect("🗺️ Region", ["ISD", "OSD"], default=["ISD", "OSD"])
-    st.markdown('</div>', unsafe_allow_html=True)
-
 # ── Helpers ───────────────────────────────────────────────────────────────────
 def _latest(df):
     if df is None or df.empty: return None
