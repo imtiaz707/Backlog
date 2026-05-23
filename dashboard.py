@@ -28,16 +28,15 @@ st.markdown("""
     padding-top: 1rem !important; 
     padding-bottom: 1rem !important; 
     max-width: 98% !important; 
-    gap: 1rem !important;
+    gap: 0.5rem !important; /* Tightened gap between elements */
 }
 
 /* ── Premium Header ── */
-/* Reduced padding to remove the extra space and tightly wrap the text */
 .dash-header {
     background: #F5C200; /* Golden Yellow */
     border: 1px solid #C99B00;
     border-radius: 12px; 
-    padding: 14px 28px; /* Tighter padding */
+    padding: 14px 28px; 
     margin-bottom: 0px;
     display: flex; align-items: center; gap: 20px;
     box-shadow: 0 4px 12px rgba(0,0,0,0.08);
@@ -48,19 +47,18 @@ st.markdown("""
 
 /* ── Filter Bar ── */
 .filter-bar {
-    background: #FFFFFF; /* Pure white for contrast */
+    background: #FFFFFF; 
     border-radius: 12px; padding: 16px 24px;
-    border: 1px solid #D9D5C8; margin-bottom: 0px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+    border: 1px solid #C4C0B3; margin-bottom: 0px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
 }
 
-/* ── GRAPH CARDS ── */
-/* Made these Pure White to strongly distinguish them from the F0EDE5 background, with a clear border */
+/* ── GRAPH CARDS (FIXED BORDERS AND BACKGROUND) ── */
 [data-testid="stVerticalBlockBorderWrapper"], .appendix-card {
-    background: #FFFFFF !important; 
+    background-color: #FFFFFF !important; /* Force Pure White */
     border-radius: 12px !important;
-    border: 1px solid #D9D5C8 !important; /* Visible outline */
-    box-shadow: 0 6px 16px rgba(0,0,0,0.05) !important; 
+    border: 1px solid #C4C0B3 !important; /* Distinct, visible border */
+    box-shadow: 0px 6px 18px rgba(0,0,0,0.08) !important; /* Deeper shadow to pop off background */
     height: 100% !important; 
 }
 
@@ -70,7 +68,7 @@ st.markdown("""
 
 /* ── KPI CARDS (Top 3 Sparklines + 2 Percentage Cards) ── */
 .kpi-spark, .kpi-small {
-    background: #F9DE7A !important; /* User requested color */
+    background: #F9DE7A !important; /* Requested Yellow Color */
     border-radius: 12px !important;
     border: 1px solid #E8CD68 !important;
     box-shadow: 0 6px 16px rgba(0,0,0,0.05) !important; 
@@ -79,7 +77,6 @@ st.markdown("""
     position: relative; overflow: hidden; 
 }
 
-/* Increased heights to utilize middle space */
 .kpi-spark { min-height: 200px; } 
 .kpi-small { min-height: 160px; } 
 
@@ -89,6 +86,7 @@ st.markdown("""
     text-transform:uppercase; letter-spacing:1px;
     border-left:4px solid #F5C200; /* Yellow accent */
     padding-left:12px; margin-bottom:18px;
+    background-color: #FFFFFF; /* Ensure header sits on white */
 }
 
 /* ── KPI Text & Values ── */
@@ -131,7 +129,7 @@ label, .stSelectbox label, .stMultiSelect label, .stToggle label {
 .stMultiSelect div[data-baseweb="select"] * {
     color: #1C2B3A !important;
 }
-div[data-baseweb="select"] > div { background-color: #FFFFFF; border-color: #D9D5C8; }
+div[data-baseweb="select"] > div { background-color: #FFFFFF; border-color: #C4C0B3; }
 div[data-baseweb="popover"] * { color: #1C2B3A !important; }
 
 /* Fix Appendix / Expander Text Colors */
@@ -143,7 +141,7 @@ div[data-baseweb="popover"] * { color: #1C2B3A !important; }
 }
 [data-testid="stExpander"] {
     background-color: #FFFFFF !important;
-    border: 1px solid #D9D5C8 !important;
+    border: 1px solid #C4C0B3 !important;
     border-radius: 12px !important;
 }
 </style>
@@ -154,7 +152,7 @@ SPREADSHEET_URL = (
     "1n9GW1UksZ-jhCQ-zmCqwx4EH20fa-Zm5wA5BiMmdZAE/edit?gid=713116247#gid=713116247"
 )
 
-# ── Updated Plotly Base config ──
+# ── Updated Plotly Base config (Forcing White Backgrounds) ──
 _AX = dict(
     gridcolor="rgba(28,43,58,0.08)", linecolor="rgba(28,43,58,0.2)",
     tickcolor="rgba(28,43,58,0.2)", showgrid=True,
@@ -162,7 +160,8 @@ _AX = dict(
     title_font=dict(color="#1C2B3A", weight="bold"),
 )
 _BASE = dict(
-    paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
+    paper_bgcolor="#FFFFFF", /* Forces the entire graph area to be solid white */
+    plot_bgcolor="#FFFFFF",  /* Forces the plot background to be solid white */
     font=dict(color="#1C2B3A", family="DM Sans, sans-serif", size=12),
     legend=dict(bgcolor="rgba(255,255,255,0.9)", bordercolor="#D9D5C8",
                 borderwidth=1, font=dict(size=12, color="#1C2B3A", weight="bold")),
@@ -480,7 +479,7 @@ with kc4:
                 x=0.5, y=0.5, showarrow=False,
                 font=dict(size=15, color="#1C2B3A"), xanchor="center",
             )
-            # Increased chart height to naturally match the taller adjacent KPI cards
+            # Match layout height to new KPI height
             _layout(fig_donut, height=190,
                     extra={"margin": dict(l=0,r=0,t=0,b=0),
                            "legend": dict(orientation="h", yanchor="bottom", y=-0.18,
@@ -749,7 +748,7 @@ with col_aging_tbl:
             if osd_row is not None: td_tot += f"<td><b>{osd_tot_v:,.0f}</b></td><td><b>100%</b></td>"
             body_rows += f"<tr>{td_tot}</tr>"
             st.markdown(f"""
-            <div style="overflow-x:auto; max-height:430px; overflow-y:auto; border:1px solid #D9D5C8; border-radius:12px;">
+            <div style="overflow-x:auto; max-height:430px; overflow-y:auto; border:1px solid #C4C0B3; border-radius:12px;">
             <table class="styled-table" style="margin:0;">
               <thead><tr>{th}</tr></thead>
               <tbody>{body_rows}</tbody>
@@ -789,7 +788,7 @@ with st.container(border=True):
                 cells += f"<td class='{cls}'>{disp}</td>"
             body += f"<tr>{cells}</tr>"
         st.markdown(f"""
-        <div style="overflow-x:auto; border:1px solid #D9D5C8; border-radius:12px;">
+        <div style="overflow-x:auto; border:1px solid #C4C0B3; border-radius:12px;">
         <table class="styled-table" style="margin:0;">
           <thead><tr>{headers}</tr></thead>
           <tbody>{body}</tbody>
