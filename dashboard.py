@@ -70,8 +70,8 @@ st.markdown("""
     padding: 24px 24px 16px;
     position: relative; overflow: hidden; 
 }
-.kpi-spark { min-height: 200px; } 
-.kpi-small { min-height: 160px; } 
+.kpi-spark { min-height: 130px; } 
+.kpi-small { min-height: 110px; } 
 
 .sec-hdr {
     font-size:15px; font-weight:700; color:#1C2B3A !important;
@@ -410,8 +410,9 @@ fid_color = _trend_color(spark_fid, lower_is_better=True)
 bl_color  = _trend_color(spark_bl,  lower_is_better=True)
 zt_color  = _trend_color(spark_zt,  lower_is_better=False)
 
-# ── ROW 1: 3 Sparkline KPIs + Donut ──────────────────────────────────────────
-kc1, kc2, kc3, kc4 = st.columns([1, 1, 1, 1])
+# ── ROWS 1 & 2: Left = KPI cards stacked, Right = Donut spanning both rows ────
+# Outer split: 3 parts KPIs | 1 part Donut
+left_col, donut_col = st.columns([3, 1])
 
 def _spark_kpi(col_w, number, label, value_str, spark_svg, delta_val, delta_label, lower_is_better=True):
     d_fid  = delta_val
@@ -422,12 +423,31 @@ def _spark_kpi(col_w, number, label, value_str, spark_svg, delta_val, delta_labe
     col_w.markdown(f"""
     <div class="kpi-spark">
       <div class="kpi-spark-label">{number}. {label}</div>
-      <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;">
+      <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:6px;">
         <div class="kpi-spark-value">{value_str}</div>
-        <div style="margin-top:6px;">{spark_svg}</div>
+        <div style="margin-top:4px;">{spark_svg}</div>
       </div>
       <div class="kpi-delta-row">
         <span class="{d_cls}">{arr} {abs(d_fid):,.0f} {delta_label}</span>
+      </div>
+    </div>""", unsafe_allow_html=True)
+
+def _pct_kpi(col_w, number, label, value, prev_value, lower_is_better=True):
+    diff    = value - prev_value
+    good    = (diff < 0 and lower_is_better) or (diff > 0 and not lower_is_better)
+    v_color = "#2E7D6B" if good else ("#E05C3A" if diff != 0 else "#1C2B3A")
+    arr     = "▼" if diff < 0 else ("▲" if diff > 0 else "—")
+    d_cls   = "delta-down-good" if (diff < 0 and lower_is_better) else \
+               ("delta-up-good"  if (diff > 0 and not lower_is_better) else \
+               ("delta-up-bad"   if diff > 0 else "delta-down-bad" if diff < 0 else "delta-neutral"))
+    col_w.markdown(f"""
+    <div class="kpi-small">
+      <div class="kpi-spark-label">{number}. {label}</div>
+      <div style="font-size:40px; font-weight:700; font-family:'DM Mono',monospace;
+                  color:{v_color}; margin-bottom:8px; line-height:1;">{value:.2f}%</div>
+      <div class="kpi-delta-row">
+        <span class="{d_cls}" style="font-size:14px; line-height:1;">{arr}</span>
+        <span class="{d_cls}">{abs(diff):.2f} pp vs prev day</span>
       </div>
     </div>""", unsafe_allow_html=True)
 
@@ -435,16 +455,27 @@ d_fid_v = tot_fid - pr_fid
 d_bl_v  = overall_bl - pr_overall
 d_zt_v  = zt_val - pr_zt_val
 
-with kc1:
-    _spark_kpi(kc1, 1, "Total In-Process (FID)", f"{tot_fid:,.0f}", _sparkline_svg(spark_fid, fid_color), d_fid_v, "vs prev day", True)
-with kc2:
-    _spark_kpi(kc2, 2, "Overall Backlog", f"{overall_bl:,.0f}", _sparkline_svg(spark_bl, bl_color), d_bl_v, "FID+RID vs prev", True)
-with kc3:
-    zt_display = f"{int(zt_val):,}" if zt_val > 0 else "0"
-    _spark_kpi(kc3, 3, "Zone Transfer Parcels", zt_display, _sparkline_svg(spark_zt, zt_color), d_zt_v, "vs prev day", False)
+# Left side: row of 3 KPIs, then row of 2 KPIs below
+with left_col:
+    # Sub-row 1: cards 1, 2, 3
+    kc1, kc2, kc3 = st.columns(3)
+    with kc1:
+        _spark_kpi(kc1, 1, "Total In-Process (FID)", f"{tot_fid:,.0f}", _sparkline_svg(spark_fid, fid_color), d_fid_v, "vs prev day", True)
+    with kc2:
+        _spark_kpi(kc2, 2, "Overall Backlog", f"{overall_bl:,.0f}", _sparkline_svg(spark_bl, bl_color), d_bl_v, "FID+RID vs prev", True)
+    with kc3:
+        zt_display = f"{int(zt_val):,}" if zt_val > 0 else "0"
+        _spark_kpi(kc3, 3, "Zone Transfer Parcels", zt_display, _sparkline_svg(spark_zt, zt_color), d_zt_v, "vs prev day", False)
 
-# ── Card 4: Donut — REDESIGNED ────────────────────────────────────────────────
-with kc4:
+    # Sub-row 2: cards 5 & 6
+    kr1, kr2 = st.columns(2)
+    with kr1:
+        _pct_kpi(kr1, 5, "FID Backlog %", fid_pct, pr_fid_pct, lower_is_better=True)
+    with kr2:
+        _pct_kpi(kr2, 6, "Zone Change %", zt_pct, pr_zt_pct, lower_is_better=True)
+
+# Right side: Donut card spanning full height of both sub-rows
+with donut_col:
     with st.container(border=True):
         st.markdown('<div class="sec-hdr" style="margin-bottom:8px;">4. Backlog — FID vs RID</div>', unsafe_allow_html=True)
         if (fid_bl + rid_bl) > 0:
@@ -456,32 +487,30 @@ with kc4:
                 values=[fid_bl, rid_bl],
                 hole=0.55,
                 marker=dict(
-                    colors=["#F5C200", "#1C2B3A"],       # Golden Yellow + Deep Navy
-                    line=dict(color="#FFFFFF", width=3),  # white separator line
+                    colors=["#F5C200", "#1C2B3A"],
+                    line=dict(color="#FFFFFF", width=3),
                 ),
-                # label + percent shown together, auto-positioned outside
                 textinfo="label+percent",
                 textposition="outside",
-                textfont=dict(size=13, color="#1C2B3A", weight="bold"),
+                textfont=dict(size=12, color="#1C2B3A", weight="bold"),
                 pull=[0.05, 0.05],
                 hovertemplate="<b>%{label}</b><br>Count: %{value:,.0f}<br>Share: %{percent}<extra></extra>",
             )])
 
-            # Centre annotation — total backlog
             fig_donut.add_annotation(
                 text=f"<b>{int(fid_bl+rid_bl):,}</b><br><span style='font-size:10px;color:#6B7E91'>Total</span>",
                 x=0.5, y=0.5, showarrow=False, xanchor="center", yanchor="middle",
-                font=dict(size=17, color="#1C2B3A"),
+                font=dict(size=16, color="#1C2B3A"),
             )
 
-            _layout(fig_donut, height=260,
+            _layout(fig_donut, height=300,
                     extra={
-                        "margin": dict(l=20, r=20, t=20, b=20),
-                        "showlegend": False,   # labels already on chart; legend redundant
+                        "margin": dict(l=20, r=20, t=30, b=10),
+                        "showlegend": False,
                     })
             st.plotly_chart(fig_donut, use_container_width=True)
 
-            # Mini stat bar below chart
+            # Mini stat bar
             st.markdown(f"""
             <div style="display:flex; gap:0; border-top:1px solid #E8E4DB; padding-top:10px; margin-top:4px;">
               <div style="flex:1; text-align:center; border-right:1px solid #E8E4DB;">
@@ -497,34 +526,6 @@ with kc4:
             </div>""", unsafe_allow_html=True)
         else:
             st.info("No backlog data.")
-
-
-# ── ROW 2: FID Backlog % + Zone Change % ─────────────────────────────────────
-kr1, kr2, _sp1, _sp2 = st.columns([1, 1, 1, 1])
-
-def _pct_kpi(col_w, number, label, value, prev_value, lower_is_better=True):
-    diff    = value - prev_value
-    good    = (diff < 0 and lower_is_better) or (diff > 0 and not lower_is_better)
-    v_color = "#2E7D6B" if good else ("#E05C3A" if diff != 0 else "#1C2B3A")
-    arr     = "▼" if diff < 0 else ("▲" if diff > 0 else "—")
-    d_cls   = "delta-down-good" if (diff < 0 and lower_is_better) else \
-               ("delta-up-good"  if (diff > 0 and not lower_is_better) else \
-               ("delta-up-bad"   if diff > 0 else "delta-down-bad" if diff < 0 else "delta-neutral"))
-    col_w.markdown(f"""
-    <div class="kpi-small">
-      <div class="kpi-spark-label">{number}. {label}</div>
-      <div style="font-size:44px; font-weight:700; font-family:'DM Mono',monospace;
-                  color:{v_color}; margin-bottom:12px; line-height:1;">{value:.2f}%</div>
-      <div class="kpi-delta-row">
-        <span class="{d_cls}" style="font-size:16px; line-height:1;">{arr}</span>
-        <span class="{d_cls}">{abs(diff):.2f} pp vs prev day</span>
-      </div>
-    </div>""", unsafe_allow_html=True)
-
-with kr1:
-    _pct_kpi(kr1, 5, "FID Backlog %", fid_pct, pr_fid_pct, lower_is_better=True)
-with kr2:
-    _pct_kpi(kr2, 6, "Zone Change %", zt_pct, pr_zt_pct, lower_is_better=True)
 
 
 # ── ROW 3: Backlog Details + Sort ─────────────────────────────────────────────
