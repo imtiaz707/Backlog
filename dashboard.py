@@ -509,10 +509,30 @@ with kc1:
     _spark_kpi(kc1, "Total In-Process (FID)", f"{tot_fid:,.0f}", _sparkline_svg(spark_fid, fid_color), d_fid_v, True)
 with kc2:
     _spark_kpi(kc2, "Overall Backlog", f"{overall_bl:,.0f}", _sparkline_svg(spark_bl, bl_color), d_bl_v, True)
+# ── ROW 1: Card 3 - Zone Transfer Parcels (Logic Fix) ──────────────────────────
 with kc3:
     zt_display = f"{int(zt_val):,}" if zt_val > 0 else "0"
-    _spark_kpi(kc3, "Zone Transfer Parcels", zt_display, _sparkline_svg(spark_zt, zt_color), d_zt_v, False)
-
+    
+    # Logic: d_zt_v is (Today - Yesterday). 
+    # If d_zt_v < 0, it means transfers decreased (Good/Green).
+    # If d_zt_v > 0, it means transfers increased (Bad/Red).
+    is_good = d_zt_v <= 0
+    zt_cls = "delta-down-good" if is_good else "delta-up-bad"
+    zt_arrow = "▼" if d_zt_v < 0 else ("▲" if d_zt_v > 0 else "—")
+    
+    # We display the card
+    col_w = kc3
+    col_w.markdown(f"""
+    <div class="kpi-spark">
+      <div class="kpi-title">Zone Transfer Parcels</div>
+      <div class="kpi-center-val">{zt_display}</div>
+      <div class="kpi-bottom-left">
+        <span class="{zt_cls}">{zt_arrow} {abs(d_zt_v):,.0f}</span>
+      </div>
+      <div class="kpi-bottom-right">
+        {_sparkline_svg(spark_zt, "#2E7D6B" if is_good else "#E05C3A")}
+      </div>
+    </div>""", unsafe_allow_html=True)
 with kc4:
     with st.container(border=True):
         st.markdown('<div class="sec-hdr" style="margin-bottom:8px;">4. Backlog — FID vs RID</div>', unsafe_allow_html=True)
