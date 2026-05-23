@@ -534,33 +534,42 @@ with kc4:
     with st.container(border=True):
         st.markdown('<div class="sec-hdr" style="margin-bottom:8px;">4. Backlog — FID vs RID</div>', unsafe_allow_html=True)
         if (fid_bl + rid_bl) > 0:
+            fid_pct_donut = fid_bl / (fid_bl + rid_bl) * 100
+            rid_pct_donut = rid_bl / (fid_bl + rid_bl) * 100
             fig_donut = go.Figure(data=[go.Pie(
                 labels=["FID", "RID"], values=[fid_bl, rid_bl],
-                hole=0.6,
-                marker=dict(colors=["#F5C200", "#1C2B3A"], line=dict(color="#FFFFFF", width=2)),
-                textinfo="none", # Hide labels here to keep it clean
+                hole=0.55,
+                marker=dict(colors=["#F5C200", "#1C2B3A"], line=dict(color="#FFFFFF", width=3)),
+                textinfo="label+percent", textposition="outside",
+                textfont=dict(size=12, color="#1C2B3A", weight="bold"),
+                pull=[0.05, 0.05],
+                hovertemplate="<b>%{label}</b><br>Count: %{value:,.0f}<br>Share: %{percent}<extra></extra>",
             )])
             fig_donut.add_annotation(
-                text=f"<b>{int(fid_bl+rid_bl):,}</b>",
-                x=0.5, y=0.5, showarrow=False,
-                font=dict(size=22, color="#1C2B3A"),
+                text=f"<b>{int(fid_bl+rid_bl):,}</b><br><span style='font-size:10px;color:#6B7E91'>Total</span>",
+                x=0.5, y=0.5, showarrow=False, xanchor="center", yanchor="middle",
+                font=dict(size=15, color="#1C2B3A"),
             )
-            # Reduced height slightly to leave space for the legend metrics below
-            _layout(fig_donut, height=140, extra={"margin": dict(l=0, r=0, t=0, b=0)})
+            # Increased height so it matches the newly extended kpi-spark height
+            _layout(fig_donut, height=210,
+                    extra={"margin": dict(l=10, r=10, t=20, b=0), "showlegend": False})
             st.plotly_chart(fig_donut, use_container_width=True)
-            
-            # Centered Metrics Footer
             st.markdown(f"""
-            <div style="display:flex; justify-content:center; gap:20px; border-top:1px solid #E8E4DB; padding-top:10px;">
-              <div style="text-align:center;">
-                <div style="font-size:9px; font-weight:800; color:#8A6A00;">FID</div>
-                <div style="font-size:14px; font-weight:700;">{fid_bl:,.0f}</div>
+            <div style="display:flex; gap:0; border-top:1px solid #E8E4DB; padding-top:8px;">
+              <div style="flex:1; text-align:center; border-right:1px solid #E8E4DB;">
+                <div style="font-size:10px; font-weight:700; text-transform:uppercase; color:#8A6A00; margin-bottom:2px;">FID</div>
+                <div style="font-size:18px; font-weight:700; color:#1C2B3A; font-family:'DM Mono',monospace;">{fid_bl:,.0f}</div>
+                <div style="font-size:10px; color:#6B7E91; font-weight:600;">{fid_pct_donut:.1f}%</div>
               </div>
-              <div style="text-align:center;">
-                <div style="font-size:9px; font-weight:800; color:#1C2B3A;">RID</div>
-                <div style="font-size:14px; font-weight:700;">{rid_bl:,.0f}</div>
+              <div style="flex:1; text-align:center;">
+                <div style="font-size:10px; font-weight:700; text-transform:uppercase; color:#1C2B3A; margin-bottom:2px;">RID</div>
+                <div style="font-size:18px; font-weight:700; color:#1C2B3A; font-family:'DM Mono',monospace;">{rid_bl:,.0f}</div>
+                <div style="font-size:10px; color:#6B7E91; font-weight:600;">{rid_pct_donut:.1f}%</div>
               </div>
             </div>""", unsafe_allow_html=True)
+        else:
+            st.info("No backlog data.")
+
 
 
 # ── ROW 2: Cards 5 & 6 (percentage KPIs) ─────────────────────────────────────
