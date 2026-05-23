@@ -109,11 +109,27 @@ st.markdown("""
 .styled-table td { padding:12px 14px; text-align:center; border-bottom:1px solid rgba(28,43,58,0.1); color:#1C2B3A !important; }
 .styled-table .col-date { text-align:left; font-weight:700; color:#1C2B3A !important; }
 
-/* ── Streamlit Overrides ── */
+/* ── Streamlit Overrides & Invisible Text Fixes ── */
 label, .stSelectbox label, .stMultiSelect label, .stToggle label {
     color: #1C2B3A !important; font-size: 14px !important; font-weight: 600 !important;
 }
+
+/* Fix Slicer / Dropdown Input Text Colors */
 div[data-baseweb="select"] > div { background-color: #FFFFFF; border-color: #C99B00; }
+div[data-baseweb="select"] span { color: #1C2B3A !important; }
+div[data-baseweb="popover"] * { color: #1C2B3A !important; } /* Dropdown options */
+
+/* Fix Appendix / Expander Text Colors */
+[data-testid="stExpander"] details summary p {
+    color: #1C2B3A !important;
+    font-size: 15px !important;
+    font-weight: 700 !important;
+}
+[data-testid="stExpander"] {
+    background-color: #FDF3BF !important;
+    border: 1px solid #C99B00 !important;
+    border-radius: 12px !important;
+}
 </style>
 """, unsafe_allow_html=True)
 
@@ -667,7 +683,12 @@ with col_aging:
                     customdata=ag_melt[["Count","Region"]],
                     hovertemplate="<b>%{x}</b><br>Region: %{customdata[1]}<br>Count: %{customdata[0]:,.0f}<br>Pct: %{y:.1f}%",
                 )
-                _layout(fig8, height=380, extra={"yaxis": dict(**_AX, title="Percentage (%)")})
+                
+                # --- ADDED: ZOOM SLICER (Range Slider) FOR THE X-AXIS ---
+                fig8.update_xaxes(rangeslider_visible=True, rangeslider_thickness=0.08)
+                
+                # Height increased to 420 so the chart doesn't squish when the slider is added
+                _layout(fig8, height=420, extra={"yaxis": dict(**_AX, title="Percentage (%)")})
                 st.plotly_chart(fig8, use_container_width=True)
             else:
                 st.info("No aging data.")
