@@ -56,9 +56,9 @@ st.markdown("""
 /* ── GRAPH CARDS (FIXED BORDERS AND BACKGROUND) ── */
 [data-testid="stVerticalBlockBorderWrapper"], .appendix-card {
     background-color: #FFFFFF !important; /* Force Pure White */
-    border-radius: 12px !important;
+    border-radius: 14px !important;
     border: 1px solid #C4C0B3 !important; /* Distinct, visible border */
-    box-shadow: 0px 6px 18px rgba(0,0,0,0.08) !important; /* Deeper shadow to pop off background */
+    box-shadow: 0px 6px 18px rgba(0,0,0,0.1) !important; /* Deeper shadow to pop off background */
     height: 100% !important; 
 }
 
@@ -471,7 +471,7 @@ with kc4:
                 labels=["FID", "RID"], values=[fid_bl, rid_bl],
                 hole=0.62, marker_colors=[C_ISD, C_OSD],
                 textinfo="label+percent",
-                textfont=dict(size=12, color="#FFFFFF", weight="bold"),
+                textfont=dict(size=12, color="#000000", weight="bold"),
                 pull=[0.03, 0],
             )])
             fig_donut.add_annotation(
