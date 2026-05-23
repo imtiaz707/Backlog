@@ -61,29 +61,37 @@ st.markdown("""
     padding: 20px 24px 16px !important;
 }
 
+/* ── KPI CARDS ── */
 .kpi-spark, .kpi-small {
     background: #F9DE7A !important;
     border-radius: 12px !important;
     border: 1px solid #E8CD68 !important;
     box-shadow: 0 6px 16px rgba(0,0,0,0.05) !important; 
     height: 100% !important; 
-    padding: 16px 20px 14px;
+    padding: 20px 20px 16px;
     position: relative; overflow: hidden; 
+    display: flex;
+    flex-direction: column;
+    justify-content: center; /* Vertically center the text to look cool with the new heights */
 }
 
-/* ── INCREASED HEIGHTS HERE TO UTILIZE MIDDLE GAP ── */
+/* Make upper 3 cards length bigger downwards */
 .kpi-spark { 
-    min-height: 230px; 
-    display: flex; 
-    flex-direction: column; 
-    justify-content: space-between; 
+    min-height: 220px; 
 } 
+
+/* Make lower 2 cards bigger */
 .kpi-small { 
     min-height: 180px; 
-    display: flex; 
-    flex-direction: column; 
-    justify-content: space-between; 
 } 
+
+/* Make lower 2 cards stretch upwards into the gap (Desktop only to prevent mobile overlap) */
+@media (min-width: 800px) {
+    .kpi-small {
+        margin-top: -65px !important;
+        z-index: 10;
+    }
+}
 
 .sec-hdr {
     font-size:15px; font-weight:700; color:#1C2B3A !important;
@@ -454,7 +462,7 @@ def _pct_kpi(col_w, number, label, value, prev_value, lower_is_better=True):
     col_w.markdown(f"""
     <div class="kpi-small">
       <div class="kpi-spark-label">{number}. {label}</div>
-      <div style="font-size:36px; font-weight:700; font-family:'DM Mono',monospace;
+      <div style="font-size:44px; font-weight:700; font-family:'DM Mono',monospace;
                   color:{v_color}; margin-bottom:6px; line-height:1;">{value:.2f}%</div>
       <div class="kpi-delta-row">
         <span class="{d_cls}" style="font-size:14px; line-height:1;">{arr}</span>
@@ -494,7 +502,8 @@ with kc4:
                 x=0.5, y=0.5, showarrow=False, xanchor="center", yanchor="middle",
                 font=dict(size=15, color="#1C2B3A"),
             )
-            _layout(fig_donut, height=200,
+            # Increased height so it matches the newly extended kpi-spark height
+            _layout(fig_donut, height=210,
                     extra={"margin": dict(l=10, r=10, t=20, b=0), "showlegend": False})
             st.plotly_chart(fig_donut, use_container_width=True)
             st.markdown(f"""
@@ -589,6 +598,7 @@ col_track, col_region = st.columns([3, 2])
 with col_track:
     with st.container(border=True):
         st.markdown('<div class="sec-hdr">9. Date-wise Backlog Progress Tracking (FID)</div>', unsafe_allow_html=True)
+
         if all_dates and len(all_dates) >= 1:
             t_opts = [pd.Timestamp(d).strftime("%d %b %Y") for d in all_dates]
             tc1, tc2 = st.columns(2)
