@@ -18,11 +18,12 @@ st.markdown("""
 * { font-family: 'DM Sans', sans-serif; box-sizing: border-box; }
 
 /* ── App Background ── */
-[data-testid="stAppViewContainer"] { background: #F0EDE5 !important; }
+[data-testid="stAppViewContainer"] { background: #F0EDE5 !important; } /* Warm White Background */
 [data-testid="stHeader"]           { background: transparent; }
 [data-testid="stToolbar"]          { display: none; }
 [data-testid="stDecoration"]       { display: none; }
 
+/* Tighter block container to reduce empty space */
 .block-container { 
     padding-top: 1rem !important; 
     padding-bottom: 1rem !important; 
@@ -30,105 +31,51 @@ st.markdown("""
     gap: 1rem !important;
 }
 
-/* ── Premium Header — single unified bar ── */
+/* ── Premium Header ── */
 .dash-header {
-    background: #F5C200;
+    background: #F5C200; /* Golden Yellow */
     border: 1px solid #C99B00;
-    border-radius: 12px; padding: 20px 32px; margin-bottom: 0px;
-    display: flex; align-items: center; gap: 16px;
+    border-radius: 12px; padding: 24px 32px; margin-bottom: 0px;
+    display: flex; align-items: center; gap: 20px;
     box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-    width: 100%;
 }
 .dash-title    { color:#1C2B3A !important; font-size:28px; font-weight:700; margin:0; letter-spacing:-0.5px; }
 .dash-subtitle { color:#8A6A00 !important; font-size:14px; margin-top:4px; font-weight:600; }
-.dash-bee      { font-size:36px; line-height:1; flex-shrink:0; }
+.dash-bee      { font-size:42px; line-height:1; }
 
 /* ── Filter Bar ── */
 .filter-bar {
-    background: #FDF3BF;
+    background: #FDF3BF; /* Highlight bg */
     border-radius: 12px; padding: 16px 24px;
     border: 1px solid #F9DE7A; margin-bottom: 0px;
     box-shadow: 0 4px 12px rgba(0,0,0,0.05);
 }
 
-/* ── KPI SPARK CARDS — keep golden yellow ── */
-.kpi-spark, .kpi-small {
-    background: #F5C200 !important;
+/* ── UNIFIED CARD STYLING FOR EVERYTHING (KPIs AND GRAPHS) ── */
+[data-testid="stVerticalBlockBorderWrapper"], .kpi-spark, .kpi-small, .appendix-card {
+    background: #F5C200 !important; /* Golden Yellow cards matching inspiration */
     border-radius: 12px !important;
     border: 1px solid #C99B00 !important;
-    box-shadow: 0 6px 16px rgba(0,0,0,0.08) !important;
-    height: 100% !important;
+    box-shadow: 0 6px 16px rgba(0,0,0,0.08) !important; 
+    height: 100% !important; 
+}
+
+[data-testid="stVerticalBlockBorderWrapper"] {
+    padding: 20px 24px 16px !important;
+}
+
+.kpi-spark, .kpi-small {
     padding: 24px 24px 16px;
-    position: relative; overflow: hidden;
+    position: relative; overflow: hidden; 
 }
 .kpi-spark { min-height: 160px; }
 .kpi-small { min-height: 120px; }
-
-/* ── CHART CONTAINERS — each gets a unique brand colour ── */
-
-/* Card 4: Donut — Deep Navy */
-.chart-card-donut [data-testid="stVerticalBlockBorderWrapper"] {
-    background: #1C2B3A !important;
-    border: 1px solid #0D1923 !important;
-}
-
-/* Chart 7: Backlog Details — Slate/Steel */
-.chart-card-7 [data-testid="stVerticalBlockBorderWrapper"] {
-    background: #2C3E50 !important;
-    border: 1px solid #1a2533 !important;
-}
-
-/* Chart 8: Sort — Teal Green */
-.chart-card-8 [data-testid="stVerticalBlockBorderWrapper"] {
-    background: #1D5C4F !important;
-    border: 1px solid #134039 !important;
-}
-
-/* Chart 9: Tracking — Warm Brown */
-.chart-card-9 [data-testid="stVerticalBlockBorderWrapper"] {
-    background: #5C3D1E !important;
-    border: 1px solid #3e2812 !important;
-}
-
-/* Chart 10: Region — Burnt Coral */
-.chart-card-10 [data-testid="stVerticalBlockBorderWrapper"] {
-    background: #8B2E10 !important;
-    border: 1px solid #6b2009 !important;
-}
-
-/* Chart 11: Aging Distribution — Deep Purple-Navy */
-.chart-card-11 [data-testid="stVerticalBlockBorderWrapper"] {
-    background: #2D1B4E !important;
-    border: 1px solid #1d1033 !important;
-}
-
-/* Chart 11 Table — Muted Olive */
-.chart-card-11-tbl [data-testid="stVerticalBlockBorderWrapper"] {
-    background: #3B4A1A !important;
-    border: 1px solid #2a3510 !important;
-}
-
-/* Chart 12: Full FID Table — Dark Teal */
-.chart-card-12 [data-testid="stVerticalBlockBorderWrapper"] {
-    background: #0F3D3D !important;
-    border: 1px solid #082828 !important;
-}
-
-/* ── Make chart container sec-hdr and text readable on dark backgrounds ── */
-.chart-card-donut .sec-hdr,
-.chart-card-7 .sec-hdr, .chart-card-8 .sec-hdr,
-.chart-card-9 .sec-hdr, .chart-card-10 .sec-hdr,
-.chart-card-11 .sec-hdr, .chart-card-11-tbl .sec-hdr,
-.chart-card-12 .sec-hdr {
-    color: #F5C200 !important;
-    border-left-color: #F5C200 !important;
-}
 
 /* ── Section Headers ── */
 .sec-hdr {
     font-size:15px; font-weight:700; color:#1C2B3A !important;
     text-transform:uppercase; letter-spacing:1px;
-    border-left:4px solid #1C2B3A;
+    border-left:4px solid #1C2B3A; /* Deep Navy accent */
     padding-left:12px; margin-bottom:18px;
 }
 
@@ -144,28 +91,30 @@ st.markdown("""
 
 /* ── Delta Badges ── */
 .kpi-delta-row { font-size: 13px; font-weight: 700; display: flex; align-items: center; gap: 6px; }
-.delta-up-good, .delta-down-good { color: #2E7D6B !important; }
-.delta-up-bad, .delta-down-bad  { color: #E05C3A !important; }
-.delta-neutral   { color: #6B7E91 !important; }
+.delta-up-good, .delta-down-good { color: #2E7D6B !important; } /* Teal Green */
+.delta-up-bad, .delta-down-bad  { color: #E05C3A !important; } /* Burnt Coral */
+.delta-neutral   { color: #6B7E91 !important; } /* Slate Gray */
 
 /* ── Badges & Tables ── */
 .aging-badge {
-    background: rgba(245,194,0,0.25); border:1px solid #F5C200; border-radius:6px;
-    padding:6px 14px; font-size:12px; color:#F5C200 !important; font-weight:700;
+    background: rgba(255,255,255,0.4); border:1px solid #C99B00; border-radius:6px;
+    padding:6px 14px; font-size:12px; color:#1C2B3A !important; font-weight:700;
     display:inline-block; margin-bottom:12px;
 }
 .styled-table { width:100%; border-collapse:collapse; font-size:13px; }
-.styled-table thead tr { background: rgba(245,194,0,0.2); }
-.styled-table th { padding:12px 14px; text-align:center; font-weight:700; color:#F5C200 !important; border-bottom:2px solid #F5C200; text-transform:uppercase; letter-spacing:0.5px;}
-.styled-table tbody tr:hover { background: rgba(245,194,0,0.1); }
-.styled-table tbody tr:last-child { background:rgba(245,194,0,0.15); font-weight:700; }
-.styled-table td { padding:12px 14px; text-align:center; border-bottom:1px solid rgba(245,194,0,0.15); color:#F0EDE5 !important; }
-.styled-table .col-date { text-align:left; font-weight:700; color:#F5C200 !important; }
+.styled-table thead tr { background: rgba(255,255,255,0.3); }
+.styled-table th { padding:12px 14px; text-align:center; font-weight:700; color:#1C2B3A !important; border-bottom:2px solid #C99B00; text-transform:uppercase; letter-spacing:0.5px;}
+.styled-table tbody tr:hover { background: rgba(255,255,255,0.2); }
+.styled-table tbody tr:last-child { background:rgba(255,255,255,0.4); font-weight:700; }
+.styled-table td { padding:12px 14px; text-align:center; border-bottom:1px solid rgba(28,43,58,0.1); color:#1C2B3A !important; }
+.styled-table .col-date { text-align:left; font-weight:700; color:#1C2B3A !important; }
 
-/* ── Streamlit Overrides ── */
+/* ── Streamlit Overrides & Invisible Text Fixes ── */
 label, .stSelectbox label, .stMultiSelect label, .stToggle label {
     color: #1C2B3A !important; font-size: 14px !important; font-weight: 600 !important;
 }
+
+/* Fix Slicer / Dropdown Input Text Colors */
 .stSelectbox div[data-baseweb="select"] *, 
 .stMultiSelect div[data-baseweb="select"] * {
     color: #1C2B3A !important;
@@ -173,6 +122,7 @@ label, .stSelectbox label, .stMultiSelect label, .stToggle label {
 div[data-baseweb="select"] > div { background-color: #FFFFFF; border-color: #C99B00; }
 div[data-baseweb="popover"] * { color: #1C2B3A !important; }
 
+/* Fix Appendix / Expander Text Colors */
 [data-testid="stExpander"] details summary p, 
 [data-testid="stExpander"] details summary span {
     color: #1C2B3A !important;
@@ -192,13 +142,8 @@ SPREADSHEET_URL = (
     "1n9GW1UksZ-jhCQ-zmCqwx4EH20fa-Zm5wA5BiMmdZAE/edit?gid=713116247#gid=713116247"
 )
 
+# ── Updated Plotly Base config for light/yellow mode ──
 _AX = dict(
-    gridcolor="rgba(245,194,0,0.2)", linecolor="#F5C200",
-    tickcolor="#F5C200", showgrid=True,
-    tickfont=dict(color="#F0EDE5", size=12, weight="bold"),
-    title_font=dict(color="#F5C200", weight="bold"),
-)
-_AX_LIGHT = dict(
     gridcolor="rgba(28,43,58,0.1)", linecolor="#1C2B3A",
     tickcolor="#1C2B3A", showgrid=True,
     tickfont=dict(color="#1C2B3A", size=12, weight="bold"),
@@ -206,9 +151,9 @@ _AX_LIGHT = dict(
 )
 _BASE = dict(
     paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
-    font=dict(color="#F0EDE5", family="DM Sans, sans-serif", size=12),
-    legend=dict(bgcolor="rgba(28,43,58,0.7)", bordercolor="#F5C200",
-                borderwidth=1, font=dict(size=12, color="#F5C200", weight="bold")),
+    font=dict(color="#1C2B3A", family="DM Sans, sans-serif", size=12),
+    legend=dict(bgcolor="rgba(253,243,191,0.9)", bordercolor="#C99B00",
+                borderwidth=1, font=dict(size=12, color="#1C2B3A", weight="bold")),
     hoverlabel=dict(bgcolor="#1C2B3A", bordercolor="#F5C200", font_color="#F0EDE5", font_size=13),
     margin=dict(l=10, r=10, t=32, b=10),
     xaxis=_AX, yaxis=_AX,
@@ -221,11 +166,12 @@ def _layout(fig, height=None, extra=None):
     fig.update_layout(**kw)
     return fig
 
-C_ISD  = "#1C2B3A"
-C_OSD  = "#8A6A00"
-C_SUB  = "#6B7E91"
-C_AMB  = "#E05C3A"
-C_PUR  = "#2E7D6B"
+# ── Color Palette Pairings ──
+C_ISD  = "#1C2B3A" # Deep Navy 
+C_OSD  = "#8A6A00" # Darker yellow tint for contrast in charts
+C_SUB  = "#6B7E91" # Slate Gray
+C_AMB  = "#E05C3A" # Burnt Coral
+C_PUR  = "#2E7D6B" # Teal Green
 
 def _safe(row, col, default=0.0):
     if row is None: return default
@@ -326,10 +272,10 @@ def load_data():
 with st.spinner("🐝 Loading live data…"):
     dc, ft, fr, ag = load_data()
 
-# ── Header — single unified bar with bee inside ───────────────────────────────
+# ── Header ────────────────────────────────────────────────────────────────────
 st.markdown("""
 <div class="dash-header">
-  <span class="dash-bee">🐝</span>
+  <div class="dash-bee">🐝</div>
   <div>
     <div class="dash-title">Carrybee Delivery Intelligence</div>
     <div class="dash-subtitle">Live Backlog &amp; Operations Dashboard — Auto-refreshes every 10 minutes</div>
@@ -476,6 +422,7 @@ kc1, kc2, kc3, kc4 = st.columns([1, 1, 1, 1])
 def _spark_kpi(col_w, number, label, value_str, spark_svg, delta_val, delta_label, lower_is_better=True):
     d_fid  = delta_val
     arr    = "▼" if d_fid < 0 else ("▲" if d_fid > 0 else "—")
+    good   = (d_fid < 0 and lower_is_better) or (d_fid > 0 and not lower_is_better)
     d_cls  = "delta-down-good" if (d_fid < 0 and lower_is_better) else \
              ("delta-up-good"  if (d_fid > 0 and not lower_is_better) else \
              ("delta-up-bad"   if d_fid > 0 else "delta-down-bad" if d_fid < 0 else "delta-neutral"))
@@ -506,32 +453,28 @@ with kc3:
     _spark_kpi(kc3, 3, "Zone Transfer Parcels", zt_display, _sparkline_svg(spark_zt, zt_color), d_zt_v, "vs prev day", False)
 
 with kc4:
-    st.markdown('<div class="chart-card-donut">', unsafe_allow_html=True)
     with st.container(border=True):
-        st.markdown('<div class="sec-hdr">4. Backlog — FID vs RID</div>', unsafe_allow_html=True)
+        st.markdown('<div class="sec-hdr" style="margin-bottom:0px; border:none; padding-left:0px;">4. Backlog — FID vs RID</div>', unsafe_allow_html=True)
         if (fid_bl + rid_bl) > 0:
             fig_donut = go.Figure(data=[go.Pie(
                 labels=["FID", "RID"], values=[fid_bl, rid_bl],
-                hole=0.62, marker_colors=[C_OSD, "#F5C200"],
+                hole=0.62, marker_colors=[C_ISD, C_OSD],
                 textinfo="label+percent",
-                # BLACK text so values are readable on the chart slices
-                textfont=dict(size=12, color="#1C2B3A", weight="bold"),
+                textfont=dict(size=12, color="#F0EDE5", weight="bold"),
                 pull=[0.03, 0],
             )])
             fig_donut.add_annotation(
                 text=f"<b>{fid_bl+rid_bl:,.0f}</b><br><span style='font-size:10px'>Total</span>",
                 x=0.5, y=0.5, showarrow=False,
-                font=dict(size=15, color="#F5C200"), xanchor="center",
+                font=dict(size=15, color="#1C2B3A"), xanchor="center",
             )
             _layout(fig_donut, height=180,
                     extra={"margin": dict(l=0,r=0,t=0,b=0),
                            "legend": dict(orientation="h", yanchor="bottom", y=-0.18,
-                                          xanchor="center", x=0.5,
-                                          font=dict(size=11, color="#F5C200"))})
+                                          xanchor="center", x=0.5, font=dict(size=11, color="#1C2B3A"))})
             st.plotly_chart(fig_donut, use_container_width=True)
         else:
             st.info("No backlog data.")
-    st.markdown('</div>', unsafe_allow_html=True)
 
 
 # ── ROW 2: FID Backlog % + Zone Change % ─────────────────────────────────────
@@ -562,11 +505,10 @@ with kr2:
     _pct_kpi(kr2, 6, "Zone Change %", zt_pct, pr_zt_pct, lower_is_better=True)
 
 
-# ── ROW 3: Backlog Details + FID/RID Sort ────────────────────────────────────
+# ── ROW 3: Backlog Details + FID/RID Sort (horizontal bars) ──────────────────
 col_bl, col_sort = st.columns([3, 2])
 
 with col_bl:
-    st.markdown('<div class="chart-card-7">', unsafe_allow_html=True)
     with st.container(border=True):
         st.markdown('<div class="sec-hdr">7. Backlog Details — FID &amp; RID (LMH / FMH)</div>', unsafe_allow_html=True)
         if lt_fr is not None:
@@ -580,18 +522,18 @@ with col_bl:
             ]
             labels, isd_v, sub_v, osd_v, tots = zip(*detail_rows)
             fig9 = go.Figure()
-            for vals, name, color in [(isd_v,"ISD","#F5C200"),(sub_v,"SUB",C_SUB),(osd_v,"OSD","#E05C3A")]:
+            for vals, name, color in [(isd_v,"ISD",C_ISD),(sub_v,"SUB",C_SUB),(osd_v,"OSD",C_OSD)]:
                 fig9.add_trace(go.Bar(
                     name=name, y=labels, x=vals, orientation="h", marker_color=color,
                     text=[f"{v:,.0f}" if v>0 else "" for v in vals],
                     textposition="inside", insidetextanchor="middle",
-                    textfont=dict(color="#1C2B3A", size=13, weight="bold"),
+                    textfont=dict(color="#F0EDE5", size=13, weight="bold"),
                 ))
             for lbl, tot in zip(labels, tots):
                 if tot > 0:
                     fig9.add_annotation(x=tot, y=lbl, text=f"  <b>{tot:,.0f}</b>",
                                         showarrow=False, xanchor="left",
-                                        font=dict(size=14, color="#F5C200"))
+                                        font=dict(size=14, color="#1C2B3A"))
             _layout(fig9, height=380, extra={
                 "barmode":"stack",
                 "xaxis": dict(**_AX, title="Count"),
@@ -600,10 +542,8 @@ with col_bl:
             st.plotly_chart(fig9, use_container_width=True)
         else:
             st.info("No backlog detail data.")
-    st.markdown('</div>', unsafe_allow_html=True)
 
 with col_sort:
-    st.markdown('<div class="chart-card-8">', unsafe_allow_html=True)
     with st.container(border=True):
         st.markdown('<div class="sec-hdr">8. Sort — FID Sort vs RID Sort</div>', unsafe_allow_html=True)
         if lt_fr is not None:
@@ -611,10 +551,9 @@ with col_sort:
             rid_sort = _safe_multi(lt_fr, "RID Sort", "RID LMH Sort")
             fig10 = go.Figure(data=[go.Bar(
                 y=["FID Sort", "RID Sort"], x=[fid_sort, rid_sort],
-                orientation="h", marker_color=["#F5C200", "#2E7D6B"],
-                marker_line=dict(color="rgba(0,0,0,0.2)", width=1),
+                orientation="h", marker_color=[C_ISD, C_OSD], marker_line=dict(color="#F0EDE5", width=1),
                 text=[f"{fid_sort:,.0f}", f"{rid_sort:,.0f}"], textposition="outside",
-                textfont=dict(size=14, color="#F5C200", weight="bold"), width=0.5,
+                textfont=dict(size=14, color="#1C2B3A", weight="bold"), width=0.5,
             )])
             _layout(fig10, height=380, extra={
                 "showlegend": False,
@@ -625,14 +564,12 @@ with col_sort:
             st.plotly_chart(fig10, use_container_width=True)
         else:
             st.info("No sort data.")
-    st.markdown('</div>', unsafe_allow_html=True)
 
 
-# ── ROW 4: Date-range Backlog Tracking + Region ───────────────────────────────
+# ── ROW 4: Date-range Backlog Tracking + Region Vertical Bar ─────────────────
 col_track, col_region = st.columns([3, 2])
 
 with col_track:
-    st.markdown('<div class="chart-card-9">', unsafe_allow_html=True)
     with st.container(border=True):
         st.markdown('<div class="sec-hdr">9. Date-wise Backlog Progress Tracking (FID)</div>', unsafe_allow_html=True)
 
@@ -661,31 +598,29 @@ with col_track:
             if "Total In Progress (Backlog)" in ft_range.columns:
                 fig_track.add_trace(go.Bar(
                     x=ft_range["Date_Label"], y=ft_range["Total In Progress (Backlog)"],
-                    name="Total In Process (FID)", marker_color="#F5C200", opacity=0.9,
+                    name="Total In Process (FID)", marker_color=C_ISD, opacity=0.9,
                 ))
             if "Worked On" in ft_range.columns:
                 fig_track.add_trace(go.Bar(
                     x=ft_range["Date_Label"], y=ft_range["Worked On"],
-                    name="Worked On", marker_color="#2E7D6B", opacity=0.9,
+                    name="Worked On", marker_color=C_SUB, opacity=0.9,
                 ))
             _layout(fig_track, height=380, extra={"barmode": "group"})
             st.plotly_chart(fig_track, use_container_width=True)
         else:
             st.info("No FID tracking data for selected period.")
-    st.markdown('</div>', unsafe_allow_html=True)
 
 with col_region:
-    st.markdown('<div class="chart-card-10">', unsafe_allow_html=True)
     with st.container(border=True):
         st.markdown('<div class="sec-hdr">10. Region Wise In-Process Parcels</div>', unsafe_allow_html=True)
         if tot_fid > 0:
             df_reg = pd.DataFrame({"Region": ["ISD", "OSD"], "Parcels": [isd_total, osd_total]})
             fig_reg = px.bar(df_reg, x="Region", y="Parcels",
-                             color="Region", color_discrete_map={"ISD": "#F5C200", "OSD": "#2E7D6B"},
+                             color="Region", color_discrete_map={"ISD": C_ISD, "OSD": C_OSD},
                              text="Parcels")
             fig_reg.update_traces(
                 texttemplate="%{text:,.0f}", textposition="outside",
-                textfont=dict(color="#F5C200", size=14, weight="bold"),
+                textfont=dict(color="#1C2B3A", size=14, weight="bold"),
                 width=0.5,
             )
             _layout(fig_reg, height=300, extra={
@@ -695,23 +630,22 @@ with col_region:
             })
             st.plotly_chart(fig_reg, use_container_width=True)
             st.markdown(f"""
-            <div style="display:flex; gap:16px; justify-content:center; padding:12px 0 4px; border-top: 1px solid rgba(245,194,0,0.3);">
-              <div style="text-align:center; flex:1; border-right: 1px solid rgba(245,194,0,0.3);">
-                <div style="font-size:13px; color:#F5C200; font-weight:700; text-transform:uppercase; letter-spacing:0.8px; margin-bottom:4px;">ISD</div>
-                <div style="font-size:26px; font-weight:700; color:#F5C200; font-family:'DM Mono',monospace;">{isd_total:,.0f}</div>
+            <div style="display:flex; gap:16px; justify-content:center; padding:12px 0 4px; border-top: 1px solid rgba(28,43,58,0.2);">
+              <div style="text-align:center; flex:1; border-right: 1px solid rgba(28,43,58,0.2);">
+                <div style="font-size:13px; color:#1C2B3A; font-weight:700; text-transform:uppercase; letter-spacing:0.8px; margin-bottom:4px;">ISD</div>
+                <div style="font-size:26px; font-weight:700; color:{C_ISD}; font-family:'DM Mono',monospace;">{isd_total:,.0f}</div>
               </div>
-              <div style="text-align:center; flex:1; border-right: 1px solid rgba(245,194,0,0.3);">
-                <div style="font-size:13px; color:#2E7D6B; font-weight:700; text-transform:uppercase; letter-spacing:0.8px; margin-bottom:4px;">OSD</div>
-                <div style="font-size:26px; font-weight:700; color:#2E7D6B; font-family:'DM Mono',monospace;">{osd_total:,.0f}</div>
+              <div style="text-align:center; flex:1; border-right: 1px solid rgba(28,43,58,0.2);">
+                <div style="font-size:13px; color:#1C2B3A; font-weight:700; text-transform:uppercase; letter-spacing:0.8px; margin-bottom:4px;">OSD</div>
+                <div style="font-size:26px; font-weight:700; color:{C_OSD}; font-family:'DM Mono',monospace;">{osd_total:,.0f}</div>
               </div>
               <div style="text-align:center; flex:1;">
-                <div style="font-size:13px; color:#F0EDE5; font-weight:700; text-transform:uppercase; letter-spacing:0.8px; margin-bottom:4px;">Total</div>
-                <div style="font-size:26px; font-weight:700; color:#F0EDE5; font-family:'DM Mono',monospace;">{tot_fid:,.0f}</div>
+                <div style="font-size:13px; color:#1C2B3A; font-weight:700; text-transform:uppercase; letter-spacing:0.8px; margin-bottom:4px;">Total</div>
+                <div style="font-size:26px; font-weight:700; color:#1C2B3A; font-family:'DM Mono',monospace;">{tot_fid:,.0f}</div>
               </div>
             </div>""", unsafe_allow_html=True)
         else:
             st.info("No region data.")
-    st.markdown('</div>', unsafe_allow_html=True)
 
 
 # ── ROW 5: Aging Distribution + Aging Table ───────────────────────────────────
@@ -723,7 +657,6 @@ if not ag_f.empty and "Region" in ag_f.columns:
 col_aging, col_aging_tbl = st.columns([3, 2])
 
 with col_aging:
-    st.markdown('<div class="chart-card-11">', unsafe_allow_html=True)
     with st.container(border=True):
         st.markdown('<div class="sec-hdr">11. Aging Distribution</div>', unsafe_allow_html=True)
         st.markdown('<div class="aging-badge">ISD &amp; SUB = 4 Days+ &nbsp;|&nbsp; OSD = 5 Days+</div>',
@@ -747,6 +680,9 @@ with col_aging:
             
             if not ag_melt.empty:
                 max_slider_val = max(5.0, float(ag_melt["Pct"].max()) + 5.0)
+                
+                # --- SAFE ZOOM SLICER ---
+                # Placed horizontally above the chart to avoid Streamlit version TypeErrors
                 y_zoom = st.slider(
                     "🔍 Adjust Y-Axis Zoom (%)", 
                     min_value=0.0, 
@@ -754,25 +690,26 @@ with col_aging:
                     value=(0.0, max_slider_val),
                     step=1.0
                 )
+                
                 fig8 = px.bar(ag_melt, x="Age", y="Pct", color="Region",
-                              color_discrete_map={"ISD": "#F5C200", "OSD": "#2E7D6B"},
+                              color_discrete_map={"ISD": C_ISD, "OSD": C_OSD},
                               barmode="group",
                               text=ag_melt["Pct"].apply(lambda x: f"{x:.1f}%"))
                 fig8.update_traces(
-                    textposition="outside", textfont=dict(color="#F0EDE5", size=11, weight="bold"),
+                    textposition="outside", textfont=dict(color="#1C2B3A", size=11, weight="bold"),
                     customdata=ag_melt[["Count","Region"]],
                     hovertemplate="<b>%{x}</b><br>Region: %{customdata[1]}<br>Count: %{customdata[0]:,.0f}<br>Pct: %{y:.1f}%",
                 )
+                
+                # Apply the dynamically selected Y-Axis range from the slider
                 _layout(fig8, height=380, extra={"yaxis": dict(**_AX, title="Percentage (%)", range=[y_zoom[0], y_zoom[1]])})
                 st.plotly_chart(fig8, use_container_width=True)
             else:
                 st.info("No aging data.")
         else:
             st.info("No aging distribution data available.")
-    st.markdown('</div>', unsafe_allow_html=True)
 
 with col_aging_tbl:
-    st.markdown('<div class="chart-card-11-tbl">', unsafe_allow_html=True)
     with st.container(border=True):
         st.markdown('<div class="sec-hdr">Aging Count &amp; % by Region</div>', unsafe_allow_html=True)
         if not ag_f.empty:
@@ -801,18 +738,16 @@ with col_aging_tbl:
             if osd_row is not None: td_tot += f"<td><b>{osd_tot_v:,.0f}</b></td><td><b>100%</b></td>"
             body_rows += f"<tr>{td_tot}</tr>"
             st.markdown(f"""
-            <div style="overflow-x:auto; max-height:430px; overflow-y:auto; border:1px solid #F5C200; border-radius:12px;">
+            <div style="overflow-x:auto; max-height:430px; overflow-y:auto; border:1px solid #C99B00; border-radius:12px;">
             <table class="styled-table" style="margin:0;">
               <thead><tr>{th}</tr></thead>
               <tbody>{body_rows}</tbody>
             </table></div>""", unsafe_allow_html=True)
         else:
             st.info("No aging data.")
-    st.markdown('</div>', unsafe_allow_html=True)
 
 
 # ── ROW 6: Full FID Tracking Table ───────────────────────────────────────────
-st.markdown('<div class="chart-card-12">', unsafe_allow_html=True)
 with st.container(border=True):
     st.markdown('<div class="sec-hdr">12. Date-wise Backlog Progress Tracking — Full Table (FID)</div>',
                 unsafe_allow_html=True)
@@ -843,17 +778,17 @@ with st.container(border=True):
                 cells += f"<td class='{cls}'>{disp}</td>"
             body += f"<tr>{cells}</tr>"
         st.markdown(f"""
-        <div style="overflow-x:auto; border:1px solid #F5C200; border-radius:12px;">
+        <div style="overflow-x:auto; border:1px solid #C99B00; border-radius:12px;">
         <table class="styled-table" style="margin:0;">
           <thead><tr>{headers}</tr></thead>
           <tbody>{body}</tbody>
         </table></div>""", unsafe_allow_html=True)
     else:
         st.info("No FID tracking data to display.")
-st.markdown('</div>', unsafe_allow_html=True)
 
 # ── Appendix ──────────────────────────────────────────────────────────────────
 with st.expander("📖 Appendix — Definitions & Calculation Methods", expanded=False):
+    st.markdown('<div class="appendix-card">', unsafe_allow_html=True)
     st.markdown('<div class="sec-hdr" style="border:none;">📊 KPI Definitions & Calculation Methods</div>', unsafe_allow_html=True)
 
     items = [
@@ -865,7 +800,7 @@ with st.expander("📖 Appendix — Definitions & Calculation Methods", expanded
         ("6. Zone Change %", "Share of total parcels that underwent a zone transfer. Teal = lower than yesterday.", "Zone Transfer ÷ Total (Dashboard_Card) × 100"),
         ("7. Backlog Details — FID & RID (LMH/FMH)", "Stacked bar breakdown by service type and region. LMH = Last Mile Hub, FMH = First Mile Hub.", "FID_RID_Backlog_Details → FID/RID × LMH/FMH × ISD/SUB/OSD columns"),
         ("8. Sort — FID Sort vs RID Sort", "Horizontal bar comparing parcels sorted through each pipeline on the selected date.", "FID_RID_Backlog_Details → 'FID Sort' and 'RID Sort'"),
-        ("9. Date-wise Backlog Progress Tracking", "Grouped bar chart: Total In-Process FID (yellow) vs Worked On (teal) over a custom date range.", "FID_Tracking → 'Total In Progress (Backlog)' and 'Worked On'"),
+        ("9. Date-wise Backlog Progress Tracking", "Grouped bar chart: Total In-Process FID (blue) vs Worked On (green) over a custom date range. Use the From/To pickers above the chart.", "FID_Tracking → 'Total In Progress (Backlog)' and 'Worked On'"),
         ("10. Region Wise In-Process Parcels", "Vertical bars comparing ISD vs OSD parcel counts on the selected report date.", "Aging_Distribution → ISD Total and OSD Total"),
         ("11. Aging Distribution", "Percentage of parcels per day-bucket (1d → 10+d) by region. Threshold: ISD/SUB ≥ 4 days, OSD ≥ 5 days = aged.", "Aging_Distribution — columns 1 through 10+"),
         ("Sparkline Colors", "Teal sparkline = last value is better than the day before. Coral = worsening. Covers last 7 available data points.", "Current day vs previous day comparison"),
@@ -879,12 +814,13 @@ with st.expander("📖 Appendix — Definitions & Calculation Methods", expanded
     ]
 
     for key, desc, formula in items:
-        formula_html = f'<br><span style="color:#8A6A00; font-size:12px;">{formula}</span>' if formula else ""
+        formula_html = f'<br><span style="color:#6B7E91; font-size:12px;">{formula}</span>' if formula else ""
         st.markdown(f"""
         <div style="margin-bottom: 12px;">
           <div style="font-weight:700; color:#1C2B3A;">▸ {key}</div>
           <div style="color:#1C2B3A; padding-left: 14px;">{desc}{formula_html}</div>
         </div>""", unsafe_allow_html=True)
+    st.markdown('</div>', unsafe_allow_html=True)
 
 # ── Footer ────────────────────────────────────────────────────────────────────
 st.markdown(f"""
