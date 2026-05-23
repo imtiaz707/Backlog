@@ -551,7 +551,7 @@ with kc4:
                 font=dict(size=15, color="#1C2B3A"),
             )
             # Increased height so it matches the newly extended kpi-spark height
-            _layout(fig_donut, height=310,
+            _layout(fig_donut, height=410,
                     extra={"margin": dict(l=10, r=10, t=20, b=0), "showlegend": False})
             st.plotly_chart(fig_donut, use_container_width=True)
             st.markdown(f"""
