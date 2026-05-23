@@ -49,7 +49,7 @@ st.markdown("""
 .filter-bar {
     background: #FFFFFF; 
     border-radius: 12px; padding: 16px 24px;
-    border: 1px solid #C4C0B3; margin-bottom: 0px;
+    border: 1px solid #2E7D6B; margin-bottom: 0px;
     box-shadow: 0 4px 12px rgba(0,0,0,0.05);
 }
 
