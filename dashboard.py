@@ -67,11 +67,11 @@ st.markdown("""
     border: 1px solid #E8CD68 !important;
     box-shadow: 0 6px 16px rgba(0,0,0,0.05) !important; 
     height: 100% !important; 
-    padding: 24px 24px 16px;
+    padding: 16px 20px 14px;
     position: relative; overflow: hidden; 
 }
-.kpi-spark { min-height: 130px; } 
-.kpi-small { min-height: 110px; } 
+.kpi-spark { min-height: 0; } 
+.kpi-small { min-height: 0; } 
 
 .sec-hdr {
     font-size:15px; font-weight:700; color:#1C2B3A !important;
@@ -86,8 +86,8 @@ st.markdown("""
     letter-spacing: 0.8px; color: #8A6A00 !important; margin-bottom: 8px;
 }
 .kpi-spark-value {
-    font-size: 44px; font-weight: 700; line-height: 1;
-    font-family: 'DM Mono', monospace; margin-bottom: 8px; color: #1C2B3A !important;
+    font-size: 36px; font-weight: 700; line-height: 1;
+    font-family: 'DM Mono', monospace; margin-bottom: 6px; color: #1C2B3A !important;
 }
 
 .kpi-delta-row { font-size: 13px; font-weight: 700; display: flex; align-items: center; gap: 6px; }
@@ -443,7 +443,7 @@ def _pct_kpi(col_w, number, label, value, prev_value, lower_is_better=True):
     col_w.markdown(f"""
     <div class="kpi-small">
       <div class="kpi-spark-label">{number}. {label}</div>
-      <div style="font-size:40px; font-weight:700; font-family:'DM Mono',monospace;
+      <div style="font-size:36px; font-weight:700; font-family:'DM Mono',monospace;
                   color:{v_color}; margin-bottom:8px; line-height:1;">{value:.2f}%</div>
       <div class="kpi-delta-row">
         <span class="{d_cls}" style="font-size:14px; line-height:1;">{arr}</span>
