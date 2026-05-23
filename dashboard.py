@@ -32,31 +32,35 @@ st.markdown("""
 }
 
 /* ── Premium Header ── */
+/* Reduced padding to remove the extra space and tightly wrap the text */
 .dash-header {
     background: #F5C200; /* Golden Yellow */
     border: 1px solid #C99B00;
-    border-radius: 12px; padding: 24px 32px; margin-bottom: 0px;
+    border-radius: 12px; 
+    padding: 14px 28px; /* Tighter padding */
+    margin-bottom: 0px;
     display: flex; align-items: center; gap: 20px;
     box-shadow: 0 4px 12px rgba(0,0,0,0.08);
 }
 .dash-title    { color:#1C2B3A !important; font-size:28px; font-weight:700; margin:0; letter-spacing:-0.5px; }
-.dash-subtitle { color:#8A6A00 !important; font-size:14px; margin-top:4px; font-weight:600; }
+.dash-subtitle { color:#8A6A00 !important; font-size:14px; margin-top:2px; font-weight:600; }
 .dash-bee      { font-size:42px; line-height:1; }
 
 /* ── Filter Bar ── */
 .filter-bar {
-    background: #FDF3BF; /* Highlight bg */
+    background: #FFFFFF; /* Pure white for contrast */
     border-radius: 12px; padding: 16px 24px;
-    border: 1px solid #F9DE7A; margin-bottom: 0px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    border: 1px solid #D9D5C8; margin-bottom: 0px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.04);
 }
 
-/* ── UNIFIED CARD STYLING FOR EVERYTHING (KPIs AND GRAPHS) ── */
-[data-testid="stVerticalBlockBorderWrapper"], .kpi-spark, .kpi-small, .appendix-card {
-    background: #F5C200 !important; /* Golden Yellow cards matching inspiration */
+/* ── GRAPH CARDS ── */
+/* Made these Pure White to strongly distinguish them from the F0EDE5 background, with a clear border */
+[data-testid="stVerticalBlockBorderWrapper"], .appendix-card {
+    background: #FFFFFF !important; 
     border-radius: 12px !important;
-    border: 1px solid #C99B00 !important;
-    box-shadow: 0 6px 16px rgba(0,0,0,0.08) !important; 
+    border: 1px solid #D9D5C8 !important; /* Visible outline */
+    box-shadow: 0 6px 16px rgba(0,0,0,0.05) !important; 
     height: 100% !important; 
 }
 
@@ -64,18 +68,26 @@ st.markdown("""
     padding: 20px 24px 16px !important;
 }
 
+/* ── KPI CARDS (Top 3 Sparklines + 2 Percentage Cards) ── */
 .kpi-spark, .kpi-small {
+    background: #F9DE7A !important; /* User requested color */
+    border-radius: 12px !important;
+    border: 1px solid #E8CD68 !important;
+    box-shadow: 0 6px 16px rgba(0,0,0,0.05) !important; 
+    height: 100% !important; 
     padding: 24px 24px 16px;
     position: relative; overflow: hidden; 
 }
-.kpi-spark { min-height: 160px; }
-.kpi-small { min-height: 120px; }
+
+/* Increased heights to utilize middle space */
+.kpi-spark { min-height: 200px; } 
+.kpi-small { min-height: 160px; } 
 
 /* ── Section Headers ── */
 .sec-hdr {
     font-size:15px; font-weight:700; color:#1C2B3A !important;
     text-transform:uppercase; letter-spacing:1px;
-    border-left:4px solid #1C2B3A; /* Deep Navy accent */
+    border-left:4px solid #F5C200; /* Yellow accent */
     padding-left:12px; margin-bottom:18px;
 }
 
@@ -85,7 +97,7 @@ st.markdown("""
     letter-spacing: 0.8px; color: #8A6A00 !important; margin-bottom: 8px;
 }
 .kpi-spark-value {
-    font-size: 40px; font-weight: 700; line-height: 1;
+    font-size: 44px; font-weight: 700; line-height: 1;
     font-family: 'DM Mono', monospace; margin-bottom: 8px; color: #1C2B3A !important;
 }
 
@@ -97,16 +109,16 @@ st.markdown("""
 
 /* ── Badges & Tables ── */
 .aging-badge {
-    background: rgba(255,255,255,0.4); border:1px solid #C99B00; border-radius:6px;
+    background: rgba(245,194,0,0.15); border:1px solid #F5C200; border-radius:6px;
     padding:6px 14px; font-size:12px; color:#1C2B3A !important; font-weight:700;
     display:inline-block; margin-bottom:12px;
 }
 .styled-table { width:100%; border-collapse:collapse; font-size:13px; }
-.styled-table thead tr { background: rgba(255,255,255,0.3); }
-.styled-table th { padding:12px 14px; text-align:center; font-weight:700; color:#1C2B3A !important; border-bottom:2px solid #C99B00; text-transform:uppercase; letter-spacing:0.5px;}
-.styled-table tbody tr:hover { background: rgba(255,255,255,0.2); }
-.styled-table tbody tr:last-child { background:rgba(255,255,255,0.4); font-weight:700; }
-.styled-table td { padding:12px 14px; text-align:center; border-bottom:1px solid rgba(28,43,58,0.1); color:#1C2B3A !important; }
+.styled-table thead tr { background: #F9F8F6; }
+.styled-table th { padding:12px 14px; text-align:center; font-weight:700; color:#1C2B3A !important; border-bottom:2px solid #F5C200; text-transform:uppercase; letter-spacing:0.5px;}
+.styled-table tbody tr:hover { background: rgba(0,0,0,0.02); }
+.styled-table tbody tr:last-child { background:#F9F8F6; font-weight:700; }
+.styled-table td { padding:12px 14px; text-align:center; border-bottom:1px solid rgba(28,43,58,0.05); color:#1C2B3A !important; }
 .styled-table .col-date { text-align:left; font-weight:700; color:#1C2B3A !important; }
 
 /* ── Streamlit Overrides & Invisible Text Fixes ── */
@@ -119,7 +131,7 @@ label, .stSelectbox label, .stMultiSelect label, .stToggle label {
 .stMultiSelect div[data-baseweb="select"] * {
     color: #1C2B3A !important;
 }
-div[data-baseweb="select"] > div { background-color: #FFFFFF; border-color: #C99B00; }
+div[data-baseweb="select"] > div { background-color: #FFFFFF; border-color: #D9D5C8; }
 div[data-baseweb="popover"] * { color: #1C2B3A !important; }
 
 /* Fix Appendix / Expander Text Colors */
@@ -130,8 +142,8 @@ div[data-baseweb="popover"] * { color: #1C2B3A !important; }
     font-weight: 700 !important;
 }
 [data-testid="stExpander"] {
-    background-color: #FDF3BF !important;
-    border: 1px solid #C99B00 !important;
+    background-color: #FFFFFF !important;
+    border: 1px solid #D9D5C8 !important;
     border-radius: 12px !important;
 }
 </style>
@@ -142,19 +154,19 @@ SPREADSHEET_URL = (
     "1n9GW1UksZ-jhCQ-zmCqwx4EH20fa-Zm5wA5BiMmdZAE/edit?gid=713116247#gid=713116247"
 )
 
-# ── Updated Plotly Base config for light/yellow mode ──
+# ── Updated Plotly Base config ──
 _AX = dict(
-    gridcolor="rgba(28,43,58,0.1)", linecolor="#1C2B3A",
-    tickcolor="#1C2B3A", showgrid=True,
+    gridcolor="rgba(28,43,58,0.08)", linecolor="rgba(28,43,58,0.2)",
+    tickcolor="rgba(28,43,58,0.2)", showgrid=True,
     tickfont=dict(color="#1C2B3A", size=12, weight="bold"),
     title_font=dict(color="#1C2B3A", weight="bold"),
 )
 _BASE = dict(
     paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
     font=dict(color="#1C2B3A", family="DM Sans, sans-serif", size=12),
-    legend=dict(bgcolor="rgba(253,243,191,0.9)", bordercolor="#C99B00",
+    legend=dict(bgcolor="rgba(255,255,255,0.9)", bordercolor="#D9D5C8",
                 borderwidth=1, font=dict(size=12, color="#1C2B3A", weight="bold")),
-    hoverlabel=dict(bgcolor="#1C2B3A", bordercolor="#F5C200", font_color="#F0EDE5", font_size=13),
+    hoverlabel=dict(bgcolor="#1C2B3A", bordercolor="#F5C200", font_color="#FFFFFF", font_size=13),
     margin=dict(l=10, r=10, t=32, b=10),
     xaxis=_AX, yaxis=_AX,
 )
@@ -399,8 +411,8 @@ def _sparkline_svg(values, color, width=110, height=40):
     uid = color.replace("#","")
     return f"""<svg width="{width}" height="{height}" viewBox="0 0 {width} {height}" xmlns="http://www.w3.org/2000/svg">
   <defs><linearGradient id="g{uid}" x1="0" y1="0" x2="0" y2="1">
-    <stop offset="0%" stop-color="{color}" stop-opacity="0.5"/>
-    <stop offset="100%" stop-color="{color}" stop-opacity="0.05"/>
+    <stop offset="0%" stop-color="{color}" stop-opacity="0.3"/>
+    <stop offset="100%" stop-color="{color}" stop-opacity="0.02"/>
   </linearGradient></defs>
   <path d="{area}" fill="url(#g{uid})"/>
   <polyline points="{' '.join(pts)}" fill="none" stroke="{color}" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>
@@ -460,7 +472,7 @@ with kc4:
                 labels=["FID", "RID"], values=[fid_bl, rid_bl],
                 hole=0.62, marker_colors=[C_ISD, C_OSD],
                 textinfo="label+percent",
-                textfont=dict(size=12, color="#F0EDE5", weight="bold"),
+                textfont=dict(size=12, color="#FFFFFF", weight="bold"),
                 pull=[0.03, 0],
             )])
             fig_donut.add_annotation(
@@ -468,7 +480,8 @@ with kc4:
                 x=0.5, y=0.5, showarrow=False,
                 font=dict(size=15, color="#1C2B3A"), xanchor="center",
             )
-            _layout(fig_donut, height=180,
+            # Increased chart height to naturally match the taller adjacent KPI cards
+            _layout(fig_donut, height=190,
                     extra={"margin": dict(l=0,r=0,t=0,b=0),
                            "legend": dict(orientation="h", yanchor="bottom", y=-0.18,
                                           xanchor="center", x=0.5, font=dict(size=11, color="#1C2B3A"))})
@@ -491,7 +504,7 @@ def _pct_kpi(col_w, number, label, value, prev_value, lower_is_better=True):
     col_w.markdown(f"""
     <div class="kpi-small">
       <div class="kpi-spark-label">{number}. {label}</div>
-      <div style="font-size:36px; font-weight:700; font-family:'DM Mono',monospace;
+      <div style="font-size:44px; font-weight:700; font-family:'DM Mono',monospace;
                   color:{v_color}; margin-bottom:12px; line-height:1;">{value:.2f}%</div>
       <div class="kpi-delta-row">
         <span class="{d_cls}" style="font-size:16px; line-height:1;">{arr}</span>
@@ -527,7 +540,7 @@ with col_bl:
                     name=name, y=labels, x=vals, orientation="h", marker_color=color,
                     text=[f"{v:,.0f}" if v>0 else "" for v in vals],
                     textposition="inside", insidetextanchor="middle",
-                    textfont=dict(color="#F0EDE5", size=13, weight="bold"),
+                    textfont=dict(color="#FFFFFF", size=13, weight="bold"),
                 ))
             for lbl, tot in zip(labels, tots):
                 if tot > 0:
@@ -551,7 +564,7 @@ with col_sort:
             rid_sort = _safe_multi(lt_fr, "RID Sort", "RID LMH Sort")
             fig10 = go.Figure(data=[go.Bar(
                 y=["FID Sort", "RID Sort"], x=[fid_sort, rid_sort],
-                orientation="h", marker_color=[C_ISD, C_OSD], marker_line=dict(color="#F0EDE5", width=1),
+                orientation="h", marker_color=[C_ISD, C_OSD], marker_line=dict(color="#FFFFFF", width=1),
                 text=[f"{fid_sort:,.0f}", f"{rid_sort:,.0f}"], textposition="outside",
                 textfont=dict(size=14, color="#1C2B3A", weight="bold"), width=0.5,
             )])
@@ -630,12 +643,12 @@ with col_region:
             })
             st.plotly_chart(fig_reg, use_container_width=True)
             st.markdown(f"""
-            <div style="display:flex; gap:16px; justify-content:center; padding:12px 0 4px; border-top: 1px solid rgba(28,43,58,0.2);">
-              <div style="text-align:center; flex:1; border-right: 1px solid rgba(28,43,58,0.2);">
+            <div style="display:flex; gap:16px; justify-content:center; padding:12px 0 4px; border-top: 1px solid rgba(28,43,58,0.15);">
+              <div style="text-align:center; flex:1; border-right: 1px solid rgba(28,43,58,0.15);">
                 <div style="font-size:13px; color:#1C2B3A; font-weight:700; text-transform:uppercase; letter-spacing:0.8px; margin-bottom:4px;">ISD</div>
                 <div style="font-size:26px; font-weight:700; color:{C_ISD}; font-family:'DM Mono',monospace;">{isd_total:,.0f}</div>
               </div>
-              <div style="text-align:center; flex:1; border-right: 1px solid rgba(28,43,58,0.2);">
+              <div style="text-align:center; flex:1; border-right: 1px solid rgba(28,43,58,0.15);">
                 <div style="font-size:13px; color:#1C2B3A; font-weight:700; text-transform:uppercase; letter-spacing:0.8px; margin-bottom:4px;">OSD</div>
                 <div style="font-size:26px; font-weight:700; color:{C_OSD}; font-family:'DM Mono',monospace;">{osd_total:,.0f}</div>
               </div>
@@ -682,7 +695,6 @@ with col_aging:
                 max_slider_val = max(5.0, float(ag_melt["Pct"].max()) + 5.0)
                 
                 # --- SAFE ZOOM SLICER ---
-                # Placed horizontally above the chart to avoid Streamlit version TypeErrors
                 y_zoom = st.slider(
                     "🔍 Adjust Y-Axis Zoom (%)", 
                     min_value=0.0, 
@@ -701,7 +713,6 @@ with col_aging:
                     hovertemplate="<b>%{x}</b><br>Region: %{customdata[1]}<br>Count: %{customdata[0]:,.0f}<br>Pct: %{y:.1f}%",
                 )
                 
-                # Apply the dynamically selected Y-Axis range from the slider
                 _layout(fig8, height=380, extra={"yaxis": dict(**_AX, title="Percentage (%)", range=[y_zoom[0], y_zoom[1]])})
                 st.plotly_chart(fig8, use_container_width=True)
             else:
@@ -738,7 +749,7 @@ with col_aging_tbl:
             if osd_row is not None: td_tot += f"<td><b>{osd_tot_v:,.0f}</b></td><td><b>100%</b></td>"
             body_rows += f"<tr>{td_tot}</tr>"
             st.markdown(f"""
-            <div style="overflow-x:auto; max-height:430px; overflow-y:auto; border:1px solid #C99B00; border-radius:12px;">
+            <div style="overflow-x:auto; max-height:430px; overflow-y:auto; border:1px solid #D9D5C8; border-radius:12px;">
             <table class="styled-table" style="margin:0;">
               <thead><tr>{th}</tr></thead>
               <tbody>{body_rows}</tbody>
@@ -778,7 +789,7 @@ with st.container(border=True):
                 cells += f"<td class='{cls}'>{disp}</td>"
             body += f"<tr>{cells}</tr>"
         st.markdown(f"""
-        <div style="overflow-x:auto; border:1px solid #C99B00; border-radius:12px;">
+        <div style="overflow-x:auto; border:1px solid #D9D5C8; border-radius:12px;">
         <table class="styled-table" style="margin:0;">
           <thead><tr>{headers}</tr></thead>
           <tbody>{body}</tbody>
