@@ -679,36 +679,31 @@ with col_aging:
             ag_melt = pd.DataFrame(rows8)
             
             if not ag_melt.empty:
-                max_slider_val = float(ag_melt["Pct"].max()) + 5.0
+                max_slider_val = max(5.0, float(ag_melt["Pct"].max()) + 5.0)
                 
-                # --- VERTICAL ZOOM SLICER LAYOUT ---
-                # We create a tight left column for the vertical slider, and a wide right column for the chart.
-                slider_col, chart_col = st.columns([1, 15])
+                # --- SAFE ZOOM SLICER ---
+                # Placed horizontally above the chart to avoid Streamlit version TypeErrors
+                y_zoom = st.slider(
+                    "🔍 Adjust Y-Axis Zoom (%)", 
+                    min_value=0.0, 
+                    max_value=max_slider_val, 
+                    value=(0.0, max_slider_val),
+                    step=1.0
+                )
                 
-                with slider_col:
-                    st.markdown('<div style="height:35px;"></div>', unsafe_allow_html=True) # Push slider down to align with chart area
-                    y_zoom = st.slider(
-                        "Zoom", 
-                        min_value=0.0, 
-                        max_value=max_slider_val, 
-                        value=(0.0, max_slider_val), 
-                        orientation="vertical", 
-                        label_visibility="collapsed"
-                    )
+                fig8 = px.bar(ag_melt, x="Age", y="Pct", color="Region",
+                              color_discrete_map={"ISD": C_ISD, "OSD": C_OSD},
+                              barmode="group",
+                              text=ag_melt["Pct"].apply(lambda x: f"{x:.1f}%"))
+                fig8.update_traces(
+                    textposition="outside", textfont=dict(color="#1C2B3A", size=11, weight="bold"),
+                    customdata=ag_melt[["Count","Region"]],
+                    hovertemplate="<b>%{x}</b><br>Region: %{customdata[1]}<br>Count: %{customdata[0]:,.0f}<br>Pct: %{y:.1f}%",
+                )
                 
-                with chart_col:
-                    fig8 = px.bar(ag_melt, x="Age", y="Pct", color="Region",
-                                  color_discrete_map={"ISD": C_ISD, "OSD": C_OSD},
-                                  barmode="group",
-                                  text=ag_melt["Pct"].apply(lambda x: f"{x:.1f}%"))
-                    fig8.update_traces(
-                        textposition="outside", textfont=dict(color="#1C2B3A", size=11, weight="bold"),
-                        customdata=ag_melt[["Count","Region"]],
-                        hovertemplate="<b>%{x}</b><br>Region: %{customdata[1]}<br>Count: %{customdata[0]:,.0f}<br>Pct: %{y:.1f}%",
-                    )
-                    # Apply the dynamically selected Y-Axis range from the vertical slider
-                    _layout(fig8, height=380, extra={"yaxis": dict(**_AX, title="Percentage (%)", range=[y_zoom[0], y_zoom[1]])})
-                    st.plotly_chart(fig8, use_container_width=True)
+                # Apply the dynamically selected Y-Axis range from the slider
+                _layout(fig8, height=380, extra={"yaxis": dict(**_AX, title="Percentage (%)", range=[y_zoom[0], y_zoom[1]])})
+                st.plotly_chart(fig8, use_container_width=True)
             else:
                 st.info("No aging data.")
         else:
