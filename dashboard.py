@@ -446,7 +446,7 @@ with kc3:
 # ── Card 4: Donut — REDESIGNED ────────────────────────────────────────────────
 with kc4:
     with st.container(border=True):
-        st.markdown('<div class="sec-hdr" style="margin-bottom:12px;">4. Backlog — FID vs RID</div>', unsafe_allow_html=True)
+        st.markdown('<div class="sec-hdr" style="margin-bottom:8px;">4. Backlog — FID vs RID</div>', unsafe_allow_html=True)
         if (fid_bl + rid_bl) > 0:
             fid_pct_donut = fid_bl / (fid_bl + rid_bl) * 100
             rid_pct_donut = rid_bl / (fid_bl + rid_bl) * 100
@@ -454,59 +454,36 @@ with kc4:
             fig_donut = go.Figure(data=[go.Pie(
                 labels=["FID", "RID"],
                 values=[fid_bl, rid_bl],
-                hole=0.58,
-                # Golden Yellow for FID, Deep Navy for RID — high contrast
+                hole=0.55,
                 marker=dict(
-                    colors=["#F5C200", "#1C2B3A"],
-                    line=dict(color="#FFFFFF", width=3),   # white gap between slices
+                    colors=["#F5C200", "#1C2B3A"],       # Golden Yellow + Deep Navy
+                    line=dict(color="#FFFFFF", width=3),  # white separator line
                 ),
-                # Labels outside, percent inside
-                textinfo="percent",          # percent shown inside slices
-                textposition="inside",
-                insidetextorientation="radial",
-                textfont=dict(size=13, color="#FFFFFF", weight="bold"),
-                # Outside labels via customdata + hovertemplate trick — use pull to separate
-                pull=[0.04, 0.04],
-                # Name shown in legend; outside text via annotation below
+                # label + percent shown together, auto-positioned outside
+                textinfo="label+percent",
+                textposition="outside",
+                textfont=dict(size=13, color="#1C2B3A", weight="bold"),
+                pull=[0.05, 0.05],
                 hovertemplate="<b>%{label}</b><br>Count: %{value:,.0f}<br>Share: %{percent}<extra></extra>",
             )])
 
-            # Centre annotation — total
+            # Centre annotation — total backlog
             fig_donut.add_annotation(
-                text=f"<b>{int(fid_bl+rid_bl):,}</b><br><span style='font-size:11px;color:#6B7E91'>Total</span>",
+                text=f"<b>{int(fid_bl+rid_bl):,}</b><br><span style='font-size:10px;color:#6B7E91'>Total</span>",
                 x=0.5, y=0.5, showarrow=False, xanchor="center", yanchor="middle",
-                font=dict(size=16, color="#1C2B3A"),
+                font=dict(size=17, color="#1C2B3A"),
             )
 
-            # Outside labels — FID (left) and RID (right) as annotations
-            fig_donut.add_annotation(
-                x=0.5, y=1.13, text=f"<b style='color:#8A6A00'>FID</b>  {fid_bl:,.0f}",
-                showarrow=False, xanchor="center",
-                font=dict(size=13, color="#1C2B3A"),
-            )
-            fig_donut.add_annotation(
-                x=0.5, y=-0.13, text=f"<b style='color:#1C2B3A'>RID</b>  {rid_bl:,.0f}",
-                showarrow=False, xanchor="center",
-                font=dict(size=13, color="#1C2B3A"),
-            )
-
-            _layout(fig_donut, height=240,
+            _layout(fig_donut, height=260,
                     extra={
-                        "margin": dict(l=10, r=10, t=40, b=40),
-                        "showlegend": True,
-                        "legend": dict(
-                            orientation="h",
-                            yanchor="bottom", y=-0.22,
-                            xanchor="center", x=0.5,
-                            font=dict(size=12, color="#1C2B3A", weight="bold"),
-                            bgcolor="rgba(255,255,255,0)",
-                        ),
+                        "margin": dict(l=20, r=20, t=20, b=20),
+                        "showlegend": False,   # labels already on chart; legend redundant
                     })
             st.plotly_chart(fig_donut, use_container_width=True)
 
             # Mini stat bar below chart
             st.markdown(f"""
-            <div style="display:flex; gap:0; margin-top:4px; border-top:1px solid #E8E4DB; padding-top:10px;">
+            <div style="display:flex; gap:0; border-top:1px solid #E8E4DB; padding-top:10px; margin-top:4px;">
               <div style="flex:1; text-align:center; border-right:1px solid #E8E4DB;">
                 <div style="font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.8px; color:#8A6A00; margin-bottom:3px;">FID</div>
                 <div style="font-size:22px; font-weight:700; color:#1C2B3A; font-family:'DM Mono',monospace;">{fid_bl:,.0f}</div>
