@@ -89,24 +89,25 @@ st.markdown("""
     }
 }
 
-/* ── NEW KPI INNER LAYOUT (Title Top-Right, Value Center, Arrow Bottom-Left) ── */
+/* ── UPDATED KPI INNER LAYOUT ── */
 .kpi-title {
     position: absolute;
-    top: 16px;
-    right: 20px;
-    font-size: 14px;
-    font-weight: 800; /* Bold */
+    top: 12px;
+    right: 15px;
+    font-size: 16px;      /* Increased size */
+    font-weight: 800;     /* Extra Bold */
     text-transform: uppercase;
-    letter-spacing: 0.8px;
-    color: #8A6A00;
+    letter-spacing: 0.5px;
+    color: #1C2B3A;       /* Deep Navy for maximum contrast */
+    text-align: right;
 }
 
 .kpi-center-val {
     position: absolute;
-    top: 50%;
+    top: 55%;             /* Slightly adjusted to leave room for the bolder title */
     left: 50%;
     transform: translate(-50%, -50%);
-    font-size: 52px; /* Bigger */
+    font-size: 50px;      /* Main value remains big */
     font-weight: 700;
     font-family: 'DM Mono', monospace;
     color: #1C2B3A;
@@ -118,7 +119,7 @@ st.markdown("""
     position: absolute;
     bottom: 16px;
     left: 20px;
-    font-size: 22px; /* Bigger Arrow & Number */
+    font-size: 20px; 
     font-weight: 700;
     display: flex;
     align-items: center;
