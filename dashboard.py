@@ -74,11 +74,13 @@ st.markdown("""
 .dash-bee      { font-size:42px; line-height:1; }
 
 /* ── CHART CONTAINERS ── */
-[data-testid="stVerticalBlockBorderWrapper"], .appendix-card {
-    background-color: # !important;
-    .js-plotly-plot .plotly .main-svg {
-    border-radius: 20px !important;
-};
+[data-testid="stVerticalBlockBorderWrapper"], 
+.st-emotion-cache-12w0qpk { /* This is the specific Streamlit container class */
+    border-radius: 20px !important; /* Rounded corners */
+    border: 1px solid #C4C0B3 !important;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1) !important; /* Soft shadow */
+    overflow: hidden; /* Clips the chart inside to the rounded corners */
+}
     border: 1px solid #C4C0B3 !important;
     box-shadow: 0px 6px 18px rgba(0,0,0,0.1) !important;
     height: 100% !important;
@@ -233,7 +235,7 @@ _AX = dict(
     title_font=dict(color="#1C2B3A", weight="bold"),
 )
 _BASE = dict(
-    paper_bgcolor="#F9DE7A", plot_bgcolor="#F0EDE5",
+    paper_bgcolor="#F9DE7", plot_bgcolor="#F0EDE5",
     font=dict(color="#1C2B3A", family="DM Sans, sans-serif", size=12),
     legend=dict(bgcolor="rgba(255,255,255,0.9)", bordercolor="#D9D5C8",
                 borderwidth=1, font=dict(size=12, color="#1C2B3A", weight="bold")),
