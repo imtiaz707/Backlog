@@ -47,7 +47,7 @@ st.markdown("""
 
 * { font-family: 'DM Sans', sans-serif; box-sizing: -box; }
 
-[data-testid="stAppViewContainer"] { background: #ffffff !important; }
+[data-testid="stAppViewContainer"] { background: #F4F3EE !important; }
 [data-testid="stHeader"]           { background: transparent; }
 [data-testid="stToolbar"]          { display: none; }
 [data-testid="stDecoration"]       { display: none; }
@@ -239,8 +239,8 @@ _BASE = dict(
     font=dict(color="#1C2B3A", family="DM Sans, sans-serif", size=12),
     legend=dict(bgcolor="rgba(255,255,255,0.9)", bordercolor="#D9D5C8",
                 borderwidth=1, font=dict(size=12, color="#1C2B3A", weight="bold")),
-    hoverlabel=dict(bgcolor="#1C2B3A", bordercolor="#F5C200", font_color="#FFFFFF", font_size=13),
-    margin=dict(l=10, r=10, t=32, b=10),
+    hoverlabel=dict(bgcolor="#dfe3e8", bordercolor="#F5C200", font_color="#000000", font_size=13),
+    margin=dict(l=20, r=20, t=42, b=20),
     xaxis=_AX, yaxis=_AX,
 )
 
