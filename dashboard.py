@@ -224,55 +224,28 @@ SPREADSHEET_URL = (
     "1n9GW1UksZ-jhCQ-zmCqwx4EH20fa-Zm5wA5BiMmdZAE/edit?gid=713116247#gid=713116247"
 )
 
-# FIXED: Correct axis layout properties (removed unsupported 'weight' and 'title_font')
 _AX = dict(
-    gridcolor="rgba(28,43,58,0.08)",
-    linecolor="rgba(28,43,58,0.2)",
-    tickcolor="rgba(28,43,58,0.2)",
-    showgrid=True,
-    tickfont=dict(color="#1C2B3A", size=12, family="DM Sans, sans-serif"),
-    title=dict(font=dict(color="#1C2B3A", size=14, family="DM Sans, sans-serif"))
+    gridcolor="rgba(28,43,58,0.08)", linecolor="rgba(28,43,58,0.2)",
+    tickcolor="rgba(28,43,58,0.2)", showgrid=True,
+    tickfont=dict(color="#1C2B3A", size=12, weight="bold"),
+    title_font=dict(color="#1C2B3A", weight="bold"),
 )
-
-_HOVERLABEL = dict(
-    bgcolor="white",
-    bordercolor="#F5C200",
-    borderwidth=4,
-    font=dict(color="#1C2B3A", size=28, family="DM Sans, sans-serif"),
-    namelength=-1,
-)
-
 _BASE = dict(
-    paper_bgcolor="#f0ede5",
-    plot_bgcolor="#F0EDE5",
+    paper_bgcolor="#f0ede5", plot_bgcolor="#F0EDE5",
     font=dict(color="#1C2B3A", family="DM Sans, sans-serif", size=12),
-    legend=dict(
-        bgcolor="rgba(255,255,255,0.9)",
-        bordercolor="#D9D5C8",
-        borderwidth=1,
-        font=dict(size=12, color="#1C2B3A", family="DM Sans, sans-serif")
-    ),
-    hoverlabel=_HOVERLABEL,
+    legend=dict(bgcolor="rgba(255,255,255,0.9)", bordercolor="#D9D5C8",
+                borderwidth=1, font=dict(size=12, color="#1C2B3A", weight="bold")),
+    # ---- ENLARGED POPUP TEXT AND BOX SIZE SETTINGS ----
+    hoverlabel=dict(bgcolor="#dfe3e8", bordercolor="#F5C200", font_color="#000000", font_size=20, namelength=-1),
     margin=dict(l=20, r=20, t=42, b=20),
-    xaxis=_AX,
-    yaxis=_AX,
+    xaxis=_AX, yaxis=_AX,
 )
 
-def _layout(fig, height=None, extra=None, skip_axis=False):
-    """Apply consistent layout with large popup (hover) styling.
-    Use skip_axis=True for charts that don't have x/y axes (like pie/donut)."""
+def _layout(fig, height=None, extra=None):
     kw = dict(**_BASE)
-    if skip_axis:
-        # Remove axis settings to avoid errors on non-Cartesian charts
-        kw.pop("xaxis", None)
-        kw.pop("yaxis", None)
-    if height:
-        kw["height"] = height
-    if extra:
-        kw.update(extra)
+    if height: kw["height"] = height
+    if extra:  kw.update(extra)
     fig.update_layout(**kw)
-    # Ensure all traces also inherit the large hoverlabel
-    fig.update_traces(hoverlabel=_HOVERLABEL)
     return fig
 
 C_ISD = "#1C2B3A"
@@ -649,18 +622,17 @@ with kc4:
                 hole=0.55,
                 marker=dict(colors=["#F5C200", "#1C2B3A"], line=dict(color="#8A6A00", width=3)),
                 textinfo="label+percent", textposition="outside",
-                textfont=dict(size=12, color="#1C2B3A", family="DM Sans, sans-serif"),
+                textfont=dict(size=12, color="#1C2B3A", weight="bold"),
                 pull=[0.05, 0.05],
                 hovertemplate="<b>%{label}</b><br>Count: %{value:,.0f}<br>Share: %{percent}<extra></extra>",
             )])
             fig_donut.add_annotation(
                 text=f"<b>{int(fid_bl+rid_bl):,}</b><br><span style='font-size:10px;color:#6B7E91'>Total</span>",
                 x=0.5, y=0.5, showarrow=False, xanchor="center", yanchor="middle",
-                font=dict(size=15, color="#1C2B3A", family="DM Sans, sans-serif"),
+                font=dict(size=15, color="#1C2B3A"),
             )
             _layout(fig_donut, height=180,
-                    extra={"margin": dict(l=12, r=10, t=20, b=0), "showlegend": False},
-                    skip_axis=True)
+                    extra={"margin": dict(l=12, r=10, t=20, b=0), "showlegend": False})
             st.plotly_chart(fig_donut, use_container_width=True)
             st.markdown(f"""
             <div style="display:flex;gap:0;border-top:8px solid #E8E4DB;padding-top:8px;">
@@ -714,13 +686,13 @@ with col_bl:
                     name=name, y=labels, x=vals, orientation="h", marker_color=color,
                     text=[f"{v:,.0f}" if v > 0 else "" for v in vals],
                     textposition="inside", insidetextanchor="middle",
-                    textfont=dict(color="#FFFFFF", size=13, family="DM Sans, sans-serif"),
+                    textfont=dict(color="#FFFFFF", size=13, weight="bold"),
                 ))
             for lbl, tot in zip(labels, tots):
                 if tot > 0:
                     fig9.add_annotation(x=tot, y=lbl, text=f"  <b>{tot:,.0f}</b>",
                                         showarrow=False, xanchor="left",
-                                        font=dict(size=14, color="#1C2B3A", family="DM Sans, sans-serif"))
+                                        font=dict(size=14, color="#1C2B3A"))
             _layout(fig9, height=380, extra={
                 "barmode": "stack",
                 "xaxis": dict(**_AX, title="Count"),
@@ -742,7 +714,7 @@ with col_sort:
                 orientation="h", marker_color=[C_ISD, C_OSD],
                 marker_line=dict(color="#8A6A00", width=1),
                 text=[f"{fid_sort:,.0f}", f"{rid_sort:,.0f}"], textposition="outside",
-                textfont=dict(size=14, color="#1C2B3A", family="DM Sans, sans-serif"), width=0.5,
+                textfont=dict(size=14, color="#1C2B3A", weight="bold"), width=0.5,
             )])
             _layout(fig10, height=380, extra={
                 "showlegend": False,
@@ -809,7 +781,7 @@ with col_region:
                              text="Parcels")
             fig_reg.update_traces(
                 texttemplate="%{text:,.0f}", textposition="outside",
-                textfont=dict(color="#1C2B3A", size=14, family="DM Sans, sans-serif"),
+                textfont=dict(color="#1C2B3A", size=14, weight="bold"),
                 width=0.5,
             )
             _layout(fig_reg, height=300, extra={
@@ -884,7 +856,7 @@ with col_aging:
                               barmode="group",
                               text=ag_melt["Pct"].apply(lambda x: f"{x:.1f}%"))
                 fig8.update_traces(
-                    textposition="outside", textfont=dict(color="#1C2B3A", size=11, family="DM Sans, sans-serif"),
+                    textposition="outside", textfont=dict(color="#1C2B3A", size=11, weight="bold"),
                     customdata=ag_melt[["Count", "Region"]],
                     hovertemplate="<b>%{x}</b><br>Region: %{customdata[1]}<br>"
                                   "Count: %{customdata[0]:,.0f}<br>Pct: %{y:.1f}%",
