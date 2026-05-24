@@ -75,7 +75,7 @@ st.markdown("""
 
 /* ── CHART CONTAINERS ── */
 [data-testid="stVerticalBlockBorderWrapper"], .appendix-card {
-    background-color: #FFFFFF !important;
+    background-color: #8A6A00 !important;
     border-radius: 14px !important;
     border: 1px solid #C4C0B3 !important;
     box-shadow: 0px 6px 18px rgba(0,0,0,0.1) !important;
@@ -212,7 +212,7 @@ div[data-baseweb="popover"] * { color: #FFFFFF !important; }
 [data-testid="stExpander"] {
     background-color: #FFFFFF !important;
     border: 1px solid #C4C0B3 !important;
-    border-radius: 12px !important;
+    border-radius: 24px !important;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -710,7 +710,7 @@ with col_sort:
             fig10 = go.Figure(data=[go.Bar(
                 y=["FID Sort", "RID Sort"], x=[fid_sort, rid_sort],
                 orientation="h", marker_color=[C_ISD, C_OSD],
-                marker_line=dict(color="#FFFFFF", width=1),
+                marker_line=dict(color="#8A6A00", width=1),
                 text=[f"{fid_sort:,.0f}", f"{rid_sort:,.0f}"], textposition="outside",
                 textfont=dict(size=14, color="#1C2B3A", weight="bold"), width=0.5,
             )])
