@@ -14,11 +14,10 @@ st.set_page_config(
 )
 
 def get_image_html(filename, height_px=28):
-    """Converts a local image to base64 HTML img tag with configurable height."""
     if os.path.exists(filename):
         with open(filename, "rb") as f:
             encoded = base64.b64encode(f.read()).decode()
-        return f'<img src="data:image/png;base64,{encoded}" style="height: {height_px}px; width: auto; object-fit: contain;">'
+        return f'<img src="data:image/png;base64,{encoded}" style="height:{height_px}px; width:auto; object-fit:contain;">'
     return ""
 
 
@@ -40,22 +39,15 @@ def _spark_kpi(col_w, label, value_str, spark_svg, delta_val, lower_is_better=Tr
 
     col_w.markdown(f"""
     <div class="kpi-spark" style="background-color:{card_bg} !important; border-color:{card_bg} !important;">
-
-      <!-- 1. Icon — top center -->
       <div class="kpi-icon-top">{icon_html_top}</div>
-
-      <!-- 2. Label — below icon -->
       <div class="kpi-label">{label}</div>
-
-      <!-- 3. Big number — below label -->
       <div class="kpi-center-val">{value_str}</div>
-
-      <!-- 4. Delta + Sparkline — pinned to bottom -->
       <div class="kpi-footer">
-        <span class="{d_cls}" style="font-size:16px; font-weight:700; {color_style}">{arr} {abs(d_fid):,.0f}</span>
+        <span class="{d_cls}" style="font-size:15px; font-weight:700; {color_style}">
+          {arr} {abs(d_fid):,.0f}
+        </span>
         <span>{spark_svg}</span>
       </div>
-
     </div>""", unsafe_allow_html=True)
 
 st.markdown("""
@@ -116,11 +108,11 @@ st.markdown("""
     box-shadow: 0 6px 16px rgba(0,0,0,0.05) !important;
     height: 100% !important;
     min-height: 220px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: flex-start;
-    padding: 20px 16px 12px;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    padding: 18px 16px 12px !important;
     position: relative;
 }
 
@@ -138,7 +130,9 @@ st.markdown("""
     justify-content: center;
     align-items: center;
     margin-bottom: 10px;
+    width: 100%;
 }
+
 
 .kpi-title {
     position: absolute;
@@ -155,20 +149,40 @@ st.markdown("""
     align-items: center;
     gap: 8px;
 }
-
+.kpi-label {
+    font-size: 14px !important;
+    font-weight: 800 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
+    color: #1C2B3A !important;
+    text-align: center !important;
+    line-height: 1.3 !important;
+    margin-bottom: 6px !important;
+    width: 100% !important;
+}
 .kpi-center-val {
-    font-size: 48px;
-    font-weight: 700;
-    font-family: 'DM Mono', monospace;
-    color: #1C2B3A;
-    line-height: 1.1;
-    text-align: center;
-    white-space: nowrap;
-    /* Remove any position:absolute / top / transform that may still exist */
+    font-size: 48px !important;
+    font-weight: 700 !important;
+    font-family: 'DM Mono', monospace !important;
+    color: #1C2B3A !important;
+    line-height: 1.1 !important;
+    text-align: center !important;
+    white-space: nowrap !important;
+    width: 100% !important;
+    /* Absolutely no absolute positioning */
     position: static !important;
     transform: none !important;
+    top: unset !important;
+    left: unset !important;
 }
-
+.kpi-footer {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: auto;
+    padding-top: 10px;
+}
 .kpi-bottom-left {
     position: absolute;
     bottom: 16px;
