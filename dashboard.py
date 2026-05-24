@@ -579,7 +579,7 @@ with kc1:
         spark_svg=_sparkline_svg(spark_fid, "#E05C3A"),
         delta_val=d_fid_v,
         lower_is_better=True,
-        card_bg="#F0EDE5",
+        card_bg="#e3d6b3",
         static_color="#E05C3A",
         icon_type="fid",
     )
