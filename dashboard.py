@@ -258,9 +258,14 @@ _BASE = dict(
     yaxis=_AX,
 )
 
-def _layout(fig, height=None, extra=None):
-    """Apply consistent layout with large popup (hover) styling."""
+def _layout(fig, height=None, extra=None, skip_axis=False):
+    """Apply consistent layout with large popup (hover) styling.
+    Use skip_axis=True for charts that don't have x/y axes (like pie/donut)."""
     kw = dict(**_BASE)
+    if skip_axis:
+        # Remove axis settings to avoid errors on non-Cartesian charts
+        kw.pop("xaxis", None)
+        kw.pop("yaxis", None)
     if height:
         kw["height"] = height
     if extra:
@@ -654,7 +659,8 @@ with kc4:
                 font=dict(size=15, color="#1C2B3A", family="DM Sans, sans-serif"),
             )
             _layout(fig_donut, height=180,
-                    extra={"margin": dict(l=12, r=10, t=20, b=0), "showlegend": False})
+                    extra={"margin": dict(l=12, r=10, t=20, b=0), "showlegend": False},
+                    skip_axis=True)
             st.plotly_chart(fig_donut, use_container_width=True)
             st.markdown(f"""
             <div style="display:flex;gap:0;border-top:8px solid #E8E4DB;padding-top:8px;">
