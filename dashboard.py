@@ -552,7 +552,7 @@ with kc4:
             )
             # Increased height so it matches the newly extended kpi-spark height
             _layout(fig_donut, height=180,
-                    extra={"margin": dict(l=10, r=10, t=20, b=0), "showlegend": False})
+                    extra={"margin": dict(l=12, r=10, t=20, b=0), "showlegend": False})
             st.plotly_chart(fig_donut, use_container_width=True)
             st.markdown(f"""
             <div style="display:flex; gap:0; border-top:1px solid #E8E4DB; padding-top:8px;">
