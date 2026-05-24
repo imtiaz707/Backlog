@@ -236,17 +236,9 @@ _BASE = dict(
     legend=dict(bgcolor="rgba(255,255,255,0.9)", bordercolor="#D9D5C8",
                 borderwidth=1, font=dict(size=12, color="#1C2B3A", weight="bold")),
     # ---- ENLARGED POPUP TEXT AND BOX SIZE SETTINGS ----
-    hoverlabel=dict(
-        bgcolor="#ffffff",          # brighter background
-        bordercolor="#F5C200",      # yellow border
-        font_color="#1C2B3A",       # dark text
-        font_size=24,               # 🚀 bigger text (was 20)
-        namelength=-1,              # show full text, no truncation
-        # optional: simulate more padding by making font bigger
-    ),
+    hoverlabel=dict(bgcolor="#dfe3e8", bordercolor="#F5C200", font_color="#000000", font_size=20, namelength=-1),
     margin=dict(l=20, r=20, t=42, b=20),
-    xaxis=_AX,
-    yaxis=_AX,
+    xaxis=_AX, yaxis=_AX,
 )
 
 def _layout(fig, height=None, extra=None):
@@ -548,6 +540,7 @@ def _spark_kpi(col_w, label, value_str, spark_svg, delta_val,
       </div>
     </div>""", unsafe_allow_html=True)
 
+
 def _pct_kpi(col_w, label, value, prev_value, lower_is_better=True):
     """Percentage KPI card."""
     diff    = value - prev_value
@@ -574,7 +567,7 @@ def _pct_kpi(col_w, label, value, prev_value, lower_is_better=True):
     </div>""", unsafe_allow_html=True)
 
 # ── ROW 1: 3 KPI cards + Donut ───────────────────────────────────────────────
-, kc2, kc3, kc4 = st.columns([1, 1, 1, 1])
+kc1, kc2, kc3, kc4 = st.columns([1, 1, 1, 1])
 
 d_fid_v = tot_fid - pr_fid
 d_bl_v  = overall_bl - pr_overall
@@ -585,12 +578,12 @@ with kc1:
         col_w=kc1,
         label="Total In-Process (FID)",
         value_str=f"{tot_fid:,.0f}",
-        spark_svg=_sparkline_svg(spark_fid, "#1C2B3A"),   # static dark navy sparkline
+        spark_svg=_sparkline_svg(spark_fid, "#E05C3A"),
         delta_val=d_fid_v,
         lower_is_better=True,
         card_bg="#e3d6b3",
+        static_color="#E05C3A",
         icon_type="fid",
-        neutral_color="#1C2B3A",   # makes arrow static dark navy
     )
 
 with kc2:
