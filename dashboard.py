@@ -94,12 +94,12 @@ st.markdown("""
     position: absolute;
     top: 12px;
     right: 15px;
-    font-size: 16px;      /* Bigger */
+    font-size: 24px;      /* Bigger */
     font-weight: 800;     /* Bolder */
     text-transform: uppercase;
     letter-spacing: 0.5px;
     color: #1C2B3A;
-    text-align: right;
+    text-align: center;
 }
 
 .kpi-center-val {
