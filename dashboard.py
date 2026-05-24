@@ -236,9 +236,17 @@ _BASE = dict(
     legend=dict(bgcolor="rgba(255,255,255,0.9)", bordercolor="#D9D5C8",
                 borderwidth=1, font=dict(size=12, color="#1C2B3A", weight="bold")),
     # ---- ENLARGED POPUP TEXT AND BOX SIZE SETTINGS ----
-    hoverlabel=dict(bgcolor="#dfe3e8", bordercolor="#F5C200", font_color="#000000", font_size=20, namelength=-1),
+    hoverlabel=dict(
+        bgcolor="#ffffff",          # brighter background
+        bordercolor="#F5C200",      # yellow border
+        font_color="#1C2B3A",       # dark text
+        font_size=24,               # 🚀 bigger text (was 20)
+        namelength=-1,              # show full text, no truncation
+        # optional: simulate more padding by making font bigger
+    ),
     margin=dict(l=20, r=20, t=42, b=20),
-    xaxis=_AX, yaxis=_AX,
+    xaxis=_AX,
+    yaxis=_AX,
 )
 
 def _layout(fig, height=None, extra=None):
