@@ -155,6 +155,9 @@ st.markdown("""
     line-height: 1.1;
     text-align: center;
     white-space: nowrap;
+    /* Remove any position:absolute / top / transform that may still exist */
+    position: static !important;
+    transform: none !important;
 }
 
 .kpi-bottom-left {
