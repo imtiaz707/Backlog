@@ -107,7 +107,7 @@ st.markdown("""
 }
 
 .kpi-small {
-    background: #f0ede5!important;
+    background: #FFFFFF!important;
     border-radius: 16px !important;
     border: 8px solid #E8CD68 !important;
     box-shadow: 0 6px 16px rgba(0,0,0,0.05) !important;
