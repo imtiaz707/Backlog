@@ -74,12 +74,10 @@ st.markdown("""
 .dash-bee      { font-size:42px; line-height:1; }
 
 /* ── CHART CONTAINERS ── */
-[data-testid="stVerticalBlockBorderWrapper"], 
-.st-emotion-cache-12w0qpk { /* This is the specific Streamlit container class */
-    border-radius: 20px !important; /* Rounded corners */
+[data-testid="stVerticalBlockBorderWrapper"] {
+    border-radius: 20px !important; /* Adjust this number to change roundness */
     border: 1px solid #C4C0B3 !important;
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1) !important; /* Soft shadow */
-    overflow: hidden; /* Clips the chart inside to the rounded corners */
+    overflow: hidden; /* This is CRITICAL to clip the chart corners */
 }
     border: 1px solid #C4C0B3 !important;
     box-shadow: 0px 6px 18px rgba(0,0,0,0.1) !important;
