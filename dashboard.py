@@ -102,7 +102,7 @@ st.markdown("""
 }
 
 .kpi-small {
-    background: #FDF3BF !important;
+    background: #f0ede5 !important;
     border-radius: 12px !important;
     border: 1px solid #E8CD68 !important;
     box-shadow: 0 6px 16px rgba(0,0,0,0.05) !important;
@@ -169,7 +169,7 @@ st.markdown("""
     text-transform:uppercase; letter-spacing:1px;
     border-left:4px solid #F5C200;
     padding-left:12px; margin-bottom:18px;
-    background-color: #FDF3BF;
+    background-color: #f0ede5;
 }
 
 /* ── DELTA COLOURS ── */
