@@ -3,6 +3,8 @@ import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 from streamlit_gsheets import GSheetsConnection
+import base64
+import os
 
 st.set_page_config(
     page_title="Carrybee Intelligence",
@@ -10,6 +12,16 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="collapsed",
 )
+
+# ── IMAGE HELPER FOR HTML ─────────────────────────────────────────────────────
+def get_image_html(filename):
+    """Converts a local image to base64 so it can be used inside st.markdown HTML"""
+    if os.path.exists(filename):
+        with open(filename, "rb") as f:
+            encoded = base64.b64encode(f.read()).decode()
+        # Height is locked to 28px to perfectly match your requested font size
+        return f'<img src="data:image/png;base64,{encoded}" style="height: 28px; width: 28px; object-fit: contain; margin-right: 8px;">'
+    return "" # Returns empty if the file isn't found in the directory
 
 st.markdown("""
 <style>
@@ -89,25 +101,28 @@ st.markdown("""
     }
 }
 
-/* ── UPDATED KPI INNER LAYOUT ── */
+/* ── UPDATED KPI INNER LAYOUT (TITLES CENTERED & BIGGER) ── */
 .kpi-title {
     position: absolute;
-    top: 12px;
-    right: 15px;
-    font-size: 24px;      /* Bigger */
-    font-weight: 800;     /* Bolder */
+    top: 15px;            /* Spacing from the top */
+    left: 0;              
+    width: 100%;          /* Forces full width for perfect centering */
+    font-size: 28px;      /* BIGGER TEXT AS REQUESTED */
+    font-weight: 800;     
     text-transform: uppercase;
     letter-spacing: 0.5px;
     color: #1C2B3A;
-    text-align: center;
+    display: flex;        /* Flexbox allows us to easily align icon and text */
+    justify-content: center;
+    align-items: center;
 }
 
 .kpi-center-val {
     position: absolute;
-    top: 55%; 
+    top: 60%;             /* Pushed down slightly to account for the larger 28px title */
     left: 50%;
     transform: translate(-50%, -50%);
-    font-size: 48px;      /* Big and centered */
+    font-size: 48px;      
     font-weight: 700;
     font-family: 'DM Mono', monospace;
     color: #1C2B3A;
@@ -326,7 +341,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ── SINGLE DATE SLICER ────────────────────────────────────────────────────────
-with st.container(border=True): # Use native border for perfect alignment
+with st.container(border=True): 
     fc1, fc2, _sp = st.columns([2, 2, 4])
     
     all_dates_ft = sorted(ft["Date"].dropna().unique()) if not ft.empty else []
@@ -460,12 +475,11 @@ zt_color  = _trend_color(spark_zt,  lower_is_better=False)
 # ── ROW 1: Cards 1, 2, 3 (sparkline KPIs) + Card 4 (Donut) ──────────────────
 kc1, kc2, kc3, kc4 = st.columns([1, 1, 1, 1])
 
-# ── FIXED KPI FUNCTION (Added optional static_color parameter) ────────────────
-def _spark_kpi(col_w, label, value_str, spark_svg, delta_val, lower_is_better=True, card_bg="#F9DE7A", static_color=None):
+# ── FIXED KPI FUNCTION (Added icon_src support) ───────────────────────────
+def _spark_kpi(col_w, label, value_str, spark_svg, delta_val, lower_is_better=True, card_bg="#F9DE7A", static_color=None, icon_src=None):
     d_fid = delta_val
     arr = "▼" if d_fid < 0 else ("▲" if d_fid > 0 else "—")
     
-    # If a static color is provided (for Card 1), apply it; otherwise, use conditional colors.
     if static_color:
         color_style = f"color: {static_color} !important;"
         d_cls = ""
@@ -474,10 +488,13 @@ def _spark_kpi(col_w, label, value_str, spark_svg, delta_val, lower_is_better=Tr
                 ("delta-up-good"  if (d_fid > 0 and not lower_is_better) else \
                 ("delta-up-bad"   if d_fid > 0 else "delta-down-bad" if d_fid < 0 else "delta-neutral"))
         color_style = ""
+
+    # Call our base64 helper if an icon is provided
+    icon_html = get_image_html(icon_src) if icon_src else ""
         
     col_w.markdown(f"""
     <div class="kpi-spark" style="background-color: {card_bg} !important; border-color: {card_bg} !important;">
-      <div class="kpi-title">{label}</div>
+      <div class="kpi-title">{icon_html}{label}</div>
       <div class="kpi-center-val">{value_str}</div>
       <div class="kpi-bottom-left">
         <span class="{d_cls}" style="{color_style}">{arr} {abs(d_fid):,.0f}</span>
@@ -512,20 +529,30 @@ d_zt_v  = zt_val - pr_zt_val
 
 # ── ROW 1 CALLS ──────────────────────────────────────────────────────────────
 with kc1:
-    # First card: Custom #F0EDE5 background, and static color for spark/delta
+    # First card: Custom #F0EDE5 background, static color for spark/delta, and the Blue Box icon
     _spark_kpi(
         kc1, 
         "Total In-Process (FID)", 
         f"{tot_fid:,.0f}", 
-        _sparkline_svg(spark_fid, "#E05C3A"), # Static red sparkline
+        _sparkline_svg(spark_fid, "#E05C3A"), 
         d_fid_v, 
         lower_is_better=True, 
         card_bg="#F0EDE5", 
-        static_color="#E05C3A" # Static red delta text
+        static_color="#E05C3A", 
+        icon_src="Screenshot_2026-05-24_113719-removebg-preview.png"
     )
     
 with kc2:
-    _spark_kpi(kc2, "Overall Backlog", f"{overall_bl:,.0f}", _sparkline_svg(spark_bl, bl_color), d_bl_v, True)
+    # Second card: Red Clipboard icon
+    _spark_kpi(
+        kc2, 
+        "Overall Backlog", 
+        f"{overall_bl:,.0f}", 
+        _sparkline_svg(spark_bl, bl_color), 
+        d_bl_v, 
+        True,
+        icon_src="Screenshot_2026-05-24_113728-removebg-preview.png"
+    )
 
 with kc3:
     zt_display = f"{int(zt_val):,}" if zt_val > 0 else "0"
@@ -533,9 +560,12 @@ with kc3:
     zt_cls = "delta-down-good" if is_good else "delta-up-bad"
     zt_arrow = "▼" if d_zt_v < 0 else ("▲" if d_zt_v > 0 else "—")
     
+    # Generate the Yellow Arrows icon for the 3rd card
+    icon_3_html = get_image_html("Screenshot_2026-05-24_113736-removebg-preview.png")
+    
     kc3.markdown(f"""
     <div class="kpi-spark">
-      <div class="kpi-title">Zone Transfer Parcels</div>
+      <div class="kpi-title">{icon_3_html}Zone Transfer Parcels</div>
       <div class="kpi-center-val">{zt_display}</div>
       <div class="kpi-bottom-left">
         <span class="{zt_cls}">{zt_arrow} {abs(d_zt_v):,.0f}</span>
