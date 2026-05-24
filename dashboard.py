@@ -45,7 +45,7 @@ st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;800&family=DM+Mono:wght@400;500;700&display=swap');
 
-* { font-family: 'DM Sans', sans-serif; box-sizing: border-box; }
+* { font-family: 'DM Sans', sans-serif; box-sizing: -box; }
 
 [data-testid="stAppViewContainer"] { background: #f0ede5 !important; }
 [data-testid="stHeader"]           { background: transparent; }
@@ -62,7 +62,7 @@ st.markdown("""
 /* ── HEADER ── */
 .dash-header {
     background: #F5C200;
-    border: 1px solid #C99B00;
+    border: 8px solid #C99B00;
     border-radius: 16px;
     padding: 14px 28px;
     margin-bottom: 0px;
@@ -77,7 +77,7 @@ st.markdown("""
 [data-testid="stVerticalBlockBorderWrapper"], .appendix-card {
     background-color: #FFFFFF !important;
     border-radius: 50px !important;
-    border: 1px solid #C4C0B3 !important;
+    border: 8px solid #C4C0B3 !important;
     box-shadow: 0px 6px 18px rgba(0,0,0,0.1) !important;
     height: 100% !important; 
 }
@@ -95,7 +95,7 @@ st.markdown("""
    ══════════════════════════════════════════ */
 .kpi-spark {
     border-radius: 16px !important;
-    border: 1px solid #E8CD68 !important;
+    border: 8px solid #E8CD68 !important;
     box-shadow: 0 6px 16px rgba(0,0,0,0.05) !important;
     min-height: 220px;
     width: 100%;
@@ -109,7 +109,7 @@ st.markdown("""
 .kpi-small {
     background: #f0ede5!important;
     border-radius: 16px !important;
-    border: 1px solid #E8CD68 !important;
+    border: 8px solid #E8CD68 !important;
     box-shadow: 0 6px 16px rgba(0,0,0,0.05) !important;
     min-height: 180px;
     width: 100%;
@@ -172,7 +172,7 @@ st.markdown("""
 .sec-hdr {
     font-size:24px; font-weight:700; color:#1C2B3A !important;
     text-transform:uppercase; letter-spacing:1px;
-    border-left:4px solid #F5C200;
+    border-left:8px solid #F5C200;
     padding-left:12px; margin-bottom:18px;
     background-color: #F9DE7A;
 }
@@ -184,7 +184,7 @@ st.markdown("""
 
 /* ── AGING BADGE ── */
 .aging-badge {
-    background: rgba(245,194,0,0.15); border:1px solid #F5C200; border-radius:6px;
+    background: rgba(245,194,0,0.15); border:8px solid #F5C200; border-radius:8px;
     padding:6px 14px; font-size:12px; color:#1C2B3A !important; font-weight:700;
     display:inline-block; margin-bottom:12px;
 }
@@ -193,11 +193,11 @@ st.markdown("""
 .styled-table { width:100%; border-collapse:collapse; font-size:13px; }
 .styled-table thead tr { background: #F9F8F6; }
 .styled-table th { padding:12px 14px; text-align:center; font-weight:700; color:#1C2B3A !important;
-    border-bottom:6px solid #F5C200; text-transform:uppercase; letter-spacing:0.5px; }
+    border-bottom:8px solid #F5C200; text-transform:uppercase; letter-spacing:0.5px; }
 .styled-table tbody tr:hover { background: rgba(0,0,0,0.02); }
 .styled-table tbody tr:last-child { background:#F9F8F6; font-weight:700; }
 .styled-table td { padding:12px 14px; text-align:center;
-    border-bottom:6px solid rgba(28,43,58,0.05); color:#1C2B3A !important; }
+    border-bottom:8px solid rgba(28,43,58,0.05); color:#1C2B3A !important; }
 .styled-table .col-date { text-align:left; font-weight:700; color:#1C2B3A !important; }
 
 /* ── FORM CONTROLS ── */
@@ -216,7 +216,7 @@ div[data-baseweb="popover"] * { color: #FFFFFF !important; }
 }
 [data-testid="stExpander"] {
     background-color: #FFFFFF !important;
-    border: 1px solid #C4C0B3 !important;
+    border: 8px solid #C4C0B3 !important;
     border-radius: 24px !important;
 }
 </style>
@@ -638,8 +638,8 @@ with kc4:
                     extra={"margin": dict(l=12, r=10, t=20, b=0), "showlegend": False})
             st.plotly_chart(fig_donut, use_container_width=True)
             st.markdown(f"""
-            <div style="display:flex;gap:0;border-top:1px solid #E8E4DB;padding-top:8px;">
-              <div style="flex:1;text-align:center;border-right:1px solid #E8E4DB;">
+            <div style="display:flex;gap:0;border-top:8px solid #E8E4DB;padding-top:8px;">
+              <div style="flex:1;text-align:center;border-right:8px solid #E8E4DB;">
                 <div style="font-size:10px;font-weight:700;text-transform:uppercase;color:#8A6A00;margin-bottom:2px;">FID</div>
                 <div style="font-size:18px;font-weight:700;color:#1C2B3A;font-family:'DM Mono',monospace;">{fid_bl:,.0f}</div>
                 <div style="font-size:10px;color:#6B7E91;font-weight:600;">{fid_pct_donut:.1f}%</div>
@@ -795,14 +795,14 @@ with col_region:
             st.plotly_chart(fig_reg, use_container_width=True)
             st.markdown(f"""
             <div style="display:flex;gap:16px;justify-content:center;padding:12px 0 4px;
-                        border-top:1px solid rgba(28,43,58,0.15);">
-              <div style="text-align:center;flex:1;border-right:1px solid rgba(28,43,58,0.15);">
+                        border-top:8px solid rgba(28,43,58,0.15);">
+              <div style="text-align:center;flex:1;border-right:8px solid rgba(28,43,58,0.15);">
                 <div style="font-size:13px;color:#1C2B3A;font-weight:700;text-transform:uppercase;
                             letter-spacing:0.8px;margin-bottom:4px;">ISD</div>
                 <div style="font-size:26px;font-weight:700;color:{C_ISD};
                             font-family:'DM Mono',monospace;">{isd_total:,.0f}</div>
               </div>
-              <div style="text-align:center;flex:1;border-right:1px solid rgba(28,43,58,0.15);">
+              <div style="text-align:center;flex:1;border-right:8px solid rgba(28,43,58,0.15);">
                 <div style="font-size:13px;color:#1C2B3A;font-weight:700;text-transform:uppercase;
                             letter-spacing:0.8px;margin-bottom:4px;">OSD</div>
                 <div style="font-size:26px;font-weight:700;color:{C_OSD};
@@ -906,7 +906,7 @@ with col_aging_tbl:
             body_rows += f"<tr>{td_tot}</tr>"
             st.markdown(f"""
             <div style="overflow-x:auto;max-height:430px;overflow-y:auto;
-                        border:1px solid #C4C0B3;border-radius:12px;">
+                        border:8px solid #C4C0B3;border-radius:16px;">
             <table class="styled-table" style="margin:0;">
               <thead><tr>{th}</tr></thead>
               <tbody>{body_rows}</tbody>
@@ -948,7 +948,7 @@ with st.container(border=True):
                 cells += f"<td class='{cls}'>{disp}</td>"
             body += f"<tr>{cells}</tr>"
         st.markdown(f"""
-        <div style="overflow-x:auto;border:1px solid #C4C0B3;border-radius:12px;">
+        <div style="overflow-x:auto;border:8px solid #C4C0B3;border-radius:16px;">
         <table class="styled-table" style="margin:0;">
           <thead><tr>{headers}</tr></thead>
           <tbody>{body}</tbody>
