@@ -63,7 +63,7 @@ st.markdown("""
 .dash-header {
     background: #F5C200;
     border: 1px solid #C99B00;
-    border-radius: 12px;
+    border-radius: 16px;
     padding: 14px 28px;
     margin-bottom: 0px;
     display: flex; align-items: center; gap: 20px;
@@ -94,7 +94,7 @@ st.markdown("""
    KPI CARDS
    ══════════════════════════════════════════ */
 .kpi-spark {
-    border-radius: 12px !important;
+    border-radius: 16px !important;
     border: 1px solid #E8CD68 !important;
     box-shadow: 0 6px 16px rgba(0,0,0,0.05) !important;
     min-height: 220px;
@@ -108,7 +108,7 @@ st.markdown("""
 
 .kpi-small {
     background: #f0ede5!important;
-    border-radius: 12px !important;
+    border-radius: 16px !important;
     border: 1px solid #E8CD68 !important;
     box-shadow: 0 6px 16px rgba(0,0,0,0.05) !important;
     min-height: 180px;
@@ -193,11 +193,11 @@ st.markdown("""
 .styled-table { width:100%; border-collapse:collapse; font-size:13px; }
 .styled-table thead tr { background: #F9F8F6; }
 .styled-table th { padding:12px 14px; text-align:center; font-weight:700; color:#1C2B3A !important;
-    border-bottom:2px solid #F5C200; text-transform:uppercase; letter-spacing:0.5px; }
+    border-bottom:6px solid #F5C200; text-transform:uppercase; letter-spacing:0.5px; }
 .styled-table tbody tr:hover { background: rgba(0,0,0,0.02); }
 .styled-table tbody tr:last-child { background:#F9F8F6; font-weight:700; }
 .styled-table td { padding:12px 14px; text-align:center;
-    border-bottom:1px solid rgba(28,43,58,0.05); color:#1C2B3A !important; }
+    border-bottom:6px solid rgba(28,43,58,0.05); color:#1C2B3A !important; }
 .styled-table .col-date { text-align:left; font-weight:700; color:#1C2B3A !important; }
 
 /* ── FORM CONTROLS ── */
