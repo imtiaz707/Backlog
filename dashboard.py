@@ -752,7 +752,7 @@ with col_aging:
             ag_melt = pd.DataFrame(rows8)
             if not ag_melt.empty:
                 max_slider_val = max(5.0, float(ag_melt["Pct"].max()) + 5.0)
-                y_zoom = st.slider("🔍 Adjust Y-Axis Zoom (%)", min_value=0.0,
+                y_zoom = st.slider("🔍 Adjust Zoom (%)", min_value=0.0,
                                    max_value=max_slider_val, value=(0.0, max_slider_val), step=1.0)
                 fig8 = px.bar(ag_melt, x="Age", y="Pct", color="Region",
                               color_discrete_map={"ISD": C_ISD, "OSD": C_OSD},
