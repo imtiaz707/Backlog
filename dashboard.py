@@ -13,15 +13,32 @@ st.set_page_config(
     initial_sidebar_state="collapsed",
 )
 
-# ── IMAGE HELPER (replaces SVG helper for local PNGs) ────────────────────────
-def get_image_html(filename):
-    """Converts a local image to base64 so it can be used inside st.markdown HTML"""
-    if os.path.exists(filename):
-        with open(filename, "rb") as f:
-            encoded = base64.b64encode(f.read()).decode()
-        # Height is locked to 28px to perfectly match your requested font size
-        return f'<img src="data:image/png;base64,{encoded}" style="height: 28px; width: auto; object-fit: contain; margin-right: 10px; vertical-align: middle;">'
-    return ""
+# ── SVG ICON HELPER (replaces file-based image loading) ──────────────────────
+def get_icon_svg(icon_type, size_px=48):
+    """Returns inline SVG icons — no external file dependency."""
+    icons = {
+        "fid": f"""<svg width="{size_px}" height="{size_px}" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="48" height="48" rx="12" fill="#1C2B3A" fill-opacity="0.12"/>
+  <path d="M14 20h20M14 28h14" stroke="#1C2B3A" stroke-width="2.5" stroke-linecap="round"/>
+  <circle cx="34" cy="28" r="5" fill="#E05C3A"/>
+  <path d="M32 28h4M34 26v4" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/>
+  <rect x="10" y="12" width="28" height="24" rx="4" stroke="#1C2B3A" stroke-width="2" fill="none"/>
+</svg>""",
+        "backlog": f"""<svg width="{size_px}" height="{size_px}" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="48" height="48" rx="12" fill="#1C2B3A" fill-opacity="0.12"/>
+  <rect x="10" y="30" width="8" height="10" rx="2" fill="#1C2B3A"/>
+  <rect x="20" y="22" width="8" height="18" rx="2" fill="#8A6A00"/>
+  <rect x="30" y="14" width="8" height="26" rx="2" fill="#E05C3A"/>
+  <path d="M10 10h28" stroke="#1C2B3A" stroke-width="2" stroke-linecap="round"/>
+</svg>""",
+        "zone": f"""<svg width="{size_px}" height="{size_px}" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="48" height="48" rx="12" fill="#1C2B3A" fill-opacity="0.12"/>
+  <path d="M12 24h24M30 18l6 6-6 6" stroke="#1C2B3A" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="16" cy="24" r="4" fill="#2E7D6B"/>
+  <circle cx="32" cy="24" r="4" fill="#1C2B3A"/>
+</svg>""",
+    }
+    return icons.get(icon_type, "")
 
 # ── STYLES ────────────────────────────────────────────────────────────────────
 st.markdown("""
@@ -45,7 +62,7 @@ st.markdown("""
 /* ── HEADER ── */
 .dash-header {
     background: #F5C200;
-    border: 1px solid #C99B00;
+    border: 8px solid #C99B00;
     border-radius: 16px;
     padding: 14px 28px;
     margin-bottom: 0px;
@@ -56,15 +73,15 @@ st.markdown("""
 .dash-subtitle { color:#2E7D6B !important; font-size:18px; margin-top:2px; font-weight:600; }
 .dash-bee      { font-size:42px; line-height:1; }
 
-/* ── CHART CONTAINERS (Rounded Corners & Shadow) ── */
+/* ── CHART CONTAINERS ── */
 [data-testid="stVerticalBlockBorderWrapper"], .appendix-card {
     background-color: #FFFFFF !important;
     border-radius: 20px !important;
-    border: 1px solid #C4C0B3 !important;
-    box-shadow: 0px 8px 20px rgba(0,0,0,0.08) !important;
+    border: 8px solid #C4C0B3 !important;
+    box-shadow: 0px 6px 18px rgba(0,0,0,0.1) !important;
     height: 100% !important; 
-    overflow: hidden !important;
 }
+
 [data-testid="stVerticalBlockBorderWrapper"] {
     padding: 20px 24px 16px !important;
 }
@@ -74,7 +91,7 @@ st.markdown("""
    ══════════════════════════════════════════ */
 .kpi-spark {
     border-radius: 16px !important;
-    border: 1px solid #E8CD68 !important;
+    border: 8px solid #E8CD68 !important;
     box-shadow: 0 6px 16px rgba(0,0,0,0.05) !important;
     min-height: 220px;
     width: 100%;
@@ -86,9 +103,9 @@ st.markdown("""
 }
 
 .kpi-small {
-    background: #F9DE7A !important;
+    background: #f0ede5!important;
     border-radius: 16px !important;
-    border: 1px solid #E8CD68 !important;
+    border: 8px solid #E8CD68 !important;
     box-shadow: 0 6px 16px rgba(0,0,0,0.05) !important;
     min-height: 180px;
     width: 100%;
@@ -103,51 +120,57 @@ st.markdown("""
     .kpi-small { margin-top: -65px !important; z-index: 10; }
 }
 
-.kpi-title {
-    position: absolute;
-    top: 15px;
-    left: 0;
+.kpi-icon-top {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 10px;
     width: 100%;
-    font-size: 28px !important; /* Size 28 as requested */
+}
+
+.kpi-label {
+    font-size: 20px;
     font-weight: 800;
     text-transform: uppercase;
     letter-spacing: 0.5px;
     color: #1C2B3A;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+    text-align: center;
+    line-height: 1.3;
+    margin-bottom: 8px;
+    width: 100%;
 }
 
 .kpi-center-val {
-    position: absolute;
-    top: 60%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    font-size: 48px;
+    font-size: 36px;
     font-weight: 700;
     font-family: 'DM Mono', monospace;
     color: #1C2B3A;
     line-height: 1.1;
+    text-align: center;
     white-space: nowrap;
+    width: 100%;
+    position: static !important;
+    transform: none !important;
+    top: unset !important;
+    left: unset !important;
 }
 
 .kpi-footer {
-    position: absolute;
-    bottom: 16px;
-    width: calc(100% - 40px);
-    left: 20px;
+    width: 100%;
     display: flex;
     justify-content: space-between;
     align-items: center;
+    margin-top: auto;
+    padding-top: 10px;
 }
 
 /* ── SECTION HEADER ── */
 .sec-hdr {
-    font-size:18px; font-weight:700; color:#1C2B3A !important;
+    font-size:24px; font-weight:700; color:#1C2B3A !important;
     text-transform:uppercase; letter-spacing:1px;
-    border-left:5px solid #F5C200;
+    border-left:8px solid #F5C200;
     padding-left:12px; margin-bottom:18px;
-    background-color: transparent;
+    background-color: #F9DE7A;
 }
 
 /* ── DELTA COLOURS ── */
@@ -157,7 +180,7 @@ st.markdown("""
 
 /* ── AGING BADGE ── */
 .aging-badge {
-    background: rgba(245,194,0,0.15); border:1px solid #F5C200; border-radius:8px;
+    background: rgba(245,194,0,0.15); border:8px solid #F5C200; border-radius:8px;
     padding:6px 14px; font-size:12px; color:#1C2B3A !important; font-weight:700;
     display:inline-block; margin-bottom:12px;
 }
@@ -166,11 +189,11 @@ st.markdown("""
 .styled-table { width:100%; border-collapse:collapse; font-size:13px; }
 .styled-table thead tr { background: #F9F8F6; }
 .styled-table th { padding:12px 14px; text-align:center; font-weight:700; color:#1C2B3A !important;
-    border-bottom:2px solid #F5C200; text-transform:uppercase; letter-spacing:0.5px; }
+    border-bottom:8px solid #F5C200; text-transform:uppercase; letter-spacing:0.5px; }
 .styled-table tbody tr:hover { background: rgba(0,0,0,0.02); }
 .styled-table tbody tr:last-child { background:#F9F8F6; font-weight:700; }
 .styled-table td { padding:12px 14px; text-align:center;
-    border-bottom:1px solid rgba(28,43,58,0.05); color:#1C2B3A !important; }
+    border-bottom:8px solid rgba(28,43,58,0.05); color:#1C2B3A !important; }
 .styled-table .col-date { text-align:left; font-weight:700; color:#1C2B3A !important; }
 
 /* ── FORM CONTROLS ── */
@@ -189,8 +212,8 @@ div[data-baseweb="popover"] * { color: #FFFFFF !important; }
 }
 [data-testid="stExpander"] {
     background-color: #FFFFFF !important;
-    border: 1px solid #C4C0B3 !important;
-    border-radius: 16px !important;
+    border: 8px solid #C4C0B3 !important;
+    border-radius: 24px !important;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -204,26 +227,16 @@ SPREADSHEET_URL = (
 _AX = dict(
     gridcolor="rgba(28,43,58,0.08)", linecolor="rgba(28,43,58,0.2)",
     tickcolor="rgba(28,43,58,0.2)", showgrid=True,
-    tickfont=dict(color="#1C2B3A", size=14, weight="bold"),
-    title_font=dict(color="#1C2B3A", size=16, weight="bold"),
+    tickfont=dict(color="#1C2B3A", size=12, weight="bold"),
+    title_font=dict(color="#1C2B3A", weight="bold"),
 )
 _BASE = dict(
-    paper_bgcolor="#FFFFFF", plot_bgcolor="#FFFFFF",
-    font=dict(color="#1C2B3A", family="DM Sans, sans-serif", size=14),
+    paper_bgcolor="#f0ede5", plot_bgcolor="#F0EDE5",
+    font=dict(color="#1C2B3A", family="DM Sans, sans-serif", size=12),
     legend=dict(bgcolor="rgba(255,255,255,0.9)", bordercolor="#D9D5C8",
-                borderwidth=1, font=dict(size=14, color="#1C2B3A", weight="bold")),
-    
-    # ---- UPDATED POPUP (HOVER) SETTINGS ----
-    hoverlabel=dict(
-        bgcolor="#FFFFFF",        # White background
-        bordercolor="#C4C0B3",    # Soft gray border
-        font_color="#1C2B3A",     # Dark navy text
-        font_size=20,             # BIG TEXT
-        namelength=-1             # Show full name
-    ),
-    hovermode="x unified",        # Combines the popup into one grouped box
-    # ----------------------------------------
-    
+                borderwidth=1, font=dict(size=12, color="#1C2B3A", weight="bold")),
+    # ---- ENLARGED POPUP TEXT AND BOX SIZE SETTINGS ----
+    hoverlabel=dict(bgcolor="#dfe3e8", bordercolor="#F5C200", font_color="#000000", font_size=20, namelength=-1),
     margin=dict(l=20, r=20, t=42, b=20),
     xaxis=_AX, yaxis=_AX,
 )
@@ -231,13 +244,7 @@ _BASE = dict(
 def _layout(fig, height=None, extra=None):
     kw = dict(**_BASE)
     if height: kw["height"] = height
-    if extra:
-        # Safely update nested dictionaries to prevent ValueError
-        for key, value in extra.items():
-            if isinstance(value, dict) and key in kw and isinstance(kw[key], dict):
-                kw[key].update(value)
-            else:
-                kw[key] = value
+    if extra:  kw.update(extra)
     fig.update_layout(**kw)
     return fig
 
@@ -497,9 +504,9 @@ zt_color  = _trend_color(spark_zt,  lower_is_better=False)
 # ══════════════════════════════════════════════════════════════════════════════
 
 def _spark_kpi(col_w, label, value_str, spark_svg, delta_val,
-               lower_is_better=True, card_bg="#F9DE7A",
-               static_color=None, icon_src=None):
-    """Renders a KPI card using Base64 icons."""
+               lower_is_better=True, card_bg="#FDF3BF",
+               static_color=None, icon_type=None):
+    """Renders a KPI card using inline SVG icons — no external file loading."""
     d = delta_val
     arr = "▼" if d < 0 else ("▲" if d > 0 else "—")
 
@@ -516,15 +523,17 @@ def _spark_kpi(col_w, label, value_str, spark_svg, delta_val,
         )
         delta_style = ""
 
-    icon_html = get_image_html(icon_src) if icon_src else ""
+    # Use inline SVG icon — safe, no file I/O
+    icon_html = get_icon_svg(icon_type, size_px=48) if icon_type else ""
 
     col_w.markdown(f"""
     <div class="kpi-spark"
          style="background-color:{card_bg} !important; border-color:{card_bg} !important;">
-      <div class="kpi-title">{icon_html}{label}</div>
+      <div class="kpi-icon-top">{icon_html}</div>
+      <div class="kpi-label">{label}</div>
       <div class="kpi-center-val">{value_str}</div>
       <div class="kpi-footer">
-        <span class="{d_cls}" style="font-size:18px; font-weight:700; {delta_style}">
+        <span class="{d_cls}" style="font-size:15px; font-weight:700; {delta_style}">
           {arr} {abs(d):,.0f}
         </span>
         <span>{spark_svg}</span>
@@ -548,10 +557,10 @@ def _pct_kpi(col_w, label, value, prev_value, lower_is_better=True):
 
     col_w.markdown(f"""
     <div class="kpi-small">
-      <div class="kpi-title" style="margin-top:10px;">{label}</div>
+      <div class="kpi-label" style="margin-top:10px;">{label}</div>
       <div class="kpi-center-val" style="color:{v_color};">{value:.2f}%</div>
       <div class="kpi-footer">
-        <span class="{d_cls}" style="font-size:18px; font-weight:700;">
+        <span class="{d_cls}" style="font-size:15px; font-weight:700;">
           {arr} {abs(diff):.2f}
         </span>
       </div>
@@ -572,9 +581,9 @@ with kc1:
         spark_svg=_sparkline_svg(spark_fid, "#E05C3A"),
         delta_val=d_fid_v,
         lower_is_better=True,
-        card_bg="#D8D9D7",
+        card_bg="#e3d6b3",
         static_color="#E05C3A",
-        icon_src="FID PRO.png",
+        icon_type="fid",
     )
 
 with kc2:
@@ -585,8 +594,7 @@ with kc2:
         spark_svg=_sparkline_svg(spark_bl, bl_color),
         delta_val=d_bl_v,
         lower_is_better=True,
-        card_bg="#D5D7D6",
-        icon_src="BACKLOG.PNG",
+        icon_type="backlog",
     )
 
 with kc3:
@@ -599,13 +607,12 @@ with kc3:
         spark_svg=_sparkline_svg(spark_zt, "#2E7D6B" if is_good else "#E05C3A"),
         delta_val=d_zt_v,
         lower_is_better=True,
-        card_bg="#DCD6B9",
-        icon_src="ZONE TR.png",
+        icon_type="zone",
     )
 
 with kc4:
     with st.container(border=True):
-        st.markdown('<div class="sec-hdr" style="margin-bottom:8px;">4. Backlog — FID vs RID</div>',
+        st.markdown('<div class="sec-hdr" style="margin-bottom:8px;">Backlog — FID vs RID</div>',
                     unsafe_allow_html=True)
         if (fid_bl + rid_bl) > 0:
             fid_pct_donut = fid_bl / (fid_bl + rid_bl) * 100
@@ -613,31 +620,31 @@ with kc4:
             fig_donut = go.Figure(data=[go.Pie(
                 labels=["FID", "RID"], values=[fid_bl, rid_bl],
                 hole=0.55,
-                marker=dict(colors=["#F5C200", "#1C2B3A"], line=dict(color="#FFFFFF", width=3)),
+                marker=dict(colors=["#F5C200", "#1C2B3A"], line=dict(color="#8A6A00", width=3)),
                 textinfo="label+percent", textposition="outside",
-                textfont=dict(size=14, color="#1C2B3A", weight="bold"),
+                textfont=dict(size=12, color="#1C2B3A", weight="bold"),
                 pull=[0.05, 0.05],
                 hovertemplate="<b>%{label}</b><br>Count: %{value:,.0f}<br>Share: %{percent}<extra></extra>",
             )])
             fig_donut.add_annotation(
-                text=f"<b>{int(fid_bl+rid_bl):,}</b><br><span style='font-size:12px;color:#6B7E91'>Total</span>",
+                text=f"<b>{int(fid_bl+rid_bl):,}</b><br><span style='font-size:10px;color:#6B7E91'>Total</span>",
                 x=0.5, y=0.5, showarrow=False, xanchor="center", yanchor="middle",
-                font=dict(size=18, color="#1C2B3A"),
+                font=dict(size=15, color="#1C2B3A"),
             )
             _layout(fig_donut, height=180,
                     extra={"margin": dict(l=12, r=10, t=20, b=0), "showlegend": False})
             st.plotly_chart(fig_donut, use_container_width=True)
             st.markdown(f"""
-            <div style="display:flex;gap:0;border-top:1px solid #E8E4DB;padding-top:8px;">
-              <div style="flex:1;text-align:center;border-right:1px solid #E8E4DB;">
+            <div style="display:flex;gap:0;border-top:8px solid #E8E4DB;padding-top:8px;">
+              <div style="flex:1;text-align:center;border-right:8px solid #E8E4DB;">
                 <div style="font-size:10px;font-weight:700;text-transform:uppercase;color:#8A6A00;margin-bottom:2px;">FID</div>
-                <div style="font-size:20px;font-weight:700;color:#1C2B3A;font-family:'DM Mono',monospace;">{fid_bl:,.0f}</div>
-                <div style="font-size:12px;color:#6B7E91;font-weight:600;">{fid_pct_donut:.1f}%</div>
+                <div style="font-size:18px;font-weight:700;color:#1C2B3A;font-family:'DM Mono',monospace;">{fid_bl:,.0f}</div>
+                <div style="font-size:10px;color:#6B7E91;font-weight:600;">{fid_pct_donut:.1f}%</div>
               </div>
               <div style="flex:1;text-align:center;">
                 <div style="font-size:10px;font-weight:700;text-transform:uppercase;color:#1C2B3A;margin-bottom:2px;">RID</div>
-                <div style="font-size:20px;font-weight:700;color:#1C2B3A;font-family:'DM Mono',monospace;">{rid_bl:,.0f}</div>
-                <div style="font-size:12px;color:#6B7E91;font-weight:600;">{rid_pct_donut:.1f}%</div>
+                <div style="font-size:18px;font-weight:700;color:#1C2B3A;font-family:'DM Mono',monospace;">{rid_bl:,.0f}</div>
+                <div style="font-size:10px;color:#6B7E91;font-weight:600;">{rid_pct_donut:.1f}%</div>
               </div>
             </div>""", unsafe_allow_html=True)
         else:
@@ -658,7 +665,7 @@ col_bl, col_sort = st.columns([3, 2])
 
 with col_bl:
     with st.container(border=True):
-        st.markdown('<div class="sec-hdr">7. Backlog Details</div>',
+        st.markdown('<div class="sec-hdr">Backlog Details</div>',
                     unsafe_allow_html=True)
         if lt_fr is not None:
             detail_rows = [
@@ -679,7 +686,7 @@ with col_bl:
                     name=name, y=labels, x=vals, orientation="h", marker_color=color,
                     text=[f"{v:,.0f}" if v > 0 else "" for v in vals],
                     textposition="inside", insidetextanchor="middle",
-                    textfont=dict(color="#FFFFFF", size=14, weight="bold"),
+                    textfont=dict(color="#FFFFFF", size=13, weight="bold"),
                 ))
             for lbl, tot in zip(labels, tots):
                 if tot > 0:
@@ -697,7 +704,7 @@ with col_bl:
 
 with col_sort:
     with st.container(border=True):
-        st.markdown('<div class="sec-hdr">8. Backlog Details(Sort)</div>',
+        st.markdown('<div class="sec-hdr">Backlog Details(Sort)</div>',
                     unsafe_allow_html=True)
         if lt_fr is not None:
             fid_sort = _safe(lt_fr, "FID Sort")
@@ -705,7 +712,7 @@ with col_sort:
             fig10 = go.Figure(data=[go.Bar(
                 y=["FID Sort", "RID Sort"], x=[fid_sort, rid_sort],
                 orientation="h", marker_color=[C_ISD, C_OSD],
-                marker_line=dict(color="#FFFFFF", width=1),
+                marker_line=dict(color="#8A6A00", width=1),
                 text=[f"{fid_sort:,.0f}", f"{rid_sort:,.0f}"], textposition="outside",
                 textfont=dict(size=14, color="#1C2B3A", weight="bold"), width=0.5,
             )])
@@ -724,7 +731,7 @@ col_track, col_region = st.columns([3, 2])
 
 with col_track:
     with st.container(border=True):
-        st.markdown('<div class="sec-hdr">9. Date-wise Backlog Progress Tracking (FID)</div>',
+        st.markdown('<div class="sec-hdr">Date-wise Backlog Progress Tracking (FID)</div>',
                     unsafe_allow_html=True)
         if all_dates and len(all_dates) >= 1:
             t_opts = [pd.Timestamp(d).strftime("%d %b %Y") for d in all_dates]
@@ -765,7 +772,7 @@ with col_track:
 
 with col_region:
     with st.container(border=True):
-        st.markdown('<div class="sec-hdr">10. Region Wise In-Process Parcels</div>',
+        st.markdown('<div class="sec-hdr">Region Wise In-Process Parcels</div>',
                     unsafe_allow_html=True)
         if tot_fid > 0:
             df_reg = pd.DataFrame({"Region": ["ISD", "OSD"], "Parcels": [isd_total, osd_total]})
@@ -785,14 +792,14 @@ with col_region:
             st.plotly_chart(fig_reg, use_container_width=True)
             st.markdown(f"""
             <div style="display:flex;gap:16px;justify-content:center;padding:12px 0 4px;
-                        border-top:1px solid rgba(28,43,58,0.15);">
-              <div style="text-align:center;flex:1;border-right:1px solid rgba(28,43,58,0.15);">
+                        border-top:8px solid rgba(28,43,58,0.15);">
+              <div style="text-align:center;flex:1;border-right:8px solid rgba(28,43,58,0.15);">
                 <div style="font-size:13px;color:#1C2B3A;font-weight:700;text-transform:uppercase;
                             letter-spacing:0.8px;margin-bottom:4px;">ISD</div>
                 <div style="font-size:26px;font-weight:700;color:{C_ISD};
                             font-family:'DM Mono',monospace;">{isd_total:,.0f}</div>
               </div>
-              <div style="text-align:center;flex:1;border-right:1px solid rgba(28,43,58,0.15);">
+              <div style="text-align:center;flex:1;border-right:8px solid rgba(28,43,58,0.15);">
                 <div style="font-size:13px;color:#1C2B3A;font-weight:700;text-transform:uppercase;
                             letter-spacing:0.8px;margin-bottom:4px;">OSD</div>
                 <div style="font-size:26px;font-weight:700;color:{C_OSD};
@@ -819,7 +826,7 @@ col_aging, col_aging_tbl = st.columns([3, 2])
 
 with col_aging:
     with st.container(border=True):
-        st.markdown('<div class="sec-hdr">11. Aging Distribution</div>', unsafe_allow_html=True)
+        st.markdown('<div class="sec-hdr">Aging Distribution</div>', unsafe_allow_html=True)
         st.markdown('<div class="aging-badge">ISD &amp; SUB = 4 Days+ &nbsp;|&nbsp; OSD = 5 Days+</div>',
                     unsafe_allow_html=True)
         if not ag_f.empty:
@@ -896,7 +903,7 @@ with col_aging_tbl:
             body_rows += f"<tr>{td_tot}</tr>"
             st.markdown(f"""
             <div style="overflow-x:auto;max-height:430px;overflow-y:auto;
-                        border:1px solid #C4C0B3;border-radius:16px;">
+                        border:8px solid #C4C0B3;border-radius:16px;">
             <table class="styled-table" style="margin:0;">
               <thead><tr>{th}</tr></thead>
               <tbody>{body_rows}</tbody>
@@ -906,7 +913,7 @@ with col_aging_tbl:
 
 # ── ROW 6: Full FID Tracking Table ────────────────────────────────────────────
 with st.container(border=True):
-    st.markdown('<div class="sec-hdr">12. Date-wise Backlog Progress Tracking — Full Table (FID)</div>',
+    st.markdown('<div class="sec-hdr">Date-wise Backlog Progress Tracking — Full Table (FID)</div>',
                 unsafe_allow_html=True)
     try:
         ft_tbl = (ft[(ft["Date"] >= t_start) & (ft["Date"] <= t_end)]
@@ -938,7 +945,7 @@ with st.container(border=True):
                 cells += f"<td class='{cls}'>{disp}</td>"
             body += f"<tr>{cells}</tr>"
         st.markdown(f"""
-        <div style="overflow-x:auto;border:1px solid #C4C0B3;border-radius:16px;">
+        <div style="overflow-x:auto;border:8px solid #C4C0B3;border-radius:16px;">
         <table class="styled-table" style="margin:0;">
           <thead><tr>{headers}</tr></thead>
           <tbody>{body}</tbody>
