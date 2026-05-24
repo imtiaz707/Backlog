@@ -140,7 +140,7 @@ st.markdown("""
 }
 
 .kpi-center-val {
-    font-size: 48px;
+    font-size: 36px;
     font-weight: 700;
     font-family: 'DM Mono', monospace;
     color: #1C2B3A;
