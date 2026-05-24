@@ -36,19 +36,16 @@ def _spark_kpi(col_w, label, value_str, spark_svg, delta_val, lower_is_better=Tr
                 ("delta-up-bad"   if d_fid > 0 else "delta-down-bad" if d_fid < 0 else "delta-neutral"))
         color_style = ""
 
-    # Icon rendered separately at the top, bigger (52 px)
-    icon_html_top = get_image_html(icon_src, height_px=52) if icon_src else ""
+    icon_html_top = get_image_html(icon_src, height_px=56) if icon_src else ""
 
     col_w.markdown(f"""
-    <div class="kpi-spark" style="background-color: {card_bg} !important; border-color: {card_bg} !important;">
+    <div class="kpi-spark" style="background-color:{card_bg} !important; border-color:{card_bg} !important;">
       <div class="kpi-icon-top">{icon_html_top}</div>
-      <div class="kpi-title">{label}</div>
+      <div class="kpi-label">{label}</div>
       <div class="kpi-center-val">{value_str}</div>
-      <div class="kpi-bottom-left">
-        <span class="{d_cls}" style="{color_style}">{arr} {abs(d_fid):,.0f}</span>
-      </div>
-      <div class="kpi-bottom-right">
-        {spark_svg}
+      <div class="kpi-footer">
+        <span class="{d_cls}" style="font-size:16px; font-weight:700; {color_style}">{arr} {abs(d_fid):,.0f}</span>
+        <span>{spark_svg}</span>
       </div>
     </div>""", unsafe_allow_html=True)
 
@@ -107,30 +104,31 @@ st.markdown("""
     background: #F9DE7A !important;
     border-radius: 12px !important;
     border: 1px solid #E8CD68 !important;
-    box-shadow: 0 6px 16px rgba(0,0,0,0.05) !important; 
-    height: 100% !important; 
-    position: relative; overflow: hidden; 
+    box-shadow: 0 6px 16px rgba(0,0,0,0.05) !important;
+    height: 100% !important;
+    min-height: 220px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 20px 16px 12px;
+    position: relative;
 }
 
 .kpi-spark { min-height: 220px; } 
-.kpi-small { min-height: 180px; } 
+.kpi-small { min-height: 180px; }
 
 @media (min-width: 800px) {
-    .kpi-small {
-        margin-top: -65px !important;
-        z-index: 10;
-    }
+    .kpi-small { margin-top: -65px !important; z-index: 10; }
+}
 }
 
 /* ── UPDATED KPI INNER LAYOUT ── */
 .kpi-icon-top {
-    position: absolute;
-    top: 14px;
-    left: 50%;
-    transform: translateX(-50%);
     display: flex;
     justify-content: center;
     align-items: center;
+    margin-bottom: 10px;
 }
 
 .kpi-title {
@@ -150,15 +148,12 @@ st.markdown("""
 }
 
 .kpi-center-val {
-    position: absolute;
-    top: 72%;               /* pushed further down */
-    left: 50%;
-    transform: translate(-50%, -50%);
     font-size: 48px;
     font-weight: 700;
     font-family: 'DM Mono', monospace;
     color: #1C2B3A;
-    line-height: 1;
+    line-height: 1.1;
+    text-align: center;
     white-space: nowrap;
 }
 
