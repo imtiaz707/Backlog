@@ -349,6 +349,7 @@ with st.container(border=True): # Use native border for perfect alignment
 
     with fc2:
         region_filter = st.multiselect("🗺️ Region", ["ISD", "OSD"], default=["ISD", "OSD"])
+
 # ── Helpers ───────────────────────────────────────────────────────────────────
 def _latest(df):
     if df is None or df.empty: return None
@@ -459,19 +460,28 @@ zt_color  = _trend_color(spark_zt,  lower_is_better=False)
 # ── ROW 1: Cards 1, 2, 3 (sparkline KPIs) + Card 4 (Donut) ──────────────────
 kc1, kc2, kc3, kc4 = st.columns([1, 1, 1, 1])
 
-# ── FIXED KPI FUNCTION ──────────────────────────────────────────────────────────
-def _spark_kpi(col_w, label, value_str, spark_svg, delta_val, lower_is_better=True, card_bg="#F9DE7A"):
-    # This matches the 7 arguments used in your calls below
+# ── FIXED KPI FUNCTION (Added optional static_color parameter) ────────────────
+def _spark_kpi(col_w, label, value_str, spark_svg, delta_val, lower_is_better=True, card_bg="#F9DE7A", static_color=None):
     d_fid = delta_val
     arr = "▼" if d_fid < 0 else ("▲" if d_fid > 0 else "—")
-    d_cls = "delta-down-good" if (d_fid < 0 and lower_is_better) else \
-            ("delta-up-good"  if (d_fid > 0 and not lower_is_better) else \
-            ("delta-up-bad"   if d_fid > 0 else "delta-down-bad" if d_fid < 0 else "delta-neutral"))
     
+    # If a static color is provided (for Card 1), apply it; otherwise, use conditional colors.
+    if static_color:
+        color_style = f"color: {static_color} !important;"
+        d_cls = ""
+    else:
+        d_cls = "delta-down-good" if (d_fid < 0 and lower_is_better) else \
+                ("delta-up-good"  if (d_fid > 0 and not lower_is_better) else \
+                ("delta-up-bad"   if d_fid > 0 else "delta-down-bad" if d_fid < 0 else "delta-neutral"))
+        color_style = ""
+        
     col_w.markdown(f"""
     <div class="kpi-spark" style="background-color: {card_bg} !important; border-color: {card_bg} !important;">
       <div class="kpi-title">{label}</div>
       <div class="kpi-center-val">{value_str}</div>
+      <div class="kpi-bottom-left">
+        <span class="{d_cls}" style="{color_style}">{arr} {abs(d_fid):,.0f}</span>
+      </div>
       <div class="kpi-bottom-right">
         {spark_svg}
       </div>
@@ -499,29 +509,31 @@ def _pct_kpi(col_w, label, value, prev_value, lower_is_better=True):
 d_fid_v = tot_fid - pr_fid
 d_bl_v  = overall_bl - pr_overall
 d_zt_v  = zt_val - pr_zt_val
-# Pass the background color specifically to the first card only
+
+# ── ROW 1 CALLS ──────────────────────────────────────────────────────────────
 with kc1:
+    # First card: Custom #F0EDE5 background, and static color for spark/delta
     _spark_kpi(
-        kc1, 1, "Total In-Process (FID)", f"{tot_fid:,.0f}", 
-        _sparkline_svg(spark_fid, fid_color), d_fid_v, "", 
-        card_bg="#F0EDE5" # Specifically targeting the first card background
+        kc1, 
+        "Total In-Process (FID)", 
+        f"{tot_fid:,.0f}", 
+        _sparkline_svg(spark_fid, "#E05C3A"), # Static red sparkline
+        d_fid_v, 
+        lower_is_better=True, 
+        card_bg="#F0EDE5", 
+        static_color="#E05C3A" # Static red delta text
     )
+    
 with kc2:
     _spark_kpi(kc2, "Overall Backlog", f"{overall_bl:,.0f}", _sparkline_svg(spark_bl, bl_color), d_bl_v, True)
-# ── ROW 1: Card 3 - Zone Transfer Parcels (Logic Fix) ──────────────────────────
+
 with kc3:
     zt_display = f"{int(zt_val):,}" if zt_val > 0 else "0"
-    
-    # Logic: d_zt_v is (Today - Yesterday). 
-    # If d_zt_v < 0, it means transfers decreased (Good/Green).
-    # If d_zt_v > 0, it means transfers increased (Bad/Red).
     is_good = d_zt_v <= 0
     zt_cls = "delta-down-good" if is_good else "delta-up-bad"
     zt_arrow = "▼" if d_zt_v < 0 else ("▲" if d_zt_v > 0 else "—")
     
-    # We display the card
-    col_w = kc3
-    col_w.markdown(f"""
+    kc3.markdown(f"""
     <div class="kpi-spark">
       <div class="kpi-title">Zone Transfer Parcels</div>
       <div class="kpi-center-val">{zt_display}</div>
@@ -532,6 +544,7 @@ with kc3:
         {_sparkline_svg(spark_zt, "#2E7D6B" if is_good else "#E05C3A")}
       </div>
     </div>""", unsafe_allow_html=True)
+
 with kc4:
     with st.container(border=True):
         st.markdown('<div class="sec-hdr" style="margin-bottom:8px;">4. Backlog — FID vs RID</div>', unsafe_allow_html=True)
@@ -754,7 +767,7 @@ with col_aging:
             ag_melt = pd.DataFrame(rows8)
             if not ag_melt.empty:
                 max_slider_val = max(5.0, float(ag_melt["Pct"].max()) + 5.0)
-                y_zoom = st.slider("🔍 Adjust Zoom (%)", min_value=0.0,
+                y_zoom = st.slider("🔍 Adjust Y-Axis Zoom (%)", min_value=0.0,
                                    max_value=max_slider_val, value=(0.0, max_slider_val), step=1.0)
                 fig8 = px.bar(ag_melt, x="Age", y="Pct", color="Region",
                               color_discrete_map={"ISD": C_ISD, "OSD": C_OSD},
