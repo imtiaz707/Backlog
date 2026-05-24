@@ -459,8 +459,14 @@ zt_color  = _trend_color(spark_zt,  lower_is_better=False)
 # ── ROW 1: Cards 1, 2, 3 (sparkline KPIs) + Card 4 (Donut) ──────────────────
 kc1, kc2, kc3, kc4 = st.columns([1, 1, 1, 1])
 
-def _spark_kpi(col_w, number, label, value_str, spark_svg, delta_val, delta_label, card_bg="#F9DE7A"):
-    # ... (Keep your delta logic here) ...
+# ── FIXED KPI FUNCTION ──────────────────────────────────────────────────────────
+def _spark_kpi(col_w, label, value_str, spark_svg, delta_val, lower_is_better=True, card_bg="#F9DE7A"):
+    # This matches the 7 arguments used in your calls below
+    d_fid = delta_val
+    arr = "▼" if d_fid < 0 else ("▲" if d_fid > 0 else "—")
+    d_cls = "delta-down-good" if (d_fid < 0 and lower_is_better) else \
+            ("delta-up-good"  if (d_fid > 0 and not lower_is_better) else \
+            ("delta-up-bad"   if d_fid > 0 else "delta-down-bad" if d_fid < 0 else "delta-neutral"))
     
     col_w.markdown(f"""
     <div class="kpi-spark" style="background-color: {card_bg} !important; border-color: {card_bg} !important;">
