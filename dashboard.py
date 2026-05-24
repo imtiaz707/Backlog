@@ -47,7 +47,7 @@ st.markdown("""
 
 * { font-family: 'DM Sans', sans-serif; box-sizing: border-box; }
 
-[data-testid="stAppViewContainer"] { background: #F9DE7A !important; }
+[data-testid="stAppViewContainer"] { background: #f0ede5 !important; }
 [data-testid="stHeader"]           { background: transparent; }
 [data-testid="stToolbar"]          { display: none; }
 [data-testid="stDecoration"]       { display: none; }
@@ -102,7 +102,7 @@ st.markdown("""
 }
 
 .kpi-small {
-    background: #f0ede5 !important;
+    background: #F9DE7A!important;
     border-radius: 12px !important;
     border: 1px solid #E8CD68 !important;
     box-shadow: 0 6px 16px rgba(0,0,0,0.05) !important;
