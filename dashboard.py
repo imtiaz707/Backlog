@@ -169,7 +169,7 @@ st.markdown("""
     text-transform:uppercase; letter-spacing:1px;
     border-left:4px solid #F5C200;
     padding-left:12px; margin-bottom:18px;
-    background-color: #8A6A00;
+    background-color: #2E7D6B;
 }
 
 /* ── DELTA COLOURS ── */
