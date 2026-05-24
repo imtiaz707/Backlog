@@ -610,7 +610,7 @@ with kc3:
 
 with kc4:
     with st.container(border=True):
-        st.markdown('<div class="sec-hdr" style="margin-bottom:8px;">4. Backlog — FID vs RID</div>',
+        st.markdown('<div class="sec-hdr" style="margin-bottom:8px;">Backlog — FID vs RID</div>',
                     unsafe_allow_html=True)
         if (fid_bl + rid_bl) > 0:
             fid_pct_donut = fid_bl / (fid_bl + rid_bl) * 100
@@ -618,7 +618,7 @@ with kc4:
             fig_donut = go.Figure(data=[go.Pie(
                 labels=["FID", "RID"], values=[fid_bl, rid_bl],
                 hole=0.55,
-                marker=dict(colors=["#F5C200", "#1C2B3A"], line=dict(color="#FFFFFF", width=3)),
+                marker=dict(colors=["#F5C200", "#1C2B3A"], line=dict(color="#8A6A00", width=3)),
                 textinfo="label+percent", textposition="outside",
                 textfont=dict(size=12, color="#1C2B3A", weight="bold"),
                 pull=[0.05, 0.05],
@@ -663,7 +663,7 @@ col_bl, col_sort = st.columns([3, 2])
 
 with col_bl:
     with st.container(border=True):
-        st.markdown('<div class="sec-hdr">7. Backlog Details</div>',
+        st.markdown('<div class="sec-hdr">Backlog Details</div>',
                     unsafe_allow_html=True)
         if lt_fr is not None:
             detail_rows = [
@@ -729,7 +729,7 @@ col_track, col_region = st.columns([3, 2])
 
 with col_track:
     with st.container(border=True):
-        st.markdown('<div class="sec-hdr">9. Date-wise Backlog Progress Tracking (FID)</div>',
+        st.markdown('<div class="sec-hdr">Date-wise Backlog Progress Tracking (FID)</div>',
                     unsafe_allow_html=True)
         if all_dates and len(all_dates) >= 1:
             t_opts = [pd.Timestamp(d).strftime("%d %b %Y") for d in all_dates]
@@ -770,7 +770,7 @@ with col_track:
 
 with col_region:
     with st.container(border=True):
-        st.markdown('<div class="sec-hdr">10. Region Wise In-Process Parcels</div>',
+        st.markdown('<div class="sec-hdr">Region Wise In-Process Parcels</div>',
                     unsafe_allow_html=True)
         if tot_fid > 0:
             df_reg = pd.DataFrame({"Region": ["ISD", "OSD"], "Parcels": [isd_total, osd_total]})
@@ -824,7 +824,7 @@ col_aging, col_aging_tbl = st.columns([3, 2])
 
 with col_aging:
     with st.container(border=True):
-        st.markdown('<div class="sec-hdr">11. Aging Distribution</div>', unsafe_allow_html=True)
+        st.markdown('<div class="sec-hdr">Aging Distribution</div>', unsafe_allow_html=True)
         st.markdown('<div class="aging-badge">ISD &amp; SUB = 4 Days+ &nbsp;|&nbsp; OSD = 5 Days+</div>',
                     unsafe_allow_html=True)
         if not ag_f.empty:
@@ -911,7 +911,7 @@ with col_aging_tbl:
 
 # ── ROW 6: Full FID Tracking Table ────────────────────────────────────────────
 with st.container(border=True):
-    st.markdown('<div class="sec-hdr">12. Date-wise Backlog Progress Tracking — Full Table (FID)</div>',
+    st.markdown('<div class="sec-hdr">Date-wise Backlog Progress Tracking — Full Table (FID)</div>',
                 unsafe_allow_html=True)
     try:
         ft_tbl = (ft[(ft["Date"] >= t_start) & (ft["Date"] <= t_end)]
