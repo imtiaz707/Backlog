@@ -70,12 +70,12 @@ st.markdown("""
     box-shadow: 0 4px 12px rgba(0,0,0,0.08);
 }
 .dash-title    { color:#1C2B3A !important; font-size:28px; font-weight:700; margin:0; letter-spacing:-0.5px; }
-.dash-subtitle { color:#8A6A00 !important; font-size:18px; margin-top:2px; font-weight:600; }
+.dash-subtitle { color:#2E7D6B !important; font-size:18px; margin-top:2px; font-weight:600; }
 .dash-bee      { font-size:42px; line-height:1; }
 
 /* ── CHART CONTAINERS ── */
 [data-testid="stVerticalBlockBorderWrapper"], .appendix-card {
-    background-color: #8A6A00 !important;
+    background-color: # !important;
     border-radius: 14px !important;
     border: 1px solid #C4C0B3 !important;
     box-shadow: 0px 6px 18px rgba(0,0,0,0.1) !important;
