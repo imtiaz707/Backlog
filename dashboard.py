@@ -40,13 +40,22 @@ def _spark_kpi(col_w, label, value_str, spark_svg, delta_val, lower_is_better=Tr
 
     col_w.markdown(f"""
     <div class="kpi-spark" style="background-color:{card_bg} !important; border-color:{card_bg} !important;">
+
+      <!-- 1. Icon — top center -->
       <div class="kpi-icon-top">{icon_html_top}</div>
+
+      <!-- 2. Label — below icon -->
       <div class="kpi-label">{label}</div>
+
+      <!-- 3. Big number — below label -->
       <div class="kpi-center-val">{value_str}</div>
+
+      <!-- 4. Delta + Sparkline — pinned to bottom -->
       <div class="kpi-footer">
         <span class="{d_cls}" style="font-size:16px; font-weight:700; {color_style}">{arr} {abs(d_fid):,.0f}</span>
         <span>{spark_svg}</span>
       </div>
+
     </div>""", unsafe_allow_html=True)
 
 st.markdown("""
