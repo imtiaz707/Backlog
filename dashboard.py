@@ -13,13 +13,32 @@ st.set_page_config(
     initial_sidebar_state="collapsed",
 )
 
-# ── IMAGE HELPER ──────────────────────────────────────────────────────────────
-def get_image_html(filename, height_px=56):
-    if os.path.exists(filename):
-        with open(filename, "rb") as f:
-            encoded = base64.b64encode(f.read()).decode()
-        return f'<img src="data:image/png;base64,{encoded}" style="height:{height_px}px; width:auto; object-fit:contain;">'
-    return ""
+# ── SVG ICON HELPER (replaces file-based image loading) ──────────────────────
+def get_icon_svg(icon_type, size_px=48):
+    """Returns inline SVG icons — no external file dependency."""
+    icons = {
+        "fid": f"""<svg width="{size_px}" height="{size_px}" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="48" height="48" rx="12" fill="#1C2B3A" fill-opacity="0.12"/>
+  <path d="M14 20h20M14 28h14" stroke="#1C2B3A" stroke-width="2.5" stroke-linecap="round"/>
+  <circle cx="34" cy="28" r="5" fill="#E05C3A"/>
+  <path d="M32 28h4M34 26v4" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/>
+  <rect x="10" y="12" width="28" height="24" rx="4" stroke="#1C2B3A" stroke-width="2" fill="none"/>
+</svg>""",
+        "backlog": f"""<svg width="{size_px}" height="{size_px}" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="48" height="48" rx="12" fill="#1C2B3A" fill-opacity="0.12"/>
+  <rect x="10" y="30" width="8" height="10" rx="2" fill="#1C2B3A"/>
+  <rect x="20" y="22" width="8" height="18" rx="2" fill="#8A6A00"/>
+  <rect x="30" y="14" width="8" height="26" rx="2" fill="#E05C3A"/>
+  <path d="M10 10h28" stroke="#1C2B3A" stroke-width="2" stroke-linecap="round"/>
+</svg>""",
+        "zone": f"""<svg width="{size_px}" height="{size_px}" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="48" height="48" rx="12" fill="#1C2B3A" fill-opacity="0.12"/>
+  <path d="M12 24h24M30 18l6 6-6 6" stroke="#1C2B3A" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="16" cy="24" r="4" fill="#2E7D6B"/>
+  <circle cx="32" cy="24" r="4" fill="#1C2B3A"/>
+</svg>""",
+    }
+    return icons.get(icon_type, "")
 
 # ── STYLES ────────────────────────────────────────────────────────────────────
 st.markdown("""
@@ -67,22 +86,19 @@ st.markdown("""
 }
 
 /* ══════════════════════════════════════════
-   KPI CARDS  — flex column, no absolute pos
+   KPI CARDS
    ══════════════════════════════════════════ */
 .kpi-spark {
-    background: #F9DE7A !important;
     border-radius: 12px !important;
     border: 1px solid #E8CD68 !important;
     box-shadow: 0 6px 16px rgba(0,0,0,0.05) !important;
     min-height: 220px;
     width: 100%;
-    /* flex column: icon → label → number → footer */
     display: flex !important;
     flex-direction: column !important;
     align-items: center !important;
     justify-content: flex-start !important;
     padding: 20px 16px 14px !important;
-    position: relative !important;   /* keep for stacking context only */
 }
 
 .kpi-small {
@@ -103,17 +119,14 @@ st.markdown("""
     .kpi-small { margin-top: -65px !important; z-index: 10; }
 }
 
-/* Row 1 — icon */
 .kpi-icon-top {
     display: flex;
     justify-content: center;
     align-items: center;
     margin-bottom: 10px;
     width: 100%;
-    /* NO position:absolute */
 }
 
-/* Row 2 — label */
 .kpi-label {
     font-size: 14px;
     font-weight: 800;
@@ -124,10 +137,8 @@ st.markdown("""
     line-height: 1.3;
     margin-bottom: 8px;
     width: 100%;
-    /* NO position:absolute */
 }
 
-/* Row 3 — big number */
 .kpi-center-val {
     font-size: 48px;
     font-weight: 700;
@@ -137,14 +148,12 @@ st.markdown("""
     text-align: center;
     white-space: nowrap;
     width: 100%;
-    /* Explicitly kill any inherited absolute positioning */
     position: static !important;
     transform: none !important;
     top: unset !important;
     left: unset !important;
 }
 
-/* Row 4 — delta left, sparkline right */
 .kpi-footer {
     width: 100%;
     display: flex;
@@ -489,13 +498,13 @@ bl_color  = _trend_color(spark_bl,  lower_is_better=True)
 zt_color  = _trend_color(spark_zt,  lower_is_better=False)
 
 # ══════════════════════════════════════════════════════════════════════════════
-#  KPI CARD RENDERERS  — SINGLE definition of each, correct flex layout
+#  KPI CARD RENDERERS
 # ══════════════════════════════════════════════════════════════════════════════
 
 def _spark_kpi(col_w, label, value_str, spark_svg, delta_val,
                lower_is_better=True, card_bg="#F9DE7A",
-               static_color=None, icon_src=None):
-    """Renders a KPI card: icon (top) → label → big number → footer (delta | spark)."""
+               static_color=None, icon_type=None):
+    """Renders a KPI card using inline SVG icons — no external file loading."""
     d = delta_val
     arr = "▼" if d < 0 else ("▲" if d > 0 else "—")
 
@@ -512,34 +521,26 @@ def _spark_kpi(col_w, label, value_str, spark_svg, delta_val,
         )
         delta_style = ""
 
-    icon_html = get_image_html(icon_src, height_px=56) if icon_src else ""
+    # Use inline SVG icon — safe, no file I/O
+    icon_html = get_icon_svg(icon_type, size_px=48) if icon_type else ""
 
     col_w.markdown(f"""
     <div class="kpi-spark"
          style="background-color:{card_bg} !important; border-color:{card_bg} !important;">
-
-      <!-- 1. Icon -->
       <div class="kpi-icon-top">{icon_html}</div>
-
-      <!-- 2. Label -->
       <div class="kpi-label">{label}</div>
-
-      <!-- 3. Big number -->
       <div class="kpi-center-val">{value_str}</div>
-
-      <!-- 4. Footer: delta left, sparkline right -->
       <div class="kpi-footer">
         <span class="{d_cls}" style="font-size:15px; font-weight:700; {delta_style}">
           {arr} {abs(d):,.0f}
         </span>
         <span>{spark_svg}</span>
       </div>
-
     </div>""", unsafe_allow_html=True)
 
 
 def _pct_kpi(col_w, label, value, prev_value, lower_is_better=True):
-    """Percentage KPI card (no icon, no sparkline)."""
+    """Percentage KPI card."""
     diff    = value - prev_value
     good    = (diff < 0 and lower_is_better) or (diff > 0 and not lower_is_better)
     v_color = "#2E7D6B" if good else ("#E05C3A" if diff != 0 else "#1C2B3A")
@@ -554,11 +555,8 @@ def _pct_kpi(col_w, label, value, prev_value, lower_is_better=True):
 
     col_w.markdown(f"""
     <div class="kpi-small">
-      <!-- label -->
       <div class="kpi-label" style="margin-top:10px;">{label}</div>
-      <!-- value -->
       <div class="kpi-center-val" style="color:{v_color};">{value:.2f}%</div>
-      <!-- footer -->
       <div class="kpi-footer">
         <span class="{d_cls}" style="font-size:15px; font-weight:700;">
           {arr} {abs(diff):.2f}
@@ -583,7 +581,7 @@ with kc1:
         lower_is_better=True,
         card_bg="#F0EDE5",
         static_color="#E05C3A",
-        icon_src="FID PRO.png",
+        icon_type="fid",
     )
 
 with kc2:
@@ -594,11 +592,11 @@ with kc2:
         spark_svg=_sparkline_svg(spark_bl, bl_color),
         delta_val=d_bl_v,
         lower_is_better=True,
-        icon_src="BACKLOG.PNG",
+        icon_type="backlog",
     )
 
 with kc3:
-    is_good   = d_zt_v <= 0
+    is_good    = d_zt_v <= 0
     zt_display = f"{int(zt_val):,}" if zt_val > 0 else "0"
     _spark_kpi(
         col_w=kc3,
@@ -607,7 +605,7 @@ with kc3:
         spark_svg=_sparkline_svg(spark_zt, "#2E7D6B" if is_good else "#E05C3A"),
         delta_val=d_zt_v,
         lower_is_better=True,
-        icon_src="ZONE TR.png",
+        icon_type="zone",
     )
 
 with kc4:
