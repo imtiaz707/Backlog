@@ -3,8 +3,6 @@ import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 from streamlit_gsheets import GSheetsConnection
-import base64
-import os
 
 st.set_page_config(
     page_title="Carrybee Intelligence",
@@ -13,41 +11,81 @@ st.set_page_config(
     initial_sidebar_state="collapsed",
 )
 
-# ── SVG ICON HELPER (replaces file-based image loading) ──────────────────────
+# ── SVG ICON HELPER (Adapts to Dark/Light Mode using currentColor) ────────────
 def get_icon_svg(icon_type, size_px=48):
-    """Returns inline SVG icons — no external file dependency."""
+    """Returns inline SVG icons — adapts to text color automatically."""
     icons = {
         "fid": f"""<svg width="{size_px}" height="{size_px}" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <rect width="48" height="48" rx="12" fill="#1C2B3A" fill-opacity="0.12"/>
-  <path d="M14 20h20M14 28h14" stroke="#1C2B3A" stroke-width="2.5" stroke-linecap="round"/>
-  <circle cx="34" cy="28" r="5" fill="#E05C3A"/>
-  <path d="M32 28h4M34 26v4" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/>
-  <rect x="10" y="12" width="28" height="24" rx="4" stroke="#1C2B3A" stroke-width="2" fill="none"/>
+  <rect width="48" height="48" rx="12" fill="currentColor" fill-opacity="0.12"/>
+  <path d="M14 20h20M14 28h14" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+  <circle cx="34" cy="28" r="5" fill="var(--red-trend)"/>
+  <path d="M32 28h4M34 26v4" stroke="var(--bg-card)" stroke-width="1.8" stroke-linecap="round"/>
+  <rect x="10" y="12" width="28" height="24" rx="4" stroke="currentColor" stroke-width="2" fill="none"/>
 </svg>""",
         "backlog": f"""<svg width="{size_px}" height="{size_px}" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <rect width="48" height="48" rx="12" fill="#1C2B3A" fill-opacity="0.12"/>
-  <rect x="10" y="30" width="8" height="10" rx="2" fill="#1C2B3A"/>
-  <rect x="20" y="22" width="8" height="18" rx="2" fill="#8A6A00"/>
-  <rect x="30" y="14" width="8" height="26" rx="2" fill="#E05C3A"/>
-  <path d="M10 10h28" stroke="#1C2B3A" stroke-width="2" stroke-linecap="round"/>
+  <rect width="48" height="48" rx="12" fill="currentColor" fill-opacity="0.12"/>
+  <rect x="10" y="30" width="8" height="10" rx="2" fill="currentColor"/>
+  <rect x="20" y="22" width="8" height="18" rx="2" fill="var(--gold-main)"/>
+  <rect x="30" y="14" width="8" height="26" rx="2" fill="var(--red-trend)"/>
+  <path d="M10 10h28" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
 </svg>""",
         "zone": f"""<svg width="{size_px}" height="{size_px}" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <rect width="48" height="48" rx="12" fill="#1C2B3A" fill-opacity="0.12"/>
-  <path d="M12 24h24M30 18l6 6-6 6" stroke="#1C2B3A" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-  <circle cx="16" cy="24" r="4" fill="#2E7D6B"/>
-  <circle cx="32" cy="24" r="4" fill="#1C2B3A"/>
+  <rect width="48" height="48" rx="12" fill="currentColor" fill-opacity="0.12"/>
+  <path d="M12 24h24M30 18l6 6-6 6" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="16" cy="24" r="4" fill="var(--green-trend)"/>
+  <circle cx="32" cy="24" r="4" fill="currentColor"/>
 </svg>""",
     }
     return icons.get(icon_type, "")
 
-# ── STYLES ────────────────────────────────────────────────────────────────────
+# ── DYNAMIC STYLES (Light & Dark Mode Support) ────────────────────────────────
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;800&family=DM+Mono:wght@400;500;700&display=swap');
 
+/* Default Light Theme Variables */
+:root {
+    --bg-main: #F4F3EE;
+    --bg-card: #FFFDF8;
+    --text-main: #1C2B3A;
+    --text-muted: #6B7E91;
+    --gold-main: #E0B100;
+    --gold-bg: #F5C200;
+    --gold-border: #C99B00;
+    --border-color: #D9C89A;
+    --kpi-spark-bg: #FDF3BF;
+    --kpi-small-bg: #F9F8F6;
+    --table-header: #F9F8F6;
+    --table-hover: rgba(0,0,0,0.02);
+    --green-trend: #2E7D6B;
+    --red-trend: #E05C3A;
+    --shadow: rgba(28,43,58,0.08);
+}
+
+/* System Dark Theme Override */
+@media (prefers-color-scheme: dark) {
+    :root {
+        --bg-main: #121826;
+        --bg-card: #1E293B;
+        --text-main: #F8FAFC;
+        --text-muted: #94A3B8;
+        --gold-main: #E0B100;
+        --gold-bg: #B88900;
+        --gold-border: #8A6A00;
+        --border-color: #334155;
+        --kpi-spark-bg: #2A364A;
+        --kpi-small-bg: #222E42;
+        --table-header: #0F172A;
+        --table-hover: rgba(255,255,255,0.05);
+        --green-trend: #34D399; 
+        --red-trend: #F87171;
+        --shadow: rgba(0,0,0,0.3);
+    }
+}
+
 * { font-family: 'DM Sans', sans-serif; box-sizing: border-box; }
 
-[data-testid="stAppViewContainer"] { background: #f4f3ee !important; }
+[data-testid="stAppViewContainer"] { background: var(--bg-main) !important; color: var(--text-main) !important; }
 [data-testid="stHeader"]           { background: transparent; }
 [data-testid="stToolbar"]          { display: none; }
 [data-testid="stDecoration"]       { display: none; }
@@ -61,24 +99,24 @@ st.markdown("""
 
 /* ── HEADER ── */
 .dash-header {
-    background: #F5C200;
-    border: 8px solid #C99B00;
+    background: var(--gold-bg);
+    border: 8px solid var(--gold-border);
     border-radius: 16px;
     padding: 14px 28px;
     margin-bottom: 0px;
     display: flex; align-items: center; gap: 20px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    box-shadow: 0 4px 12px var(--shadow);
 }
-.dash-title    { color:#1C2B3A !important; font-size:28px; font-weight:700; margin:0; letter-spacing:-0.5px; }
-.dash-subtitle { color:#2E7D6B !important; font-size:18px; margin-top:2px; font-weight:600; }
+.dash-title    { color: #1C2B3A !important; font-size:28px; font-weight:700; margin:0; letter-spacing:-0.5px; }
+.dash-subtitle { color: #2E7D6B !important; font-size:18px; margin-top:2px; font-weight:600; }
 .dash-bee      { font-size:42px; line-height:1; }
 
 /* ── CHART CONTAINERS ── */
 [data-testid="stVerticalBlockBorderWrapper"], .appendix-card {
-    background-color: #FFFFFF !important;
+    background-color: var(--bg-card) !important;
     border-radius: 20px !important;
-    border: 8px solid #C4C0B3 !important;
-    box-shadow: 0px 6px 18px rgba(0,0,0,0.1) !important;
+    border: 8px solid var(--border-color) !important;
+    box-shadow: 0px 6px 18px var(--shadow) !important;
     height: 100% !important; 
 }
 
@@ -86,13 +124,12 @@ st.markdown("""
     padding: 20px 24px 16px !important;
 }
 
-/* ══════════════════════════════════════════
-   KPI CARDS
-   ══════════════════════════════════════════ */
+/* ── KPI CARDS ── */
 .kpi-spark {
     border-radius: 16px !important;
-    border: 8px solid #E8CD68 !important;
-    box-shadow: 0 6px 16px rgba(0,0,0,0.05) !important;
+    border: 8px solid var(--border-color) !important;
+    box-shadow: 0 6px 16px var(--shadow) !important;
+    background-color: var(--kpi-spark-bg) !important;
     min-height: 220px;
     width: 100%;
     display: flex !important;
@@ -100,13 +137,14 @@ st.markdown("""
     align-items: center !important;
     justify-content: flex-start !important;
     padding: 20px 16px 14px !important;
+    color: var(--text-main);
 }
 
 .kpi-small {
-    background: #f0ede5!important;
+    background: var(--kpi-small-bg) !important;
     border-radius: 16px !important;
-    border: 8px solid #E8CD68 !important;
-    box-shadow: 0 6px 16px rgba(0,0,0,0.05) !important;
+    border: 8px solid var(--border-color) !important;
+    box-shadow: 0 6px 16px var(--shadow) !important;
     min-height: 180px;
     width: 100%;
     display: flex !important;
@@ -121,98 +159,73 @@ st.markdown("""
 }
 
 .kpi-icon-top {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin-bottom: 10px;
-    width: 100%;
+    display: flex; justify-content: center; align-items: center;
+    margin-bottom: 10px; width: 100%; color: var(--text-main);
 }
 
 .kpi-label {
-    font-size: 20px;
-    font-weight: 800;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    color: #1C2B3A;
-    text-align: center;
-    line-height: 1.3;
-    margin-bottom: 8px;
-    width: 100%;
+    font-size: 20px; font-weight: 800; text-transform: uppercase;
+    letter-spacing: 0.5px; color: var(--text-main); text-align: center;
+    line-height: 1.3; margin-bottom: 8px; width: 100%;
 }
 
 .kpi-center-val {
-    font-size: 36px;
-    font-weight: 700;
-    font-family: 'DM Mono', monospace;
-    color: #1C2B3A;
-    line-height: 1.1;
-    text-align: center;
-    white-space: nowrap;
-    width: 100%;
-    position: static !important;
-    transform: none !important;
-    top: unset !important;
-    left: unset !important;
+    font-size: 36px; font-weight: 700; font-family: 'DM Mono', monospace;
+    color: var(--text-main); line-height: 1.1; text-align: center;
+    white-space: nowrap; width: 100%;
 }
 
 .kpi-footer {
-    width: 100%;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-top: auto;
-    padding-top: 10px;
+    width: 100%; display: flex; justify-content: space-between;
+    align-items: center; margin-top: auto; padding-top: 10px;
 }
 
 /* ── SECTION HEADER ── */
 .sec-hdr {
-    font-size:24px; font-weight:700; color:#1C2B3A !important;
+    font-size:24px; font-weight:700; color: var(--text-main) !important;
     text-transform:uppercase; letter-spacing:1px;
-    border-left:8px solid #F5C200;
+    border-left:8px solid var(--gold-main);
     padding-left:12px; margin-bottom:18px;
-    background-color: #F9DE7A;
+    background-color: transparent;
 }
 
 /* ── DELTA COLOURS ── */
-.delta-up-good,  .delta-down-good { color: #2E7D6B !important; }
-.delta-up-bad,   .delta-down-bad  { color: #E05C3A !important; }
-.delta-neutral                    { color: #6B7E91 !important; }
+.delta-up-good,  .delta-down-good { color: var(--green-trend) !important; }
+.delta-up-bad,   .delta-down-bad  { color: var(--red-trend) !important; }
+.delta-neutral                    { color: var(--text-muted) !important; }
 
 /* ── AGING BADGE ── */
 .aging-badge {
-    background: rgba(245,194,0,0.15); border:8px solid #F5C200; border-radius:8px;
-    padding:6px 14px; font-size:12px; color:#1C2B3A !important; font-weight:700;
+    background: rgba(224, 177, 0, 0.15); border:2px solid var(--gold-main); border-radius:8px;
+    padding:6px 14px; font-size:12px; color: var(--text-main) !important; font-weight:700;
     display:inline-block; margin-bottom:12px;
 }
 
 /* ── TABLE ── */
-.styled-table { width:100%; border-collapse:collapse; font-size:13px; }
-.styled-table thead tr { background: #F9F8F6; }
-.styled-table th { padding:12px 14px; text-align:center; font-weight:700; color:#1C2B3A !important;
-    border-bottom:8px solid #F5C200; text-transform:uppercase; letter-spacing:0.5px; }
-.styled-table tbody tr:hover { background: rgba(0,0,0,0.02); }
-.styled-table tbody tr:last-child { background:#F9F8F6; font-weight:700; }
+.styled-table { width:100%; border-collapse:collapse; font-size:13px; color: var(--text-main); }
+.styled-table thead tr { background: var(--table-header); }
+.styled-table th { padding:12px 14px; text-align:center; font-weight:700; color: var(--text-main) !important;
+    border-bottom:4px solid var(--gold-main); text-transform:uppercase; letter-spacing:0.5px; }
+.styled-table tbody tr:hover { background: var(--table-hover); }
+.styled-table tbody tr:last-child { background: var(--table-header); font-weight:700; }
 .styled-table td { padding:12px 14px; text-align:center;
-    border-bottom:8px solid rgba(28,43,58,0.05); color:#1C2B3A !important; }
-.styled-table .col-date { text-align:left; font-weight:700; color:#1C2B3A !important; }
+    border-bottom:2px solid var(--border-color); color: var(--text-main) !important; }
+.styled-table .col-date { text-align:left; font-weight:700; color: var(--text-main) !important; }
 
 /* ── FORM CONTROLS ── */
 label, .stSelectbox label, .stMultiSelect label, .stToggle label {
-    color: #1C2B3A !important; font-size: 14px !important; font-weight: 600 !important;
+    color: var(--text-main) !important; font-size: 14px !important; font-weight: 600 !important;
 }
-.stSelectbox div[data-baseweb="select"] *,
-.stMultiSelect div[data-baseweb="select"] * { color: #1C2B3A !important; }
-div[data-baseweb="select"] > div { background-color: #FFFFFF; border-color: #C4C0B3; }
-div[data-baseweb="popover"] * { color: #FFFFFF !important; }
+div[data-baseweb="select"] > div { background-color: var(--bg-card); border-color: var(--border-color); }
 
 /* ── EXPANDER ── */
 [data-testid="stExpander"] details summary p,
 [data-testid="stExpander"] details summary span {
-    color: #1C2B3A !important; font-size: 15px !important; font-weight: 700 !important;
+    color: var(--text-main) !important; font-size: 15px !important; font-weight: 700 !important;
 }
 [data-testid="stExpander"] {
-    background-color: #FFFFFF !important;
-    border: 8px solid #C4C0B3 !important;
+    background-color: var(--bg-card) !important;
+    border: 4px solid var(--border-color) !important;
     border-radius: 24px !important;
 }
 </style>
@@ -224,19 +237,19 @@ SPREADSHEET_URL = (
     "1n9GW1UksZ-jhCQ-zmCqwx4EH20fa-Zm5wA5BiMmdZAE/edit?gid=713116247#gid=713116247"
 )
 
+# Set transparent backgrounds to let CSS themes handle the dark/light mode context
 _AX = dict(
-    gridcolor="rgba(28,43,58,0.08)", linecolor="rgba(28,43,58,0.2)",
-    tickcolor="rgba(28,43,58,0.2)", showgrid=True,
-    tickfont=dict(color="#1C2B3A", size=12, weight="bold"),
-    title_font=dict(color="#1C2B3A", weight="bold"),
+    gridcolor="rgba(128,128,128,0.15)", linecolor="rgba(128,128,128,0.2)",
+    tickcolor="rgba(128,128,128,0.2)", showgrid=True,
+    tickfont=dict(size=12, weight="bold"),
+    title_font=dict(weight="bold"),
 )
 _BASE = dict(
-    paper_bgcolor="#f0ede5", plot_bgcolor="#F0EDE5",
-    font=dict(color="#1C2B3A", family="DM Sans, sans-serif", size=12),
-    legend=dict(bgcolor="rgba(255,255,255,0.9)", bordercolor="#D9D5C8",
-                borderwidth=1, font=dict(size=12, color="#1C2B3A", weight="bold")),
-    # ---- ENLARGED POPUP TEXT AND BOX SIZE SETTINGS ----
-    hoverlabel=dict(bgcolor="#dfe3e8", bordercolor="#F5C200", font_color="#000000", font_size=20, namelength=-1),
+    paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
+    font=dict(family="DM Sans, sans-serif", size=12),
+    legend=dict(bgcolor="rgba(0,0,0,0)", bordercolor="rgba(128,128,128,0.2)",
+                borderwidth=1, font=dict(size=12, weight="bold")),
+    hoverlabel=dict(bgcolor="#dfe3e8", bordercolor="#E0B100", font_color="#000000", font_size=20, namelength=-1),
     margin=dict(l=20, r=20, t=42, b=20),
     xaxis=_AX, yaxis=_AX,
 )
@@ -248,8 +261,9 @@ def _layout(fig, height=None, extra=None):
     fig.update_layout(**kw)
     return fig
 
-C_ISD = "#1C2B3A"
-C_OSD = "#8A6A00"
+# Adjusted colors for the actual bars/charts
+C_ISD = "#2C82C9" # Adjusted for better visibility on dark mode
+C_OSD = "#E0B100" 
 C_SUB = "#6B7E91"
 C_AMB = "#E05C3A"
 C_PUR = "#2E7D6B"
@@ -465,7 +479,7 @@ spark_fid = _last7_ag_total()
 spark_bl  = _last7_bl()
 spark_zt  = _last7_zt()
 
-def _sparkline_svg(values, color, width=110, height=40):
+def _sparkline_svg(values, color_var, width=110, height=40):
     if not values or len(values) < 2: return ""
     mn, mx = min(values), max(values)
     rng = mx - mn if mx != mn else 1
@@ -478,40 +492,37 @@ def _sparkline_svg(values, color, width=110, height=40):
     area = (f"M{pts[0]} " + " ".join(f"L{p}" for p in pts[1:])
             + f" L{width-pad},{height} L{pad},{height} Z")
     last_x, last_y = pts[-1].split(",")
-    uid = color.replace("#", "")
     return f"""<svg width="{width}" height="{height}" viewBox="0 0 {width} {height}" xmlns="http://www.w3.org/2000/svg">
-  <defs><linearGradient id="g{uid}" x1="0" y1="0" x2="0" y2="1">
-    <stop offset="0%" stop-color="{color}" stop-opacity="0.3"/>
-    <stop offset="100%" stop-color="{color}" stop-opacity="0.02"/>
+  <defs><linearGradient id="gspark" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0%" stop-color="var({color_var})" stop-opacity="0.3"/>
+    <stop offset="100%" stop-color="var({color_var})" stop-opacity="0.02"/>
   </linearGradient></defs>
-  <path d="{area}" fill="url(#g{uid})"/>
-  <polyline points="{' '.join(pts)}" fill="none" stroke="{color}" stroke-width="2.2"
+  <path d="{area}" fill="url(#gspark)"/>
+  <polyline points="{' '.join(pts)}" fill="none" stroke="var({color_var})" stroke-width="2.2"
             stroke-linejoin="round" stroke-linecap="round"/>
-  <circle cx="{last_x}" cy="{last_y}" r="3.5" fill="{color}"/>
+  <circle cx="{last_x}" cy="{last_y}" r="3.5" fill="var({color_var})"/>
 </svg>"""
 
-def _trend_color(values, lower_is_better=True):
-    if not values or len(values) < 2: return "#1C2B3A"
+def _trend_color_var(values, lower_is_better=True):
+    if not values or len(values) < 2: return "--text-main"
     improving = values[-1] < values[-2] if lower_is_better else values[-1] > values[-2]
-    return "#2E7D6B" if improving else "#E05C3A"
+    return "--green-trend" if improving else "--red-trend"
 
-fid_color = _trend_color(spark_fid, lower_is_better=True)
-bl_color  = _trend_color(spark_bl,  lower_is_better=True)
-zt_color  = _trend_color(spark_zt,  lower_is_better=False)
+fid_color_var = _trend_color_var(spark_fid, lower_is_better=True)
+bl_color_var  = _trend_color_var(spark_bl,  lower_is_better=True)
+zt_color_var  = _trend_color_var(spark_zt,  lower_is_better=False)
 
 # ══════════════════════════════════════════════════════════════════════════════
 #  KPI CARD RENDERERS
 # ══════════════════════════════════════════════════════════════════════════════
 
 def _spark_kpi(col_w, label, value_str, spark_svg, delta_val,
-               lower_is_better=True, card_bg="#FDF3BF",
-               static_color=None, icon_type=None):
-    """Renders a KPI card using inline SVG icons — no external file loading."""
+               lower_is_better=True, static_color_var=None, icon_type=None):
     d = delta_val
     arr = "▼" if d < 0 else ("▲" if d > 0 else "—")
 
-    if static_color:
-        delta_style = f"color:{static_color};"
+    if static_color_var:
+        delta_style = f"color: var({static_color_var});"
         d_cls = ""
     else:
         d_cls = (
@@ -523,12 +534,10 @@ def _spark_kpi(col_w, label, value_str, spark_svg, delta_val,
         )
         delta_style = ""
 
-    # Use inline SVG icon — safe, no file I/O
     icon_html = get_icon_svg(icon_type, size_px=48) if icon_type else ""
 
     col_w.markdown(f"""
-    <div class="kpi-spark"
-         style="background-color:{card_bg} !important; border-color:{card_bg} !important;">
+    <div class="kpi-spark">
       <div class="kpi-icon-top">{icon_html}</div>
       <div class="kpi-label">{label}</div>
       <div class="kpi-center-val">{value_str}</div>
@@ -542,10 +551,9 @@ def _spark_kpi(col_w, label, value_str, spark_svg, delta_val,
 
 
 def _pct_kpi(col_w, label, value, prev_value, lower_is_better=True):
-    """Percentage KPI card."""
     diff    = value - prev_value
     good    = (diff < 0 and lower_is_better) or (diff > 0 and not lower_is_better)
-    v_color = "#2E7D6B" if good else ("#E05C3A" if diff != 0 else "#1C2B3A")
+    v_color = "var(--green-trend)" if good else ("var(--red-trend)" if diff != 0 else "var(--text-main)")
     arr     = "▼" if diff < 0 else ("▲" if diff > 0 else "—")
     d_cls   = (
         "delta-down-good" if (diff < 0 and lower_is_better) else
@@ -578,11 +586,10 @@ with kc1:
         col_w=kc1,
         label="Total In-Process (FID)",
         value_str=f"{tot_fid:,.0f}",
-        spark_svg=_sparkline_svg(spark_fid, "#E05C3A"),
+        spark_svg=_sparkline_svg(spark_fid, "--red-trend"),
         delta_val=d_fid_v,
         lower_is_better=True,
-        card_bg="#e3d6b3",
-        static_color="#E05C3A",
+        static_color_var="--red-trend",
         icon_type="fid",
     )
 
@@ -591,7 +598,7 @@ with kc2:
         col_w=kc2,
         label="Overall Backlog",
         value_str=f"{overall_bl:,.0f}",
-        spark_svg=_sparkline_svg(spark_bl, bl_color),
+        spark_svg=_sparkline_svg(spark_bl, bl_color_var),
         delta_val=d_bl_v,
         lower_is_better=True,
         icon_type="backlog",
@@ -604,7 +611,7 @@ with kc3:
         col_w=kc3,
         label="Zone Transfer Parcels",
         value_str=zt_display,
-        spark_svg=_sparkline_svg(spark_zt, "#2E7D6B" if is_good else "#E05C3A"),
+        spark_svg=_sparkline_svg(spark_zt, "--green-trend" if is_good else "--red-trend"),
         delta_val=d_zt_v,
         lower_is_better=True,
         icon_type="zone",
@@ -620,31 +627,31 @@ with kc4:
             fig_donut = go.Figure(data=[go.Pie(
                 labels=["FID", "RID"], values=[fid_bl, rid_bl],
                 hole=0.55,
-                marker=dict(colors=["#F5C200", "#1C2B3A"], line=dict(color="#8A6A00", width=3)),
+                marker=dict(colors=["#E0B100", "#1C2B3A"]), 
                 textinfo="label+percent", textposition="outside",
-                textfont=dict(size=12, color="#1C2B3A", weight="bold"),
+                textfont=dict(size=12, weight="bold"),
                 pull=[0.05, 0.05],
                 hovertemplate="<b>%{label}</b><br>Count: %{value:,.0f}<br>Share: %{percent}<extra></extra>",
             )])
             fig_donut.add_annotation(
-                text=f"<b>{int(fid_bl+rid_bl):,}</b><br><span style='font-size:10px;color:#6B7E91'>Total</span>",
+                text=f"<b>{int(fid_bl+rid_bl):,}</b><br><span style='font-size:10px;'>Total</span>",
                 x=0.5, y=0.5, showarrow=False, xanchor="center", yanchor="middle",
-                font=dict(size=15, color="#1C2B3A"),
+                font=dict(size=15),
             )
             _layout(fig_donut, height=180,
                     extra={"margin": dict(l=12, r=10, t=20, b=0), "showlegend": False})
-            st.plotly_chart(fig_donut, use_container_width=True)
+            st.plotly_chart(fig_donut, use_container_width=True, theme="streamlit")
             st.markdown(f"""
-            <div style="display:flex;gap:0;border-top:8px solid #E8E4DB;padding-top:8px;">
-              <div style="flex:1;text-align:center;border-right:8px solid #E8E4DB;">
-                <div style="font-size:10px;font-weight:700;text-transform:uppercase;color:#8A6A00;margin-bottom:2px;">FID</div>
-                <div style="font-size:18px;font-weight:700;color:#1C2B3A;font-family:'DM Mono',monospace;">{fid_bl:,.0f}</div>
-                <div style="font-size:10px;color:#6B7E91;font-weight:600;">{fid_pct_donut:.1f}%</div>
+            <div style="display:flex;gap:0;border-top:2px solid var(--border-color);padding-top:8px;">
+              <div style="flex:1;text-align:center;border-right:2px solid var(--border-color);">
+                <div style="font-size:10px;font-weight:700;text-transform:uppercase;color:var(--gold-main);margin-bottom:2px;">FID</div>
+                <div style="font-size:18px;font-weight:700;color:var(--text-main);font-family:'DM Mono',monospace;">{fid_bl:,.0f}</div>
+                <div style="font-size:10px;color:var(--text-muted);font-weight:600;">{fid_pct_donut:.1f}%</div>
               </div>
               <div style="flex:1;text-align:center;">
-                <div style="font-size:10px;font-weight:700;text-transform:uppercase;color:#1C2B3A;margin-bottom:2px;">RID</div>
-                <div style="font-size:18px;font-weight:700;color:#1C2B3A;font-family:'DM Mono',monospace;">{rid_bl:,.0f}</div>
-                <div style="font-size:10px;color:#6B7E91;font-weight:600;">{rid_pct_donut:.1f}%</div>
+                <div style="font-size:10px;font-weight:700;text-transform:uppercase;color:var(--text-main);margin-bottom:2px;">RID</div>
+                <div style="font-size:18px;font-weight:700;color:var(--text-main);font-family:'DM Mono',monospace;">{rid_bl:,.0f}</div>
+                <div style="font-size:10px;color:var(--text-muted);font-weight:600;">{rid_pct_donut:.1f}%</div>
               </div>
             </div>""", unsafe_allow_html=True)
         else:
@@ -692,13 +699,13 @@ with col_bl:
                 if tot > 0:
                     fig9.add_annotation(x=tot, y=lbl, text=f"  <b>{tot:,.0f}</b>",
                                         showarrow=False, xanchor="left",
-                                        font=dict(size=14, color="#1C2B3A"))
+                                        font=dict(size=14))
             _layout(fig9, height=380, extra={
                 "barmode": "stack",
                 "xaxis": dict(**_AX, title="Count"),
                 "yaxis": dict(**_AX, autorange="reversed"),
             })
-            st.plotly_chart(fig9, use_container_width=True)
+            st.plotly_chart(fig9, use_container_width=True, theme="streamlit")
         else:
             st.info("No backlog detail data.")
 
@@ -712,9 +719,8 @@ with col_sort:
             fig10 = go.Figure(data=[go.Bar(
                 y=["FID Sort", "RID Sort"], x=[fid_sort, rid_sort],
                 orientation="h", marker_color=[C_ISD, C_OSD],
-                marker_line=dict(color="#8A6A00", width=1),
                 text=[f"{fid_sort:,.0f}", f"{rid_sort:,.0f}"], textposition="outside",
-                textfont=dict(size=14, color="#1C2B3A", weight="bold"), width=0.5,
+                textfont=dict(size=14, weight="bold"), width=0.5,
             )])
             _layout(fig10, height=380, extra={
                 "showlegend": False,
@@ -722,7 +728,7 @@ with col_sort:
                 "yaxis": dict(**_AX),
                 "margin": dict(l=8, r=70, t=32, b=8),
             })
-            st.plotly_chart(fig10, use_container_width=True)
+            st.plotly_chart(fig10, use_container_width=True, theme="streamlit")
         else:
             st.info("No sort data.")
 
@@ -766,7 +772,7 @@ with col_track:
                     name="Worked On", marker_color=C_SUB, opacity=0.9,
                 ))
             _layout(fig_track, height=380, extra={"barmode": "group"})
-            st.plotly_chart(fig_track, use_container_width=True)
+            st.plotly_chart(fig_track, use_container_width=True, theme="streamlit")
         else:
             st.info("No FID tracking data for selected period.")
 
@@ -781,7 +787,7 @@ with col_region:
                              text="Parcels")
             fig_reg.update_traces(
                 texttemplate="%{text:,.0f}", textposition="outside",
-                textfont=dict(color="#1C2B3A", size=14, weight="bold"),
+                textfont=dict(size=14, weight="bold"),
                 width=0.5,
             )
             _layout(fig_reg, height=300, extra={
@@ -789,26 +795,26 @@ with col_region:
                 "yaxis": dict(**_AX, title="Parcels"),
                 "xaxis": dict(**_AX, title=""),
             })
-            st.plotly_chart(fig_reg, use_container_width=True)
+            st.plotly_chart(fig_reg, use_container_width=True, theme="streamlit")
             st.markdown(f"""
             <div style="display:flex;gap:16px;justify-content:center;padding:12px 0 4px;
-                        border-top:8px solid rgba(28,43,58,0.15);">
-              <div style="text-align:center;flex:1;border-right:8px solid rgba(28,43,58,0.15);">
-                <div style="font-size:13px;color:#1C2B3A;font-weight:700;text-transform:uppercase;
+                        border-top:2px solid var(--border-color);">
+              <div style="text-align:center;flex:1;border-right:2px solid var(--border-color);">
+                <div style="font-size:13px;color:var(--text-main);font-weight:700;text-transform:uppercase;
                             letter-spacing:0.8px;margin-bottom:4px;">ISD</div>
                 <div style="font-size:26px;font-weight:700;color:{C_ISD};
                             font-family:'DM Mono',monospace;">{isd_total:,.0f}</div>
               </div>
-              <div style="text-align:center;flex:1;border-right:8px solid rgba(28,43,58,0.15);">
-                <div style="font-size:13px;color:#1C2B3A;font-weight:700;text-transform:uppercase;
+              <div style="text-align:center;flex:1;border-right:2px solid var(--border-color);">
+                <div style="font-size:13px;color:var(--text-main);font-weight:700;text-transform:uppercase;
                             letter-spacing:0.8px;margin-bottom:4px;">OSD</div>
                 <div style="font-size:26px;font-weight:700;color:{C_OSD};
                             font-family:'DM Mono',monospace;">{osd_total:,.0f}</div>
               </div>
               <div style="text-align:center;flex:1;">
-                <div style="font-size:13px;color:#1C2B3A;font-weight:700;text-transform:uppercase;
+                <div style="font-size:13px;color:var(--text-main);font-weight:700;text-transform:uppercase;
                             letter-spacing:0.8px;margin-bottom:4px;">Total</div>
-                <div style="font-size:26px;font-weight:700;color:#1C2B3A;
+                <div style="font-size:26px;font-weight:700;color:var(--text-main);
                             font-family:'DM Mono',monospace;">{tot_fid:,.0f}</div>
               </div>
             </div>""", unsafe_allow_html=True)
@@ -856,7 +862,7 @@ with col_aging:
                               barmode="group",
                               text=ag_melt["Pct"].apply(lambda x: f"{x:.1f}%"))
                 fig8.update_traces(
-                    textposition="outside", textfont=dict(color="#1C2B3A", size=11, weight="bold"),
+                    textposition="outside", textfont=dict(size=11, weight="bold"),
                     customdata=ag_melt[["Count", "Region"]],
                     hovertemplate="<b>%{x}</b><br>Region: %{customdata[1]}<br>"
                                   "Count: %{customdata[0]:,.0f}<br>Pct: %{y:.1f}%",
@@ -864,7 +870,7 @@ with col_aging:
                 _layout(fig8, height=380, extra={
                     "yaxis": dict(**_AX, title="Percentage (%)", range=[y_zoom[0], y_zoom[1]])
                 })
-                st.plotly_chart(fig8, use_container_width=True)
+                st.plotly_chart(fig8, use_container_width=True, theme="streamlit")
             else:
                 st.info("No aging data.")
         else:
@@ -903,7 +909,7 @@ with col_aging_tbl:
             body_rows += f"<tr>{td_tot}</tr>"
             st.markdown(f"""
             <div style="overflow-x:auto;max-height:430px;overflow-y:auto;
-                        border:8px solid #C4C0B3;border-radius:16px;">
+                        border:4px solid var(--border-color);border-radius:16px;">
             <table class="styled-table" style="margin:0;">
               <thead><tr>{th}</tr></thead>
               <tbody>{body_rows}</tbody>
@@ -945,7 +951,7 @@ with st.container(border=True):
                 cells += f"<td class='{cls}'>{disp}</td>"
             body += f"<tr>{cells}</tr>"
         st.markdown(f"""
-        <div style="overflow-x:auto;border:8px solid #C4C0B3;border-radius:16px;">
+        <div style="overflow-x:auto;border:4px solid var(--border-color);border-radius:16px;">
         <table class="styled-table" style="margin:0;">
           <thead><tr>{headers}</tr></thead>
           <tbody>{body}</tbody>
@@ -979,20 +985,20 @@ with st.expander("📖 Appendix — Definitions & Calculation Methods", expanded
         ("RID", "Return Inbound Delivery — re-entered returned parcels", ""),
     ]
     for key, desc, formula in items:
-        formula_html = f'<br><span style="color:#6B7E91;font-size:12px;">{formula}</span>' if formula else ""
+        formula_html = f'<br><span style="color:var(--text-muted);font-size:12px;">{formula}</span>' if formula else ""
         st.markdown(f"""
         <div style="margin-bottom:12px;">
-          <div style="font-weight:700;color:#1C2B3A;">▸ {key}</div>
-          <div style="color:#1C2B3A;padding-left:14px;">{desc}{formula_html}</div>
+          <div style="font-weight:700;color:var(--text-main);">▸ {key}</div>
+          <div style="color:var(--text-main);padding-left:14px;">{desc}{formula_html}</div>
         </div>""", unsafe_allow_html=True)
     st.markdown('</div>', unsafe_allow_html=True)
 
 # ── FOOTER ────────────────────────────────────────────────────────────────────
 st.markdown(f"""
-<div style="text-align:center;color:#6B7E91;font-size:13px;font-weight:700;
+<div style="text-align:center;color:var(--text-muted);font-size:13px;font-weight:700;
             padding:20px 0 10px;letter-spacing:0.5px;">
   🐝 Carrybee Delivery Intelligence &nbsp;·&nbsp;
-  Report Date: <span style="color:#1C2B3A;">{sel_date.strftime('%d %b %Y')}</span>
+  Report Date: <span style="color:var(--text-main);">{sel_date.strftime('%d %b %Y')}</span>
   &nbsp;·&nbsp; Refreshes every 10 min &nbsp;·&nbsp; Powered by Google Sheets
 </div>
 """, unsafe_allow_html=True)
