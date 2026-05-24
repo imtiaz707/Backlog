@@ -13,15 +13,44 @@ st.set_page_config(
     initial_sidebar_state="collapsed",
 )
 
-# ── IMAGE HELPER FOR HTML ─────────────────────────────────────────────────────
-def get_image_html(filename):
-    """Converts a local image to base64 so it can be used inside st.markdown HTML"""
+def get_image_html(filename, height_px=28):
+    """Converts a local image to base64 HTML img tag with configurable height."""
     if os.path.exists(filename):
         with open(filename, "rb") as f:
             encoded = base64.b64encode(f.read()).decode()
-        # Height is locked to 28px to perfectly match your requested font size
-        return f'<img src="data:image/png;base64,{encoded}" style="height: 28px; width: auto; object-fit: contain;">'
-    return "" 
+        return f'<img src="data:image/png;base64,{encoded}" style="height: {height_px}px; width: auto; object-fit: contain;">'
+    return ""
+
+
+def _spark_kpi(col_w, label, value_str, spark_svg, delta_val, lower_is_better=True,
+               card_bg="#F9DE7A", static_color=None, icon_src=None):
+    d_fid = delta_val
+    arr = "▼" if d_fid < 0 else ("▲" if d_fid > 0 else "—")
+
+    if static_color:
+        color_style = f"color: {static_color} !important;"
+        d_cls = ""
+    else:
+        d_cls = "delta-down-good" if (d_fid < 0 and lower_is_better) else \
+                ("delta-up-good"  if (d_fid > 0 and not lower_is_better) else \
+                ("delta-up-bad"   if d_fid > 0 else "delta-down-bad" if d_fid < 0 else "delta-neutral"))
+        color_style = ""
+
+    # Icon rendered separately at the top, bigger (52 px)
+    icon_html_top = get_image_html(icon_src, height_px=52) if icon_src else ""
+
+    col_w.markdown(f"""
+    <div class="kpi-spark" style="background-color: {card_bg} !important; border-color: {card_bg} !important;">
+      <div class="kpi-icon-top">{icon_html_top}</div>
+      <div class="kpi-title">{label}</div>
+      <div class="kpi-center-val">{value_str}</div>
+      <div class="kpi-bottom-left">
+        <span class="{d_cls}" style="{color_style}">{arr} {abs(d_fid):,.0f}</span>
+      </div>
+      <div class="kpi-bottom-right">
+        {spark_svg}
+      </div>
+    </div>""", unsafe_allow_html=True)
 
 st.markdown("""
 <style>
@@ -93,26 +122,36 @@ st.markdown("""
     }
 }
 
-/* ── UPDATED KPI INNER LAYOUT (CENTERED, 28px, ICON SUPPORT) ── */
+/* ── UPDATED KPI INNER LAYOUT ── */
+.kpi-icon-top {
+    position: absolute;
+    top: 14px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
 .kpi-title {
     position: absolute;
-    top: 15px;
+    top: 82px;              /* sits below the bigger icon */
     left: 0;
-    width: 100%;          /* Full width for exact centering */
-    font-size: 28px !important; /* Size 28 as requested */
+    width: 100%;
+    font-size: 15px !important;
     font-weight: 800;
     text-transform: uppercase;
     letter-spacing: 0.5px;
     color: #1C2B3A;
-    display: flex;        /* Flexbox cleanly aligns the icon and text */
+    display: flex;
     justify-content: center;
     align-items: center;
-    gap: 10px;            /* Space between icon and text */
+    gap: 8px;
 }
 
 .kpi-center-val {
     position: absolute;
-    top: 60%;             /* Adjusted to leave room for the 28px title */
+    top: 72%;               /* pushed further down */
     left: 50%;
     transform: translate(-50%, -50%);
     font-size: 48px;
