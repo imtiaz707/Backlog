@@ -128,7 +128,7 @@ st.markdown("""
 }
 
 .kpi-label {
-    font-size: 24px;
+    font-size: 20px;
     font-weight: 800;
     text-transform: uppercase;
     letter-spacing: 0.5px;
