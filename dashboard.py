@@ -20,8 +20,8 @@ def get_image_html(filename):
         with open(filename, "rb") as f:
             encoded = base64.b64encode(f.read()).decode()
         # Height is locked to 28px to perfectly match your requested font size
-        return f'<img src="data:image/png;base64,{encoded}" style="height: 28px; width: 28px; object-fit: contain; margin-right: 8px;">'
-    return "" # Returns empty if the file isn't found in the directory
+        return f'<img src="data:image/png;base64,{encoded}" style="height: 28px; width: auto; object-fit: contain;">'
+    return "" 
 
 st.markdown("""
 <style>
@@ -83,17 +83,9 @@ st.markdown("""
     position: relative; overflow: hidden; 
 }
 
-/* Make upper 3 cards length bigger downwards */
-.kpi-spark { 
-    min-height: 220px; 
-} 
+.kpi-spark { min-height: 220px; } 
+.kpi-small { min-height: 180px; } 
 
-/* Make lower 2 cards bigger */
-.kpi-small { 
-    min-height: 180px; 
-} 
-
-/* Make lower 2 cards stretch upwards into the gap (Desktop only) */
 @media (min-width: 800px) {
     .kpi-small {
         margin-top: -65px !important;
@@ -101,34 +93,36 @@ st.markdown("""
     }
 }
 
-/* ── UPDATED KPI INNER LAYOUT (TITLES CENTERED & BIGGER) ── */
+/* ── UPDATED KPI INNER LAYOUT (CENTERED, 28px, ICON SUPPORT) ── */
 .kpi-title {
     position: absolute;
-    top: 15px;            /* Spacing from the top */
-    left: 0;              
-    width: 100%;          /* Forces full width for perfect centering */
-    font-size: 28px;      /* BIGGER TEXT AS REQUESTED */
-    font-weight: 800;     
+    top: 15px;
+    left: 0;
+    width: 100%;          /* Full width for exact centering */
+    font-size: 28px !important; /* Size 28 as requested */
+    font-weight: 800;
     text-transform: uppercase;
     letter-spacing: 0.5px;
     color: #1C2B3A;
-    display: flex;        /* Flexbox allows us to easily align icon and text */
+    display: flex;        /* Flexbox cleanly aligns the icon and text */
     justify-content: center;
     align-items: center;
+    gap: 10px;            /* Space between icon and text */
 }
 
 .kpi-center-val {
     position: absolute;
-    top: 60%;             /* Pushed down slightly to account for the larger 28px title */
+    top: 60%;             /* Adjusted to leave room for the 28px title */
     left: 50%;
     transform: translate(-50%, -50%);
-    font-size: 48px;      
+    font-size: 48px;
     font-weight: 700;
     font-family: 'DM Mono', monospace;
     color: #1C2B3A;
     line-height: 1;
     white-space: nowrap;
 }
+
 .kpi-bottom-left {
     position: absolute;
     bottom: 16px;
@@ -475,7 +469,7 @@ zt_color  = _trend_color(spark_zt,  lower_is_better=False)
 # ── ROW 1: Cards 1, 2, 3 (sparkline KPIs) + Card 4 (Donut) ──────────────────
 kc1, kc2, kc3, kc4 = st.columns([1, 1, 1, 1])
 
-# ── FIXED KPI FUNCTION (Added icon_src support) ───────────────────────────
+# ── FIXED KPI FUNCTION (Added explicit keywords to stop TypeError) ────────────
 def _spark_kpi(col_w, label, value_str, spark_svg, delta_val, lower_is_better=True, card_bg="#F9DE7A", static_color=None, icon_src=None):
     d_fid = delta_val
     arr = "▼" if d_fid < 0 else ("▲" if d_fid > 0 else "—")
@@ -489,7 +483,6 @@ def _spark_kpi(col_w, label, value_str, spark_svg, delta_val, lower_is_better=Tr
                 ("delta-up-bad"   if d_fid > 0 else "delta-down-bad" if d_fid < 0 else "delta-neutral"))
         color_style = ""
 
-    # Call our base64 helper if an icon is provided
     icon_html = get_image_html(icon_src) if icon_src else ""
         
     col_w.markdown(f"""
@@ -529,51 +522,44 @@ d_zt_v  = zt_val - pr_zt_val
 
 # ── ROW 1 CALLS ──────────────────────────────────────────────────────────────
 with kc1:
-    # First card: Custom #F0EDE5 background, static color for spark/delta, and the Blue Box icon
+    # First card: Custom #F0EDE5 background, static red color, and the Blue Box icon
     _spark_kpi(
-        kc1, 
-        "Total In-Process (FID)", 
-        f"{tot_fid:,.0f}", 
-        _sparkline_svg(spark_fid, "#E05C3A"), 
-        d_fid_v, 
+        col_w=kc1, 
+        label="Total In-Process (FID)", 
+        value_str=f"{tot_fid:,.0f}", 
+        spark_svg=_sparkline_svg(spark_fid, "#E05C3A"), 
+        delta_val=d_fid_v, 
         lower_is_better=True, 
         card_bg="#F0EDE5", 
         static_color="#E05C3A", 
-        icon_src="Screenshot_2026-05-24_113719-removebg-preview.png"
+        icon_src="FID PRO.png"
     )
     
 with kc2:
     # Second card: Red Clipboard icon
     _spark_kpi(
-        kc2, 
-        "Overall Backlog", 
-        f"{overall_bl:,.0f}", 
-        _sparkline_svg(spark_bl, bl_color), 
-        d_bl_v, 
-        True,
-        icon_src="Screenshot_2026-05-24_113728-removebg-preview.png"
+        col_w=kc2, 
+        label="Overall Backlog", 
+        value_str=f"{overall_bl:,.0f}", 
+        spark_svg=_sparkline_svg(spark_bl, bl_color), 
+        delta_val=d_bl_v, 
+        lower_is_better=True,
+        icon_src="BACKLOG.PNG"
     )
 
 with kc3:
+    # Third card: Yellow Arrows icon. Lower is better logic applies natively
     zt_display = f"{int(zt_val):,}" if zt_val > 0 else "0"
     is_good = d_zt_v <= 0
-    zt_cls = "delta-down-good" if is_good else "delta-up-bad"
-    zt_arrow = "▼" if d_zt_v < 0 else ("▲" if d_zt_v > 0 else "—")
-    
-    # Generate the Yellow Arrows icon for the 3rd card
-    icon_3_html = get_image_html("Screenshot_2026-05-24_113736-removebg-preview.png")
-    
-    kc3.markdown(f"""
-    <div class="kpi-spark">
-      <div class="kpi-title">{icon_3_html}Zone Transfer Parcels</div>
-      <div class="kpi-center-val">{zt_display}</div>
-      <div class="kpi-bottom-left">
-        <span class="{zt_cls}">{zt_arrow} {abs(d_zt_v):,.0f}</span>
-      </div>
-      <div class="kpi-bottom-right">
-        {_sparkline_svg(spark_zt, "#2E7D6B" if is_good else "#E05C3A")}
-      </div>
-    </div>""", unsafe_allow_html=True)
+    _spark_kpi(
+        col_w=kc3,
+        label="Zone Transfer Parcels",
+        value_str=zt_display,
+        spark_svg=_sparkline_svg(spark_zt, "#2E7D6B" if is_good else "#E05C3A"),
+        delta_val=d_zt_v,
+        lower_is_better=True,
+        icon_src="ZONE TR.png"
+    )
 
 with kc4:
     with st.container(border=True):
@@ -621,9 +607,9 @@ with kc4:
 kr1, kr2, _sp1, _sp2 = st.columns([1, 1, 1, 1])
 
 with kr1:
-    _pct_kpi(kr1, "FID Backlog %", fid_pct, pr_fid_pct, lower_is_better=True)
+    _pct_kpi(col_w=kr1, label="FID Backlog %", value=fid_pct, prev_value=pr_fid_pct, lower_is_better=True)
 with kr2:
-    _pct_kpi(kr2, "Zone Change %", zt_pct, pr_zt_pct, lower_is_better=True)
+    _pct_kpi(col_w=kr2, label="Zone Change %", value=zt_pct, prev_value=pr_zt_pct, lower_is_better=True)
 
 
 # ── ROW 3: Backlog Details + Sort ─────────────────────────────────────────────
