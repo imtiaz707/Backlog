@@ -94,27 +94,26 @@ st.markdown("""
     position: absolute;
     top: 12px;
     right: 15px;
-    font-size: 16px;      /* Increased size */
-    font-weight: 800;     /* Extra Bold */
+    font-size: 16px;      /* Bigger */
+    font-weight: 800;     /* Bolder */
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    color: #1C2B3A;       /* Deep Navy for maximum contrast */
+    color: #1C2B3A;
     text-align: right;
 }
 
 .kpi-center-val {
     position: absolute;
-    top: 55%;             /* Slightly adjusted to leave room for the bolder title */
+    top: 55%; 
     left: 50%;
     transform: translate(-50%, -50%);
-    font-size: 50px;      /* Main value remains big */
+    font-size: 48px;      /* Big and centered */
     font-weight: 700;
     font-family: 'DM Mono', monospace;
     color: #1C2B3A;
     line-height: 1;
     white-space: nowrap;
 }
-
 .kpi-bottom-left {
     position: absolute;
     bottom: 16px;
