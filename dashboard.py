@@ -165,7 +165,7 @@ st.markdown("""
 
 /* ── SECTION HEADER ── */
 .sec-hdr {
-    font-size:15px; font-weight:700; color:#1C2B3A !important;
+    font-size:24px; font-weight:700; color:#1C2B3A !important;
     text-transform:uppercase; letter-spacing:1px;
     border-left:4px solid #F5C200;
     padding-left:12px; margin-bottom:18px;
