@@ -45,7 +45,7 @@ st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;800&family=DM+Mono:wght@400;500;700&display=swap');
 
-* { font-family: 'DM Sans', sans-serif; box-sizing: -box; }
+* { font-family: 'DM Sans', sans-serif; box-sizing: border-box; }
 
 [data-testid="stAppViewContainer"] { background: #f4f3ee !important; }
 [data-testid="stHeader"]           { background: transparent; }
@@ -76,16 +76,12 @@ st.markdown("""
 /* ── CHART CONTAINERS ── */
 [data-testid="stVerticalBlockBorderWrapper"], .appendix-card {
     background-color: #FFFFFF !important;
-    border-radius: 50px !important;
+    border-radius: 20px !important;
     border: 8px solid #C4C0B3 !important;
     box-shadow: 0px 6px 18px rgba(0,0,0,0.1) !important;
     height: 100% !important; 
 }
-    border: 24px solid #C4C0B3 !important;
-    box-shadow: 0px 6px 18px rgba(0,0,0,0.1) !important;
-    height: 100% !important;
-    
-}
+
 [data-testid="stVerticalBlockBorderWrapper"] {
     padding: 20px 24px 16px !important;
 }
@@ -239,7 +235,8 @@ _BASE = dict(
     font=dict(color="#1C2B3A", family="DM Sans, sans-serif", size=12),
     legend=dict(bgcolor="rgba(255,255,255,0.9)", bordercolor="#D9D5C8",
                 borderwidth=1, font=dict(size=12, color="#1C2B3A", weight="bold")),
-    hoverlabel=dict(bgcolor="#dfe3e8", bordercolor="#F5C200", font_color="#000000", font_size=13),
+    # ---- ENLARGED POPUP TEXT AND BOX SIZE SETTINGS ----
+    hoverlabel=dict(bgcolor="#dfe3e8", bordercolor="#F5C200", font_color="#000000", font_size=20, namelength=-1),
     margin=dict(l=20, r=20, t=42, b=20),
     xaxis=_AX, yaxis=_AX,
 )
