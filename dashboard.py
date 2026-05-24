@@ -102,7 +102,7 @@ st.markdown("""
 }
 
 .kpi-small {
-    background: #F9DE7A !important;
+    background: #FDF3BF !important;
     border-radius: 12px !important;
     border: 1px solid #E8CD68 !important;
     box-shadow: 0 6px 16px rgba(0,0,0,0.05) !important;
@@ -502,7 +502,7 @@ zt_color  = _trend_color(spark_zt,  lower_is_better=False)
 # ══════════════════════════════════════════════════════════════════════════════
 
 def _spark_kpi(col_w, label, value_str, spark_svg, delta_val,
-               lower_is_better=True, card_bg="#F9DE7A",
+               lower_is_better=True, card_bg="#FDF3BF",
                static_color=None, icon_type=None):
     """Renders a KPI card using inline SVG icons — no external file loading."""
     d = delta_val
