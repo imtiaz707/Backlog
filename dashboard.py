@@ -459,20 +459,13 @@ zt_color  = _trend_color(spark_zt,  lower_is_better=False)
 # ── ROW 1: Cards 1, 2, 3 (sparkline KPIs) + Card 4 (Donut) ──────────────────
 kc1, kc2, kc3, kc4 = st.columns([1, 1, 1, 1])
 
-def _spark_kpi(col_w, label, value_str, spark_svg, delta_val, lower_is_better=True):
-    d_fid  = delta_val
-    arr    = "▼" if d_fid < 0 else ("▲" if d_fid > 0 else "—")
-    d_cls  = "delta-down-good" if (d_fid < 0 and lower_is_better) else \
-             ("delta-up-good"  if (d_fid > 0 and not lower_is_better) else \
-             ("delta-up-bad"   if d_fid > 0 else "delta-down-bad" if d_fid < 0 else "delta-neutral"))
+def _spark_kpi(col_w, number, label, value_str, spark_svg, delta_val, delta_label, card_bg="#F9DE7A"):
+    # ... (Keep your delta logic here) ...
     
     col_w.markdown(f"""
-    <div class="kpi-spark">
+    <div class="kpi-spark" style="background-color: {card_bg} !important; border-color: {card_bg} !important;">
       <div class="kpi-title">{label}</div>
       <div class="kpi-center-val">{value_str}</div>
-      <div class="kpi-bottom-left">
-        <span class="{d_cls}">{arr} {abs(d_fid):,.0f}</span>
-      </div>
       <div class="kpi-bottom-right">
         {spark_svg}
       </div>
@@ -500,9 +493,13 @@ def _pct_kpi(col_w, label, value, prev_value, lower_is_better=True):
 d_fid_v = tot_fid - pr_fid
 d_bl_v  = overall_bl - pr_overall
 d_zt_v  = zt_val - pr_zt_val
-
+# Pass the background color specifically to the first card only
 with kc1:
-    _spark_kpi(kc1, "Total In-Process (FID)", f"{tot_fid:,.0f}", _sparkline_svg(spark_fid, fid_color), d_fid_v, True)
+    _spark_kpi(
+        kc1, 1, "Total In-Process (FID)", f"{tot_fid:,.0f}", 
+        _sparkline_svg(spark_fid, fid_color), d_fid_v, "", 
+        card_bg="#F0EDE5" # Specifically targeting the first card background
+    )
 with kc2:
     _spark_kpi(kc2, "Overall Backlog", f"{overall_bl:,.0f}", _sparkline_svg(spark_bl, bl_color), d_bl_v, True)
 # ── ROW 1: Card 3 - Zone Transfer Parcels (Logic Fix) ──────────────────────────
