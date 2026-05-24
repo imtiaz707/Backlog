@@ -663,7 +663,7 @@ col_bl, col_sort = st.columns([3, 2])
 
 with col_bl:
     with st.container(border=True):
-        st.markdown('<div class="sec-hdr">7. Backlog Details — FID &amp; RID (LMH / FMH)</div>',
+        st.markdown('<div class="sec-hdr">7. Backlog Details</div>',
                     unsafe_allow_html=True)
         if lt_fr is not None:
             detail_rows = [
@@ -702,7 +702,7 @@ with col_bl:
 
 with col_sort:
     with st.container(border=True):
-        st.markdown('<div class="sec-hdr">8. Sort — FID Sort vs RID Sort</div>',
+        st.markdown('<div class="sec-hdr">Backlog Details(Sort)</div>',
                     unsafe_allow_html=True)
         if lt_fr is not None:
             fid_sort = _safe(lt_fr, "FID Sort")
@@ -963,7 +963,7 @@ with st.expander("📖 Appendix — Definitions & Calculation Methods", expanded
         ("4. Backlog — FID vs RID (Donut)", "Visual split of overall backlog between FID and RID.", "FID Backlog and RID Backlog from FID_RID_Backlog_Details"),
         ("5. FID Backlog %", "Percentage of total in-process FID parcels in backlog.", "FID Backlog ÷ Total In-Process × 100"),
         ("6. Zone Change %", "Share of total parcels that underwent a zone transfer.", "Zone Transfer ÷ Total (Dashboard_Card) × 100"),
-        ("7. Backlog Details — FID & RID (LMH/FMH)", "Stacked bar breakdown by service type and region.", "FID_RID_Backlog_Details → FID/RID × LMH/FMH × ISD/SUB/OSD columns"),
+        ("7. Backlog Details", "Stacked bar breakdown by service type and region.", "FID_RID_Backlog_Details → FID/RID × LMH/FMH × ISD/SUB/OSD columns"),
         ("8. Sort — FID Sort vs RID Sort", "Horizontal bar comparing parcels sorted through each pipeline.", "FID_RID_Backlog_Details → 'FID Sort' and 'RID Sort'"),
         ("9. Date-wise Backlog Progress Tracking", "Grouped bar chart over a custom date range.", "FID_Tracking → 'Total In Progress (Backlog)' and 'Worked On'"),
         ("10. Region Wise In-Process Parcels", "Vertical bars comparing ISD vs OSD parcel counts.", "Aging_Distribution → ISD Total and OSD Total"),
