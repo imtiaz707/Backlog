@@ -76,7 +76,7 @@ st.markdown("""
 /* ── CHART CONTAINERS ── */
 [data-testid="stVerticalBlockBorderWrapper"], .appendix-card {
     background-color: #FFFFFF !important;
-    border-radius: 14px !important;
+    border-radius: 40px !important;
     border: 1px solid #C4C0B3 !important;
     box-shadow: 0px 6px 18px rgba(0,0,0,0.1) !important;
     height: 100% !important; 
