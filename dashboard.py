@@ -47,7 +47,7 @@ st.markdown("""
 
 * { font-family: 'DM Sans', sans-serif; box-sizing: -box; }
 
-[data-testid="stAppViewContainer"] { background: #dfe3e8 !important; }
+[data-testid="stAppViewContainer"] { background: #f4f3ee !important; }
 [data-testid="stHeader"]           { background: transparent; }
 [data-testid="stToolbar"]          { display: none; }
 [data-testid="stDecoration"]       { display: none; }
