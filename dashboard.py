@@ -13,43 +13,15 @@ st.set_page_config(
     initial_sidebar_state="collapsed",
 )
 
-def get_image_html(filename, height_px=28):
+# ── IMAGE HELPER ──────────────────────────────────────────────────────────────
+def get_image_html(filename, height_px=56):
     if os.path.exists(filename):
         with open(filename, "rb") as f:
             encoded = base64.b64encode(f.read()).decode()
         return f'<img src="data:image/png;base64,{encoded}" style="height:{height_px}px; width:auto; object-fit:contain;">'
     return ""
 
-
-def _spark_kpi(col_w, label, value_str, spark_svg, delta_val, lower_is_better=True,
-               card_bg="#F9DE7A", static_color=None, icon_src=None):
-    d_fid = delta_val
-    arr = "▼" if d_fid < 0 else ("▲" if d_fid > 0 else "—")
-
-    if static_color:
-        color_style = f"color: {static_color} !important;"
-        d_cls = ""
-    else:
-        d_cls = "delta-down-good" if (d_fid < 0 and lower_is_better) else \
-                ("delta-up-good"  if (d_fid > 0 and not lower_is_better) else \
-                ("delta-up-bad"   if d_fid > 0 else "delta-down-bad" if d_fid < 0 else "delta-neutral"))
-        color_style = ""
-
-    icon_html_top = get_image_html(icon_src, height_px=56) if icon_src else ""
-
-    col_w.markdown(f"""
-    <div class="kpi-spark" style="background-color:{card_bg} !important; border-color:{card_bg} !important;">
-      <div class="kpi-icon-top">{icon_html_top}</div>
-      <div class="kpi-label">{label}</div>
-      <div class="kpi-center-val">{value_str}</div>
-      <div class="kpi-footer">
-        <span class="{d_cls}" style="font-size:15px; font-weight:700; {color_style}">
-          {arr} {abs(d_fid):,.0f}
-        </span>
-        <span>{spark_svg}</span>
-      </div>
-    </div>""", unsafe_allow_html=True)
-
+# ── STYLES ────────────────────────────────────────────────────────────────────
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;800&family=DM+Mono:wght@400;500;700&display=swap');
@@ -61,18 +33,19 @@ st.markdown("""
 [data-testid="stToolbar"]          { display: none; }
 [data-testid="stDecoration"]       { display: none; }
 
-.block-container { 
-    padding-top: 1rem !important; 
-    padding-bottom: 1rem !important; 
-    max-width: 98% !important; 
+.block-container {
+    padding-top: 1rem !important;
+    padding-bottom: 1rem !important;
+    max-width: 98% !important;
     gap: 0.9rem !important;
 }
 
+/* ── HEADER ── */
 .dash-header {
     background: #F5C200;
     border: 1px solid #C99B00;
-    border-radius: 12px; 
-    padding: 14px 28px; 
+    border-radius: 12px;
+    padding: 14px 28px;
     margin-bottom: 0px;
     display: flex; align-items: center; gap: 20px;
     box-shadow: 0 4px 12px rgba(0,0,0,0.08);
@@ -81,100 +54,97 @@ st.markdown("""
 .dash-subtitle { color:#8A6A00 !important; font-size:14px; margin-top:2px; font-weight:600; }
 .dash-bee      { font-size:42px; line-height:1; }
 
-.filter-bar {
-    background: #FFFFFF; 
-    border-radius: 12px; padding: 16px 24px;
-    border: 1px solid #F9DE7A; margin-bottom: 0px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-}
-
+/* ── CHART CONTAINERS ── */
 [data-testid="stVerticalBlockBorderWrapper"], .appendix-card {
     background-color: #FFFFFF !important;
     border-radius: 14px !important;
     border: 1px solid #C4C0B3 !important;
     box-shadow: 0px 6px 18px rgba(0,0,0,0.1) !important;
-    height: 100% !important; 
+    height: 100% !important;
 }
-
 [data-testid="stVerticalBlockBorderWrapper"] {
     padding: 20px 24px 16px !important;
 }
 
-/* ── KPI CARDS ── */
-.kpi-spark, .kpi-small {
+/* ══════════════════════════════════════════
+   KPI CARDS  — flex column, no absolute pos
+   ══════════════════════════════════════════ */
+.kpi-spark {
     background: #F9DE7A !important;
     border-radius: 12px !important;
     border: 1px solid #E8CD68 !important;
     box-shadow: 0 6px 16px rgba(0,0,0,0.05) !important;
-    height: 100% !important;
     min-height: 220px;
+    width: 100%;
+    /* flex column: icon → label → number → footer */
     display: flex !important;
     flex-direction: column !important;
     align-items: center !important;
     justify-content: flex-start !important;
-    padding: 18px 16px 12px !important;
-    position: relative;
+    padding: 20px 16px 14px !important;
+    position: relative !important;   /* keep for stacking context only */
 }
 
-.kpi-spark { min-height: 220px; } 
-.kpi-small { min-height: 180px; }
+.kpi-small {
+    background: #F9DE7A !important;
+    border-radius: 12px !important;
+    border: 1px solid #E8CD68 !important;
+    box-shadow: 0 6px 16px rgba(0,0,0,0.05) !important;
+    min-height: 180px;
+    width: 100%;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    padding: 20px 16px 14px !important;
+}
 
 @media (min-width: 800px) {
     .kpi-small { margin-top: -65px !important; z-index: 10; }
 }
-}
 
-/* ── UPDATED KPI INNER LAYOUT ── */
+/* Row 1 — icon */
 .kpi-icon-top {
     display: flex;
     justify-content: center;
     align-items: center;
     margin-bottom: 10px;
     width: 100%;
+    /* NO position:absolute */
 }
 
-
-.kpi-title {
-    position: absolute;
-    top: 82px;              /* sits below the bigger icon */
-    left: 0;
-    width: 100%;
-    font-size: 15px !important;
+/* Row 2 — label */
+.kpi-label {
+    font-size: 14px;
     font-weight: 800;
     text-transform: uppercase;
     letter-spacing: 0.5px;
     color: #1C2B3A;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 8px;
+    text-align: center;
+    line-height: 1.3;
+    margin-bottom: 8px;
+    width: 100%;
+    /* NO position:absolute */
 }
-.kpi-label {
-    font-size: 14px !important;
-    font-weight: 800 !important;
-    text-transform: uppercase !important;
-    letter-spacing: 0.5px !important;
-    color: #1C2B3A !important;
-    text-align: center !important;
-    line-height: 1.3 !important;
-    margin-bottom: 6px !important;
-    width: 100% !important;
-}
+
+/* Row 3 — big number */
 .kpi-center-val {
-    font-size: 48px !important;
-    font-weight: 700 !important;
-    font-family: 'DM Mono', monospace !important;
-    color: #1C2B3A !important;
-    line-height: 1.1 !important;
-    text-align: center !important;
-    white-space: nowrap !important;
-    width: 100% !important;
-    /* Absolutely no absolute positioning */
+    font-size: 48px;
+    font-weight: 700;
+    font-family: 'DM Mono', monospace;
+    color: #1C2B3A;
+    line-height: 1.1;
+    text-align: center;
+    white-space: nowrap;
+    width: 100%;
+    /* Explicitly kill any inherited absolute positioning */
     position: static !important;
     transform: none !important;
     top: unset !important;
     left: unset !important;
 }
+
+/* Row 4 — delta left, sparkline right */
 .kpi-footer {
     width: 100%;
     display: flex;
@@ -183,23 +153,8 @@ st.markdown("""
     margin-top: auto;
     padding-top: 10px;
 }
-.kpi-bottom-left {
-    position: absolute;
-    bottom: 16px;
-    left: 20px;
-    font-size: 20px; 
-    font-weight: 700;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-}
 
-.kpi-bottom-right {
-    position: absolute;
-    bottom: 16px;
-    right: 20px;
-}
-
+/* ── SECTION HEADER ── */
 .sec-hdr {
     font-size:15px; font-weight:700; color:#1C2B3A !important;
     text-transform:uppercase; letter-spacing:1px;
@@ -208,39 +163,42 @@ st.markdown("""
     background-color: #FFFFFF;
 }
 
-/* ── Delta Colors ── */
-.delta-up-good, .delta-down-good { color: #2E7D6B !important; }
-.delta-up-bad, .delta-down-bad  { color: #E05C3A !important; }
-.delta-neutral   { color: #6B7E91 !important; }
+/* ── DELTA COLOURS ── */
+.delta-up-good,  .delta-down-good { color: #2E7D6B !important; }
+.delta-up-bad,   .delta-down-bad  { color: #E05C3A !important; }
+.delta-neutral                    { color: #6B7E91 !important; }
 
+/* ── AGING BADGE ── */
 .aging-badge {
     background: rgba(245,194,0,0.15); border:1px solid #F5C200; border-radius:6px;
     padding:6px 14px; font-size:12px; color:#1C2B3A !important; font-weight:700;
     display:inline-block; margin-bottom:12px;
 }
+
+/* ── TABLE ── */
 .styled-table { width:100%; border-collapse:collapse; font-size:13px; }
 .styled-table thead tr { background: #F9F8F6; }
-.styled-table th { padding:12px 14px; text-align:center; font-weight:700; color:#1C2B3A !important; border-bottom:2px solid #F5C200; text-transform:uppercase; letter-spacing:0.5px;}
+.styled-table th { padding:12px 14px; text-align:center; font-weight:700; color:#1C2B3A !important;
+    border-bottom:2px solid #F5C200; text-transform:uppercase; letter-spacing:0.5px; }
 .styled-table tbody tr:hover { background: rgba(0,0,0,0.02); }
 .styled-table tbody tr:last-child { background:#F9F8F6; font-weight:700; }
-.styled-table td { padding:12px 14px; text-align:center; border-bottom:1px solid rgba(28,43,58,0.05); color:#1C2B3A !important; }
+.styled-table td { padding:12px 14px; text-align:center;
+    border-bottom:1px solid rgba(28,43,58,0.05); color:#1C2B3A !important; }
 .styled-table .col-date { text-align:left; font-weight:700; color:#1C2B3A !important; }
 
+/* ── FORM CONTROLS ── */
 label, .stSelectbox label, .stMultiSelect label, .stToggle label {
     color: #1C2B3A !important; font-size: 14px !important; font-weight: 600 !important;
 }
-.stSelectbox div[data-baseweb="select"] *, 
-.stMultiSelect div[data-baseweb="select"] * {
-    color: #1C2B3A !important;
-}
+.stSelectbox div[data-baseweb="select"] *,
+.stMultiSelect div[data-baseweb="select"] * { color: #1C2B3A !important; }
 div[data-baseweb="select"] > div { background-color: #FFFFFF; border-color: #C4C0B3; }
 div[data-baseweb="popover"] * { color: #FFFFFF !important; }
 
-[data-testid="stExpander"] details summary p, 
+/* ── EXPANDER ── */
+[data-testid="stExpander"] details summary p,
 [data-testid="stExpander"] details summary span {
-    color: #1C2B3A !important;
-    font-size: 15px !important;
-    font-weight: 700 !important;
+    color: #1C2B3A !important; font-size: 15px !important; font-weight: 700 !important;
 }
 [data-testid="stExpander"] {
     background-color: #FFFFFF !important;
@@ -250,6 +208,7 @@ div[data-baseweb="popover"] * { color: #FFFFFF !important; }
 </style>
 """, unsafe_allow_html=True)
 
+# ── SPREADSHEET ───────────────────────────────────────────────────────────────
 SPREADSHEET_URL = (
     "https://docs.google.com/spreadsheets/d/"
     "1n9GW1UksZ-jhCQ-zmCqwx4EH20fa-Zm5wA5BiMmdZAE/edit?gid=713116247#gid=713116247"
@@ -262,8 +221,7 @@ _AX = dict(
     title_font=dict(color="#1C2B3A", weight="bold"),
 )
 _BASE = dict(
-    paper_bgcolor="#FFFFFF",
-    plot_bgcolor="#FFFFFF",
+    paper_bgcolor="#FFFFFF", plot_bgcolor="#FFFFFF",
     font=dict(color="#1C2B3A", family="DM Sans, sans-serif", size=12),
     legend=dict(bgcolor="rgba(255,255,255,0.9)", bordercolor="#D9D5C8",
                 borderwidth=1, font=dict(size=12, color="#1C2B3A", weight="bold")),
@@ -279,12 +237,13 @@ def _layout(fig, height=None, extra=None):
     fig.update_layout(**kw)
     return fig
 
-C_ISD  = "#1C2B3A"
-C_OSD  = "#8A6A00"
-C_SUB  = "#6B7E91"
-C_AMB  = "#E05C3A"
-C_PUR  = "#2E7D6B"
+C_ISD = "#1C2B3A"
+C_OSD = "#8A6A00"
+C_SUB = "#6B7E91"
+C_AMB = "#E05C3A"
+C_PUR = "#2E7D6B"
 
+# ── UTILITY ───────────────────────────────────────────────────────────────────
 def _safe(row, col, default=0.0):
     if row is None: return default
     try:
@@ -321,6 +280,7 @@ def _nums(df, cols):
                 errors="coerce").fillna(0)
     return df
 
+# ── DATA LOAD ─────────────────────────────────────────────────────────────────
 @st.cache_data(show_spinner=False, ttl=600)
 def load_data():
     conn = st.connection("gsheets", type=GSheetsConnection)
@@ -328,12 +288,12 @@ def load_data():
         raw = conn.read(spreadsheet=SPREADSHEET_URL, worksheet="Dashboard_Card", header=None)
         raw.columns = [str(c).strip() for c in raw.iloc[1]]
         raw = raw.iloc[2:].reset_index(drop=True)
-        raw = raw[~raw["Date"].astype(str).str.contains("Grand Total|Date|nan|Backlog|ISD Backlog", case=False, na=True)]
+        raw = raw[~raw["Date"].astype(str).str.contains(
+            "Grand Total|Date|nan|Backlog|ISD Backlog", case=False, na=True)]
         raw["Date"] = _parse_dates(raw["Date"])
         raw = raw.dropna(subset=["Date"])
         raw["Date"] = _to_date(raw["Date"])
-        num_cols = [c for c in raw.columns if c != "Date"]
-        raw = _nums(raw, num_cols)
+        raw = _nums(raw, [c for c in raw.columns if c != "Date"])
         raw["Date_Label"] = raw["Date"].dt.strftime("%d %b")
         dc = raw
     except Exception: dc = pd.DataFrame()
@@ -341,7 +301,8 @@ def load_data():
     try:
         raw = conn.read(spreadsheet=SPREADSHEET_URL, worksheet="FID_Tracking")
         raw.columns = [str(c).strip() for c in raw.columns]
-        raw = raw[~raw.iloc[:, 0].astype(str).str.contains("Grand Total|Report Date|nan", case=False, na=True)]
+        raw = raw[~raw.iloc[:, 0].astype(str).str.contains(
+            "Grand Total|Report Date|nan", case=False, na=True)]
         raw.rename(columns={raw.columns[0]: "Date"}, inplace=True)
         raw["Date"] = _parse_dates(raw["Date"])
         raw = raw.dropna(subset=["Date"])
@@ -354,7 +315,8 @@ def load_data():
     try:
         raw = conn.read(spreadsheet=SPREADSHEET_URL, worksheet="FID_RID_Backlog_Details")
         raw.columns = [str(c).strip() for c in raw.columns]
-        raw = raw[~raw.iloc[:, 0].astype(str).str.contains("Grand Total|Date|nan", case=False, na=True)]
+        raw = raw[~raw.iloc[:, 0].astype(str).str.contains(
+            "Grand Total|Date|nan", case=False, na=True)]
         raw.rename(columns={raw.columns[0]: "Date"}, inplace=True)
         raw["Date"] = _parse_dates(raw["Date"])
         raw = raw.dropna(subset=["Date"])
@@ -368,7 +330,8 @@ def load_data():
         raw = conn.read(spreadsheet=SPREADSHEET_URL, worksheet="Aging_Distribution")
         raw = raw.iloc[:, :14]
         raw.columns = ["Date", "Region"] + [str(i) for i in range(1, 11)] + ["10+", "Total"]
-        raw = raw[~raw["Date"].astype(str).str.contains("Grand Total|Report Date|nan", case=False, na=True)]
+        raw = raw[~raw["Date"].astype(str).str.contains(
+            "Grand Total|Report Date|nan", case=False, na=True)]
         raw["Date"] = _parse_dates(raw["Date"])
         raw = raw.dropna(subset=["Date"])
         raw["Date"] = _to_date(raw["Date"])
@@ -383,7 +346,7 @@ def load_data():
 with st.spinner("🐝 Loading live data…"):
     dc, ft, fr, ag = load_data()
 
-# ── Header ────────────────────────────────────────────────────────────────────
+# ── HEADER ────────────────────────────────────────────────────────────────────
 st.markdown("""
 <div class="dash-header">
   <div class="dash-bee">🐝</div>
@@ -394,10 +357,10 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-# ── SINGLE DATE SLICER ────────────────────────────────────────────────────────
-with st.container(border=True): 
+# ── DATE + REGION FILTER ──────────────────────────────────────────────────────
+with st.container(border=True):
     fc1, fc2, _sp = st.columns([2, 2, 4])
-    
+
     all_dates_ft = sorted(ft["Date"].dropna().unique()) if not ft.empty else []
     all_dates_ag = sorted(ag["Date"].dropna().unique()) if not ag.empty else []
     all_dates    = sorted(set(list(all_dates_ft) + list(all_dates_ag)))
@@ -419,7 +382,7 @@ with st.container(border=True):
     with fc2:
         region_filter = st.multiselect("🗺️ Region", ["ISD", "OSD"], default=["ISD", "OSD"])
 
-# ── Helpers ───────────────────────────────────────────────────────────────────
+# ── ROW HELPERS ───────────────────────────────────────────────────────────────
 def _latest(df):
     if df is None or df.empty: return None
     sub = df[df["Date"] <= sel_end].sort_values("Date")
@@ -430,12 +393,10 @@ def _prev(df):
     sub = df[df["Date"] <= sel_end].sort_values("Date")
     return sub.iloc[-2] if len(sub) >= 2 else None
 
-lt_dc = _latest(dc)
-lt_fr = _latest(fr)
-pr_dc = _prev(dc)
-pr_fr = _prev(fr)
+lt_dc = _latest(dc);  lt_fr = _latest(fr)
+pr_dc = _prev(dc);    pr_fr = _prev(fr)
 
-# ── Computed KPIs ─────────────────────────────────────────────────────────────
+# ── COMPUTED KPIs ─────────────────────────────────────────────────────────────
 ag_le = ag[ag["Date"] <= sel_end] if not ag.empty else pd.DataFrame()
 if not ag_le.empty:
     ag_last_date = ag_le["Date"].max()
@@ -446,8 +407,8 @@ if not ag_le.empty:
     prev_ag_dates = ag_le[ag_le["Date"] < ag_last_date]["Date"]
     if not prev_ag_dates.empty:
         pr_ag_day = ag_le[ag_le["Date"] == prev_ag_dates.max()]
-        pr_fid    = (pr_ag_day[pr_ag_day["Region"] == "ISD"]["Total"].sum()
-                   + pr_ag_day[pr_ag_day["Region"] == "OSD"]["Total"].sum())
+        pr_fid = (pr_ag_day[pr_ag_day["Region"] == "ISD"]["Total"].sum()
+                + pr_ag_day[pr_ag_day["Region"] == "OSD"]["Total"].sum())
     else:
         pr_fid = tot_fid
 else:
@@ -471,7 +432,7 @@ pr_fid_pct   = (_safe(pr_fr, "FID Backlog") / pr_denom * 100) if pr_denom > 0 el
 zt_pct    = (zt_val / dc_total_val * 100) if (zt_val > 0 and dc_total_val > 0) else 0.0
 pr_zt_pct = (pr_zt_val / pr_dc_total * 100) if (pr_zt_val > 0 and pr_dc_total > 0) else 0.0
 
-# ── Sparkline data ─────────────────────────────────────────────────────────────
+# ── SPARKLINE HELPERS ─────────────────────────────────────────────────────────
 def _last7_ag_total():
     if ag_le.empty: return []
     dates = sorted(ag_le["Date"].unique())[-7:]
@@ -500,20 +461,21 @@ def _sparkline_svg(values, color, width=110, height=40):
     pad = 4
     pts = []
     for i, v in enumerate(values):
-        x = pad + (i / (len(values)-1)) * (width - 2*pad)
-        y = pad + (1 - (v - mn)/rng) * (height - 2*pad)
+        x = pad + (i / (len(values) - 1)) * (width - 2 * pad)
+        y = pad + (1 - (v - mn) / rng) * (height - 2 * pad)
         pts.append(f"{x:.1f},{y:.1f}")
     area = (f"M{pts[0]} " + " ".join(f"L{p}" for p in pts[1:])
             + f" L{width-pad},{height} L{pad},{height} Z")
     last_x, last_y = pts[-1].split(",")
-    uid = color.replace("#","")
+    uid = color.replace("#", "")
     return f"""<svg width="{width}" height="{height}" viewBox="0 0 {width} {height}" xmlns="http://www.w3.org/2000/svg">
   <defs><linearGradient id="g{uid}" x1="0" y1="0" x2="0" y2="1">
     <stop offset="0%" stop-color="{color}" stop-opacity="0.3"/>
     <stop offset="100%" stop-color="{color}" stop-opacity="0.02"/>
   </linearGradient></defs>
   <path d="{area}" fill="url(#g{uid})"/>
-  <polyline points="{' '.join(pts)}" fill="none" stroke="{color}" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>
+  <polyline points="{' '.join(pts)}" fill="none" stroke="{color}" stroke-width="2.2"
+            stroke-linejoin="round" stroke-linecap="round"/>
   <circle cx="{last_x}" cy="{last_y}" r="3.5" fill="{color}"/>
 </svg>"""
 
@@ -526,91 +488,118 @@ fid_color = _trend_color(spark_fid, lower_is_better=True)
 bl_color  = _trend_color(spark_bl,  lower_is_better=True)
 zt_color  = _trend_color(spark_zt,  lower_is_better=False)
 
-# ── ROW 1: Cards 1, 2, 3 (sparkline KPIs) + Card 4 (Donut) ──────────────────
-kc1, kc2, kc3, kc4 = st.columns([1, 1, 1, 1])
+# ══════════════════════════════════════════════════════════════════════════════
+#  KPI CARD RENDERERS  — SINGLE definition of each, correct flex layout
+# ══════════════════════════════════════════════════════════════════════════════
 
-# ── FIXED KPI FUNCTION (Added explicit keywords to stop TypeError) ────────────
-def _spark_kpi(col_w, label, value_str, spark_svg, delta_val, lower_is_better=True, card_bg="#F9DE7A", static_color=None, icon_src=None):
-    d_fid = delta_val
-    arr = "▼" if d_fid < 0 else ("▲" if d_fid > 0 else "—")
-    
+def _spark_kpi(col_w, label, value_str, spark_svg, delta_val,
+               lower_is_better=True, card_bg="#F9DE7A",
+               static_color=None, icon_src=None):
+    """Renders a KPI card: icon (top) → label → big number → footer (delta | spark)."""
+    d = delta_val
+    arr = "▼" if d < 0 else ("▲" if d > 0 else "—")
+
     if static_color:
-        color_style = f"color: {static_color} !important;"
+        delta_style = f"color:{static_color};"
         d_cls = ""
     else:
-        d_cls = "delta-down-good" if (d_fid < 0 and lower_is_better) else \
-                ("delta-up-good"  if (d_fid > 0 and not lower_is_better) else \
-                ("delta-up-bad"   if d_fid > 0 else "delta-down-bad" if d_fid < 0 else "delta-neutral"))
-        color_style = ""
+        d_cls = (
+            "delta-down-good" if (d < 0 and lower_is_better) else
+            "delta-up-good"   if (d > 0 and not lower_is_better) else
+            "delta-up-bad"    if d > 0 else
+            "delta-down-bad"  if d < 0 else
+            "delta-neutral"
+        )
+        delta_style = ""
 
-    icon_html = get_image_html(icon_src) if icon_src else ""
-        
+    icon_html = get_image_html(icon_src, height_px=56) if icon_src else ""
+
     col_w.markdown(f"""
-    <div class="kpi-spark" style="background-color: {card_bg} !important; border-color: {card_bg} !important;">
-      <div class="kpi-title">{icon_html}{label}</div>
+    <div class="kpi-spark"
+         style="background-color:{card_bg} !important; border-color:{card_bg} !important;">
+
+      <!-- 1. Icon -->
+      <div class="kpi-icon-top">{icon_html}</div>
+
+      <!-- 2. Label -->
+      <div class="kpi-label">{label}</div>
+
+      <!-- 3. Big number -->
       <div class="kpi-center-val">{value_str}</div>
-      <div class="kpi-bottom-left">
-        <span class="{d_cls}" style="{color_style}">{arr} {abs(d_fid):,.0f}</span>
+
+      <!-- 4. Footer: delta left, sparkline right -->
+      <div class="kpi-footer">
+        <span class="{d_cls}" style="font-size:15px; font-weight:700; {delta_style}">
+          {arr} {abs(d):,.0f}
+        </span>
+        <span>{spark_svg}</span>
       </div>
-      <div class="kpi-bottom-right">
-        {spark_svg}
-      </div>
+
     </div>""", unsafe_allow_html=True)
 
+
 def _pct_kpi(col_w, label, value, prev_value, lower_is_better=True):
+    """Percentage KPI card (no icon, no sparkline)."""
     diff    = value - prev_value
     good    = (diff < 0 and lower_is_better) or (diff > 0 and not lower_is_better)
     v_color = "#2E7D6B" if good else ("#E05C3A" if diff != 0 else "#1C2B3A")
     arr     = "▼" if diff < 0 else ("▲" if diff > 0 else "—")
-    d_cls   = "delta-down-good" if (diff < 0 and lower_is_better) else \
-               ("delta-up-good"  if (diff > 0 and not lower_is_better) else \
-               ("delta-up-bad"   if diff > 0 else "delta-down-bad" if diff < 0 else "delta-neutral"))
-    
+    d_cls   = (
+        "delta-down-good" if (diff < 0 and lower_is_better) else
+        "delta-up-good"   if (diff > 0 and not lower_is_better) else
+        "delta-up-bad"    if diff > 0 else
+        "delta-down-bad"  if diff < 0 else
+        "delta-neutral"
+    )
+
     col_w.markdown(f"""
     <div class="kpi-small">
-      <div class="kpi-title">{label}</div>
+      <!-- label -->
+      <div class="kpi-label" style="margin-top:10px;">{label}</div>
+      <!-- value -->
       <div class="kpi-center-val" style="color:{v_color};">{value:.2f}%</div>
-      <div class="kpi-bottom-left">
-        <span class="{d_cls}">{arr} {abs(diff):.2f}</span>
+      <!-- footer -->
+      <div class="kpi-footer">
+        <span class="{d_cls}" style="font-size:15px; font-weight:700;">
+          {arr} {abs(diff):.2f}
+        </span>
       </div>
     </div>""", unsafe_allow_html=True)
 
+# ── ROW 1: 3 KPI cards + Donut ───────────────────────────────────────────────
+kc1, kc2, kc3, kc4 = st.columns([1, 1, 1, 1])
 
 d_fid_v = tot_fid - pr_fid
 d_bl_v  = overall_bl - pr_overall
 d_zt_v  = zt_val - pr_zt_val
 
-# ── ROW 1 CALLS ──────────────────────────────────────────────────────────────
 with kc1:
-    # First card: Custom #F0EDE5 background, static red color, and the Blue Box icon
     _spark_kpi(
-        col_w=kc1, 
-        label="Total In-Process (FID)", 
-        value_str=f"{tot_fid:,.0f}", 
-        spark_svg=_sparkline_svg(spark_fid, "#E05C3A"), 
-        delta_val=d_fid_v, 
-        lower_is_better=True, 
-        card_bg="#F0EDE5", 
-        static_color="#E05C3A", 
-        icon_src="FID PRO.png"
-    )
-    
-with kc2:
-    # Second card: Red Clipboard icon
-    _spark_kpi(
-        col_w=kc2, 
-        label="Overall Backlog", 
-        value_str=f"{overall_bl:,.0f}", 
-        spark_svg=_sparkline_svg(spark_bl, bl_color), 
-        delta_val=d_bl_v, 
+        col_w=kc1,
+        label="Total In-Process (FID)",
+        value_str=f"{tot_fid:,.0f}",
+        spark_svg=_sparkline_svg(spark_fid, "#E05C3A"),
+        delta_val=d_fid_v,
         lower_is_better=True,
-        icon_src="BACKLOG.PNG"
+        card_bg="#F0EDE5",
+        static_color="#E05C3A",
+        icon_src="FID PRO.png",
+    )
+
+with kc2:
+    _spark_kpi(
+        col_w=kc2,
+        label="Overall Backlog",
+        value_str=f"{overall_bl:,.0f}",
+        spark_svg=_sparkline_svg(spark_bl, bl_color),
+        delta_val=d_bl_v,
+        lower_is_better=True,
+        icon_src="BACKLOG.PNG",
     )
 
 with kc3:
-    # Third card: Yellow Arrows icon. Lower is better logic applies natively
+    is_good   = d_zt_v <= 0
     zt_display = f"{int(zt_val):,}" if zt_val > 0 else "0"
-    is_good = d_zt_v <= 0
     _spark_kpi(
         col_w=kc3,
         label="Zone Transfer Parcels",
@@ -618,12 +607,13 @@ with kc3:
         spark_svg=_sparkline_svg(spark_zt, "#2E7D6B" if is_good else "#E05C3A"),
         delta_val=d_zt_v,
         lower_is_better=True,
-        icon_src="ZONE TR.png"
+        icon_src="ZONE TR.png",
     )
 
 with kc4:
     with st.container(border=True):
-        st.markdown('<div class="sec-hdr" style="margin-bottom:8px;">4. Backlog — FID vs RID</div>', unsafe_allow_html=True)
+        st.markdown('<div class="sec-hdr" style="margin-bottom:8px;">4. Backlog — FID vs RID</div>',
+                    unsafe_allow_html=True)
         if (fid_bl + rid_bl) > 0:
             fid_pct_donut = fid_bl / (fid_bl + rid_bl) * 100
             rid_pct_donut = rid_bl / (fid_bl + rid_bl) * 100
@@ -641,50 +631,52 @@ with kc4:
                 x=0.5, y=0.5, showarrow=False, xanchor="center", yanchor="middle",
                 font=dict(size=15, color="#1C2B3A"),
             )
-            # Increased height so it matches the newly extended kpi-spark height
             _layout(fig_donut, height=180,
                     extra={"margin": dict(l=12, r=10, t=20, b=0), "showlegend": False})
             st.plotly_chart(fig_donut, use_container_width=True)
             st.markdown(f"""
-            <div style="display:flex; gap:0; border-top:1px solid #E8E4DB; padding-top:8px;">
-              <div style="flex:1; text-align:center; border-right:1px solid #E8E4DB;">
-                <div style="font-size:10px; font-weight:700; text-transform:uppercase; color:#8A6A00; margin-bottom:2px;">FID</div>
-                <div style="font-size:18px; font-weight:700; color:#1C2B3A; font-family:'DM Mono',monospace;">{fid_bl:,.0f}</div>
-                <div style="font-size:10px; color:#6B7E91; font-weight:600;">{fid_pct_donut:.1f}%</div>
+            <div style="display:flex;gap:0;border-top:1px solid #E8E4DB;padding-top:8px;">
+              <div style="flex:1;text-align:center;border-right:1px solid #E8E4DB;">
+                <div style="font-size:10px;font-weight:700;text-transform:uppercase;color:#8A6A00;margin-bottom:2px;">FID</div>
+                <div style="font-size:18px;font-weight:700;color:#1C2B3A;font-family:'DM Mono',monospace;">{fid_bl:,.0f}</div>
+                <div style="font-size:10px;color:#6B7E91;font-weight:600;">{fid_pct_donut:.1f}%</div>
               </div>
-              <div style="flex:1; text-align:center;">
-                <div style="font-size:10px; font-weight:700; text-transform:uppercase; color:#1C2B3A; margin-bottom:2px;">RID</div>
-                <div style="font-size:18px; font-weight:700; color:#1C2B3A; font-family:'DM Mono',monospace;">{rid_bl:,.0f}</div>
-                <div style="font-size:10px; color:#6B7E91; font-weight:600;">{rid_pct_donut:.1f}%</div>
+              <div style="flex:1;text-align:center;">
+                <div style="font-size:10px;font-weight:700;text-transform:uppercase;color:#1C2B3A;margin-bottom:2px;">RID</div>
+                <div style="font-size:18px;font-weight:700;color:#1C2B3A;font-family:'DM Mono',monospace;">{rid_bl:,.0f}</div>
+                <div style="font-size:10px;color:#6B7E91;font-weight:600;">{rid_pct_donut:.1f}%</div>
               </div>
             </div>""", unsafe_allow_html=True)
         else:
             st.info("No backlog data.")
 
-
-
-# ── ROW 2: Cards 5 & 6 (percentage KPIs) ─────────────────────────────────────
+# ── ROW 2: Percentage KPI cards ───────────────────────────────────────────────
 kr1, kr2, _sp1, _sp2 = st.columns([1, 1, 1, 1])
 
 with kr1:
-    _pct_kpi(col_w=kr1, label="FID Backlog %", value=fid_pct, prev_value=pr_fid_pct, lower_is_better=True)
+    _pct_kpi(col_w=kr1, label="FID Backlog %",
+             value=fid_pct, prev_value=pr_fid_pct, lower_is_better=True)
 with kr2:
-    _pct_kpi(col_w=kr2, label="Zone Change %", value=zt_pct, prev_value=pr_zt_pct, lower_is_better=True)
-
+    _pct_kpi(col_w=kr2, label="Zone Change %",
+             value=zt_pct, prev_value=pr_zt_pct, lower_is_better=True)
 
 # ── ROW 3: Backlog Details + Sort ─────────────────────────────────────────────
 col_bl, col_sort = st.columns([3, 2])
 
 with col_bl:
     with st.container(border=True):
-        st.markdown('<div class="sec-hdr">7. Backlog Details — FID &amp; RID (LMH / FMH)</div>', unsafe_allow_html=True)
+        st.markdown('<div class="sec-hdr">7. Backlog Details — FID &amp; RID (LMH / FMH)</div>',
+                    unsafe_allow_html=True)
         if lt_fr is not None:
             detail_rows = [
-                ("FID LMH", _safe(lt_fr,"FID LMH ISD"), _safe(lt_fr,"FID LMH SUB"), _safe(lt_fr,"FID LMH OSD"), _safe(lt_fr,"FID LMH Total")),
+                ("FID LMH", _safe(lt_fr,"FID LMH ISD"), _safe(lt_fr,"FID LMH SUB"),
+                 _safe(lt_fr,"FID LMH OSD"), _safe(lt_fr,"FID LMH Total")),
                 ("FID FMH", _safe(lt_fr,"FID FMH"), 0, 0, _safe(lt_fr,"FID FMH")),
-                ("RID FMH", _safe(lt_fr,"RID FMH ISD"), _safe(lt_fr,"RID FMH SUB"), _safe(lt_fr,"RID FMH OSD"),
+                ("RID FMH", _safe(lt_fr,"RID FMH ISD"), _safe(lt_fr,"RID FMH SUB"),
+                 _safe(lt_fr,"RID FMH OSD"),
                  _safe(lt_fr,"RID FMH ISD")+_safe(lt_fr,"RID FMH SUB")+_safe(lt_fr,"RID FMH OSD")),
-                ("RID LMH", _safe(lt_fr,"RID LMH ISD"), _safe(lt_fr,"RID LMH SUB"), _safe(lt_fr,"RID LMH OSD"),
+                ("RID LMH", _safe(lt_fr,"RID LMH ISD"), _safe(lt_fr,"RID LMH SUB"),
+                 _safe(lt_fr,"RID LMH OSD"),
                  _safe(lt_fr,"RID LMH ISD")+_safe(lt_fr,"RID LMH SUB")+_safe(lt_fr,"RID LMH OSD")),
             ]
             labels, isd_v, sub_v, osd_v, tots = zip(*detail_rows)
@@ -692,7 +684,7 @@ with col_bl:
             for vals, name, color in [(isd_v,"ISD",C_ISD),(sub_v,"SUB",C_SUB),(osd_v,"OSD",C_OSD)]:
                 fig9.add_trace(go.Bar(
                     name=name, y=labels, x=vals, orientation="h", marker_color=color,
-                    text=[f"{v:,.0f}" if v>0 else "" for v in vals],
+                    text=[f"{v:,.0f}" if v > 0 else "" for v in vals],
                     textposition="inside", insidetextanchor="middle",
                     textfont=dict(color="#FFFFFF", size=13, weight="bold"),
                 ))
@@ -702,7 +694,7 @@ with col_bl:
                                         showarrow=False, xanchor="left",
                                         font=dict(size=14, color="#1C2B3A"))
             _layout(fig9, height=380, extra={
-                "barmode":"stack",
+                "barmode": "stack",
                 "xaxis": dict(**_AX, title="Count"),
                 "yaxis": dict(**_AX, autorange="reversed"),
             })
@@ -712,13 +704,15 @@ with col_bl:
 
 with col_sort:
     with st.container(border=True):
-        st.markdown('<div class="sec-hdr">8. Sort — FID Sort vs RID Sort</div>', unsafe_allow_html=True)
+        st.markdown('<div class="sec-hdr">8. Sort — FID Sort vs RID Sort</div>',
+                    unsafe_allow_html=True)
         if lt_fr is not None:
             fid_sort = _safe(lt_fr, "FID Sort")
             rid_sort = _safe_multi(lt_fr, "RID Sort", "RID LMH Sort")
             fig10 = go.Figure(data=[go.Bar(
                 y=["FID Sort", "RID Sort"], x=[fid_sort, rid_sort],
-                orientation="h", marker_color=[C_ISD, C_OSD], marker_line=dict(color="#FFFFFF", width=1),
+                orientation="h", marker_color=[C_ISD, C_OSD],
+                marker_line=dict(color="#FFFFFF", width=1),
                 text=[f"{fid_sort:,.0f}", f"{rid_sort:,.0f}"], textposition="outside",
                 textfont=dict(size=14, color="#1C2B3A", weight="bold"), width=0.5,
             )])
@@ -726,20 +720,19 @@ with col_sort:
                 "showlegend": False,
                 "xaxis": dict(**_AX, title="Count"),
                 "yaxis": dict(**_AX),
-                "margin": dict(l=8, r=70, t=32, b=8)
+                "margin": dict(l=8, r=70, t=32, b=8),
             })
             st.plotly_chart(fig10, use_container_width=True)
         else:
             st.info("No sort data.")
-
 
 # ── ROW 4: Backlog Tracking + Region ──────────────────────────────────────────
 col_track, col_region = st.columns([3, 2])
 
 with col_track:
     with st.container(border=True):
-        st.markdown('<div class="sec-hdr">9. Date-wise Backlog Progress Tracking (FID)</div>', unsafe_allow_html=True)
-
+        st.markdown('<div class="sec-hdr">9. Date-wise Backlog Progress Tracking (FID)</div>',
+                    unsafe_allow_html=True)
         if all_dates and len(all_dates) >= 1:
             t_opts = [pd.Timestamp(d).strftime("%d %b %Y") for d in all_dates]
             tc1, tc2 = st.columns(2)
@@ -748,11 +741,13 @@ with col_track:
                                     format_func=lambda i: t_opts[i], index=0, key="track_from")
             with tc2:
                 t_ei = st.selectbox("📅 To", range(len(t_opts)),
-                                    format_func=lambda i: t_opts[i], index=len(t_opts)-1, key="track_to")
+                                    format_func=lambda i: t_opts[i],
+                                    index=len(t_opts) - 1, key="track_to")
             if t_ei < t_si: t_ei = t_si
             t_start  = pd.Timestamp(all_dates[t_si])
             t_end    = pd.Timestamp(all_dates[t_ei]) + pd.Timedelta(days=1) - pd.Timedelta(seconds=1)
-            ft_range = ft[(ft["Date"] >= t_start) & (ft["Date"] <= t_end)].sort_values("Date") if not ft.empty else pd.DataFrame()
+            ft_range = (ft[(ft["Date"] >= t_start) & (ft["Date"] <= t_end)].sort_values("Date")
+                        if not ft.empty else pd.DataFrame())
         else:
             ft_range = pd.DataFrame()
             t_start  = sel_start
@@ -777,7 +772,8 @@ with col_track:
 
 with col_region:
     with st.container(border=True):
-        st.markdown('<div class="sec-hdr">10. Region Wise In-Process Parcels</div>', unsafe_allow_html=True)
+        st.markdown('<div class="sec-hdr">10. Region Wise In-Process Parcels</div>',
+                    unsafe_allow_html=True)
         if tot_fid > 0:
             df_reg = pd.DataFrame({"Region": ["ISD", "OSD"], "Parcels": [isd_total, osd_total]})
             fig_reg = px.bar(df_reg, x="Region", y="Parcels",
@@ -795,27 +791,34 @@ with col_region:
             })
             st.plotly_chart(fig_reg, use_container_width=True)
             st.markdown(f"""
-            <div style="display:flex; gap:16px; justify-content:center; padding:12px 0 4px; border-top: 1px solid rgba(28,43,58,0.15);">
-              <div style="text-align:center; flex:1; border-right: 1px solid rgba(28,43,58,0.15);">
-                <div style="font-size:13px; color:#1C2B3A; font-weight:700; text-transform:uppercase; letter-spacing:0.8px; margin-bottom:4px;">ISD</div>
-                <div style="font-size:26px; font-weight:700; color:{C_ISD}; font-family:'DM Mono',monospace;">{isd_total:,.0f}</div>
+            <div style="display:flex;gap:16px;justify-content:center;padding:12px 0 4px;
+                        border-top:1px solid rgba(28,43,58,0.15);">
+              <div style="text-align:center;flex:1;border-right:1px solid rgba(28,43,58,0.15);">
+                <div style="font-size:13px;color:#1C2B3A;font-weight:700;text-transform:uppercase;
+                            letter-spacing:0.8px;margin-bottom:4px;">ISD</div>
+                <div style="font-size:26px;font-weight:700;color:{C_ISD};
+                            font-family:'DM Mono',monospace;">{isd_total:,.0f}</div>
               </div>
-              <div style="text-align:center; flex:1; border-right: 1px solid rgba(28,43,58,0.15);">
-                <div style="font-size:13px; color:#1C2B3A; font-weight:700; text-transform:uppercase; letter-spacing:0.8px; margin-bottom:4px;">OSD</div>
-                <div style="font-size:26px; font-weight:700; color:{C_OSD}; font-family:'DM Mono',monospace;">{osd_total:,.0f}</div>
+              <div style="text-align:center;flex:1;border-right:1px solid rgba(28,43,58,0.15);">
+                <div style="font-size:13px;color:#1C2B3A;font-weight:700;text-transform:uppercase;
+                            letter-spacing:0.8px;margin-bottom:4px;">OSD</div>
+                <div style="font-size:26px;font-weight:700;color:{C_OSD};
+                            font-family:'DM Mono',monospace;">{osd_total:,.0f}</div>
               </div>
-              <div style="text-align:center; flex:1;">
-                <div style="font-size:13px; color:#1C2B3A; font-weight:700; text-transform:uppercase; letter-spacing:0.8px; margin-bottom:4px;">Total</div>
-                <div style="font-size:26px; font-weight:700; color:#1C2B3A; font-family:'DM Mono',monospace;">{tot_fid:,.0f}</div>
+              <div style="text-align:center;flex:1;">
+                <div style="font-size:13px;color:#1C2B3A;font-weight:700;text-transform:uppercase;
+                            letter-spacing:0.8px;margin-bottom:4px;">Total</div>
+                <div style="font-size:26px;font-weight:700;color:#1C2B3A;
+                            font-family:'DM Mono',monospace;">{tot_fid:,.0f}</div>
               </div>
             </div>""", unsafe_allow_html=True)
         else:
             st.info("No region data.")
 
-
 # ── ROW 5: Aging Distribution + Table ─────────────────────────────────────────
 AGE_COLS = [str(i) for i in range(1, 11)] + ["10+"]
-ag_f = ag[(ag["Date"] >= sel_start) & (ag["Date"] <= sel_end)].copy() if not ag.empty else pd.DataFrame()
+ag_f = (ag[(ag["Date"] >= sel_start) & (ag["Date"] <= sel_end)].copy()
+        if not ag.empty else pd.DataFrame())
 if not ag_f.empty and "Region" in ag_f.columns:
     ag_f = ag_f[ag_f["Region"].isin(region_filter)]
 
@@ -824,17 +827,19 @@ col_aging, col_aging_tbl = st.columns([3, 2])
 with col_aging:
     with st.container(border=True):
         st.markdown('<div class="sec-hdr">11. Aging Distribution</div>', unsafe_allow_html=True)
-        st.markdown('<div class="aging-badge">ISD &amp; SUB = 4 Days+ &nbsp;|&nbsp; OSD = 5 Days+</div>', unsafe_allow_html=True)
+        st.markdown('<div class="aging-badge">ISD &amp; SUB = 4 Days+ &nbsp;|&nbsp; OSD = 5 Days+</div>',
+                    unsafe_allow_html=True)
         if not ag_f.empty:
             ag_max   = ag_f["Date"].max()
             ag_day_f = ag_f[ag_f["Date"] == ag_max].copy()
             rows8 = []
             for _, row in ag_day_f.iterrows():
-                region = str(row.get("Region","")).strip()
+                region = str(row.get("Region", "")).strip()
                 if region not in region_filter: continue
                 total = float(row.get("Total", 0) or 0)
                 if total == 0:
-                    total = sum(float(row[c]) for c in AGE_COLS if c in ag_day_f.columns and pd.notna(row[c]))
+                    total = sum(float(row[c]) for c in AGE_COLS
+                                if c in ag_day_f.columns and pd.notna(row[c]))
                 for c in AGE_COLS:
                     if c in ag_day_f.columns:
                         val = float(row[c]) if pd.notna(row[c]) else 0.0
@@ -844,17 +849,21 @@ with col_aging:
             if not ag_melt.empty:
                 max_slider_val = max(5.0, float(ag_melt["Pct"].max()) + 5.0)
                 y_zoom = st.slider("🔍 Adjust Y-Axis Zoom (%)", min_value=0.0,
-                                   max_value=max_slider_val, value=(0.0, max_slider_val), step=1.0)
+                                   max_value=max_slider_val,
+                                   value=(0.0, max_slider_val), step=1.0)
                 fig8 = px.bar(ag_melt, x="Age", y="Pct", color="Region",
                               color_discrete_map={"ISD": C_ISD, "OSD": C_OSD},
                               barmode="group",
                               text=ag_melt["Pct"].apply(lambda x: f"{x:.1f}%"))
                 fig8.update_traces(
                     textposition="outside", textfont=dict(color="#1C2B3A", size=11, weight="bold"),
-                    customdata=ag_melt[["Count","Region"]],
-                    hovertemplate="<b>%{x}</b><br>Region: %{customdata[1]}<br>Count: %{customdata[0]:,.0f}<br>Pct: %{y:.1f}%",
+                    customdata=ag_melt[["Count", "Region"]],
+                    hovertemplate="<b>%{x}</b><br>Region: %{customdata[1]}<br>"
+                                  "Count: %{customdata[0]:,.0f}<br>Pct: %{y:.1f}%",
                 )
-                _layout(fig8, height=380, extra={"yaxis": dict(**_AX, title="Percentage (%)", range=[y_zoom[0], y_zoom[1]])})
+                _layout(fig8, height=380, extra={
+                    "yaxis": dict(**_AX, title="Percentage (%)", range=[y_zoom[0], y_zoom[1]])
+                })
                 st.plotly_chart(fig8, use_container_width=True)
             else:
                 st.info("No aging data.")
@@ -866,8 +875,10 @@ with col_aging_tbl:
         st.markdown('<div class="sec-hdr">Aging Count &amp; % by Region</div>', unsafe_allow_html=True)
         if not ag_f.empty:
             ag_day_f2 = ag_f[ag_f["Date"] == ag_f["Date"].max()].copy()
-            isd_row   = ag_day_f2[ag_day_f2["Region"]=="ISD"].iloc[0] if "ISD" in ag_day_f2["Region"].values else None
-            osd_row   = ag_day_f2[ag_day_f2["Region"]=="OSD"].iloc[0] if "OSD" in ag_day_f2["Region"].values else None
+            isd_row = (ag_day_f2[ag_day_f2["Region"] == "ISD"].iloc[0]
+                       if "ISD" in ag_day_f2["Region"].values else None)
+            osd_row = (ag_day_f2[ag_day_f2["Region"] == "OSD"].iloc[0]
+                       if "OSD" in ag_day_f2["Region"].values else None)
             isd_tot_v = float(isd_row["Total"]) if isd_row is not None else 0
             osd_tot_v = float(osd_row["Total"]) if osd_row is not None else 0
             th = "<th>Days</th>"
@@ -879,17 +890,20 @@ with col_aging_tbl:
                 td = f"<td><b>{c}d</b></td>"
                 if isd_row is not None:
                     v = float(isd_row[c]) if pd.notna(isd_row[c]) else 0
-                    td += f"<td>{v:,.0f}</td><td>{v/isd_tot_v*100:.1f}%</td>" if isd_tot_v else "<td>—</td><td>—</td>"
+                    td += (f"<td>{v:,.0f}</td><td>{v/isd_tot_v*100:.1f}%</td>"
+                           if isd_tot_v else "<td>—</td><td>—</td>")
                 if osd_row is not None:
                     v = float(osd_row[c]) if pd.notna(osd_row[c]) else 0
-                    td += f"<td>{v:,.0f}</td><td>{v/osd_tot_v*100:.1f}%</td>" if osd_tot_v else "<td>—</td><td>—</td>"
+                    td += (f"<td>{v:,.0f}</td><td>{v/osd_tot_v*100:.1f}%</td>"
+                           if osd_tot_v else "<td>—</td><td>—</td>")
                 body_rows += f"<tr>{td}</tr>"
             td_tot = "<td><b>Total</b></td>"
             if isd_row is not None: td_tot += f"<td><b>{isd_tot_v:,.0f}</b></td><td><b>100%</b></td>"
             if osd_row is not None: td_tot += f"<td><b>{osd_tot_v:,.0f}</b></td><td><b>100%</b></td>"
             body_rows += f"<tr>{td_tot}</tr>"
             st.markdown(f"""
-            <div style="overflow-x:auto; max-height:430px; overflow-y:auto; border:1px solid #C4C0B3; border-radius:12px;">
+            <div style="overflow-x:auto;max-height:430px;overflow-y:auto;
+                        border:1px solid #C4C0B3;border-radius:12px;">
             <table class="styled-table" style="margin:0;">
               <thead><tr>{th}</tr></thead>
               <tbody>{body_rows}</tbody>
@@ -897,14 +911,16 @@ with col_aging_tbl:
         else:
             st.info("No aging data.")
 
-
 # ── ROW 6: Full FID Tracking Table ────────────────────────────────────────────
 with st.container(border=True):
-    st.markdown('<div class="sec-hdr">12. Date-wise Backlog Progress Tracking — Full Table (FID)</div>', unsafe_allow_html=True)
+    st.markdown('<div class="sec-hdr">12. Date-wise Backlog Progress Tracking — Full Table (FID)</div>',
+                unsafe_allow_html=True)
     try:
-        ft_tbl = ft[(ft["Date"] >= t_start) & (ft["Date"] <= t_end)].sort_values("Date").copy() if not ft.empty else pd.DataFrame()
+        ft_tbl = (ft[(ft["Date"] >= t_start) & (ft["Date"] <= t_end)]
+                  .sort_values("Date").copy() if not ft.empty else pd.DataFrame())
     except Exception:
         ft_tbl = ft.sort_values("Date").copy() if not ft.empty else pd.DataFrame()
+
     if not ft_tbl.empty:
         COL_MAP = {
             "Date_Label":                  "Date",
@@ -921,13 +937,15 @@ with st.container(border=True):
             is_last = i == len(df_tbl) - 1
             cells   = ""
             for j, v in enumerate(r):
-                cls = "col-date" if j==0 else ("col-high" if is_last else "")
-                try: disp = v if j==0 else (f"{int(float(v)):,}" if float(v)!=0 else "—")
-                except: disp = "—"
+                cls = "col-date" if j == 0 else ("col-high" if is_last else "")
+                try:
+                    disp = v if j == 0 else (f"{int(float(v)):,}" if float(v) != 0 else "—")
+                except Exception:
+                    disp = "—"
                 cells += f"<td class='{cls}'>{disp}</td>"
             body += f"<tr>{cells}</tr>"
         st.markdown(f"""
-        <div style="overflow-x:auto; border:1px solid #C4C0B3; border-radius:12px;">
+        <div style="overflow-x:auto;border:1px solid #C4C0B3;border-radius:12px;">
         <table class="styled-table" style="margin:0;">
           <thead><tr>{headers}</tr></thead>
           <tbody>{body}</tbody>
@@ -935,10 +953,11 @@ with st.container(border=True):
     else:
         st.info("No FID tracking data to display.")
 
-# ── Appendix ──────────────────────────────────────────────────────────────────
+# ── APPENDIX ──────────────────────────────────────────────────────────────────
 with st.expander("📖 Appendix — Definitions & Calculation Methods", expanded=False):
     st.markdown('<div class="appendix-card">', unsafe_allow_html=True)
-    st.markdown('<div class="sec-hdr" style="border:none;">📊 KPI Definitions & Calculation Methods</div>', unsafe_allow_html=True)
+    st.markdown('<div class="sec-hdr" style="border:none;">📊 KPI Definitions & Calculation Methods</div>',
+                unsafe_allow_html=True)
     items = [
         ("1. Total In-Process (FID)", "All parcels currently in the First Inbound Delivery process on the selected date.", "Aging_Distribution → ISD Total + OSD Total"),
         ("2. Overall Backlog (FID+RID)", "Total undelivered backlog across FID and RID.", "FID Backlog + RID Backlog  (Source: FID_RID_Backlog_Details)"),
@@ -960,17 +979,18 @@ with st.expander("📖 Appendix — Definitions & Calculation Methods", expanded
         ("RID", "Return Inbound Delivery — re-entered returned parcels", ""),
     ]
     for key, desc, formula in items:
-        formula_html = f'<br><span style="color:#6B7E91; font-size:12px;">{formula}</span>' if formula else ""
+        formula_html = f'<br><span style="color:#6B7E91;font-size:12px;">{formula}</span>' if formula else ""
         st.markdown(f"""
-        <div style="margin-bottom: 12px;">
-          <div style="font-weight:700; color:#1C2B3A;">▸ {key}</div>
-          <div style="color:#1C2B3A; padding-left: 14px;">{desc}{formula_html}</div>
+        <div style="margin-bottom:12px;">
+          <div style="font-weight:700;color:#1C2B3A;">▸ {key}</div>
+          <div style="color:#1C2B3A;padding-left:14px;">{desc}{formula_html}</div>
         </div>""", unsafe_allow_html=True)
     st.markdown('</div>', unsafe_allow_html=True)
 
-# ── Footer ────────────────────────────────────────────────────────────────────
+# ── FOOTER ────────────────────────────────────────────────────────────────────
 st.markdown(f"""
-<div style="text-align:center; color:#6B7E91; font-size:13px; font-weight:700; padding:20px 0 10px; letter-spacing:0.5px;">
+<div style="text-align:center;color:#6B7E91;font-size:13px;font-weight:700;
+            padding:20px 0 10px;letter-spacing:0.5px;">
   🐝 Carrybee Delivery Intelligence &nbsp;·&nbsp;
   Report Date: <span style="color:#1C2B3A;">{sel_date.strftime('%d %b %Y')}</span>
   &nbsp;·&nbsp; Refreshes every 10 min &nbsp;·&nbsp; Powered by Google Sheets
