@@ -107,7 +107,7 @@ st.markdown("""
 }
 
 .kpi-small {
-    background: #FFFFFF!important;
+    background: #f0ede5!important;
     border-radius: 16px !important;
     border: 8px solid #E8CD68 !important;
     box-shadow: 0 6px 16px rgba(0,0,0,0.05) !important;
@@ -235,7 +235,7 @@ _AX = dict(
     title_font=dict(color="#1C2B3A", weight="bold"),
 )
 _BASE = dict(
-    paper_bgcolor="#FFFFFF", plot_bgcolor="#F0EDE5",
+    paper_bgcolor="#f0ede5", plot_bgcolor="#F0EDE5",
     font=dict(color="#1C2B3A", family="DM Sans, sans-serif", size=12),
     legend=dict(bgcolor="rgba(255,255,255,0.9)", bordercolor="#D9D5C8",
                 borderwidth=1, font=dict(size=12, color="#1C2B3A", weight="bold")),
