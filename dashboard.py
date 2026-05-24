@@ -230,22 +230,36 @@ _AX = dict(
     tickfont=dict(color="#1C2B3A", size=12, weight="bold"),
     title_font=dict(color="#1C2B3A", weight="bold"),
 )
+
+# BIGGER, MORE READABLE HOVER TOOLTIP (POPUP)
+_HOVERLABEL = dict(
+    bgcolor="white",
+    bordercolor="#F5C200",
+    borderwidth=4,
+    font=dict(color="#1C2B3A", size=28, family="DM Sans, sans-serif"),
+    namelength=-1,   # show full text
+)
+
 _BASE = dict(
     paper_bgcolor="#f0ede5", plot_bgcolor="#F0EDE5",
     font=dict(color="#1C2B3A", family="DM Sans, sans-serif", size=12),
     legend=dict(bgcolor="rgba(255,255,255,0.9)", bordercolor="#D9D5C8",
                 borderwidth=1, font=dict(size=12, color="#1C2B3A", weight="bold")),
-    # ---- ENLARGED POPUP TEXT AND BOX SIZE SETTINGS ----
-    hoverlabel=dict(bgcolor="#dfe3e8", bordercolor="#F5C200", font_color="#000000", font_size=20, namelength=-1),
+    hoverlabel=_HOVERLABEL,
     margin=dict(l=20, r=20, t=42, b=20),
     xaxis=_AX, yaxis=_AX,
 )
 
 def _layout(fig, height=None, extra=None):
+    """Apply consistent layout with large popup (hover) styling."""
     kw = dict(**_BASE)
-    if height: kw["height"] = height
-    if extra:  kw.update(extra)
+    if height:
+        kw["height"] = height
+    if extra:
+        kw.update(extra)
     fig.update_layout(**kw)
+    # Ensure all traces also inherit the large hoverlabel (some may have per-trace settings)
+    fig.update_traces(hoverlabel=_HOVERLABEL)
     return fig
 
 C_ISD = "#1C2B3A"
