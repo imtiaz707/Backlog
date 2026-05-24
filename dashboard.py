@@ -513,18 +513,15 @@ zt_color  = _trend_color(spark_zt,  lower_is_better=False)
 
 def _spark_kpi(col_w, label, value_str, spark_svg, delta_val,
                lower_is_better=True, card_bg="#FDF3BF",
-               static_color=None, icon_type=None, neutral_color=None):
+               static_color=None, icon_type=None):
+    """Renders a KPI card using inline SVG icons — no external file loading."""
     d = delta_val
     arr = "▼" if d < 0 else ("▲" if d > 0 else "—")
 
-    if neutral_color:
-        delta_style = f"color:{neutral_color};"
-        d_cls = ""
-    elif static_color:
+    if static_color:
         delta_style = f"color:{static_color};"
         d_cls = ""
     else:
-        # dynamic red/green logic
         d_cls = (
             "delta-down-good" if (d < 0 and lower_is_better) else
             "delta-up-good"   if (d > 0 and not lower_is_better) else
@@ -534,10 +531,22 @@ def _spark_kpi(col_w, label, value_str, spark_svg, delta_val,
         )
         delta_style = ""
 
+    # Use inline SVG icon — safe, no file I/O
     icon_html = get_icon_svg(icon_type, size_px=48) if icon_type else ""
 
-    col_w.markdown(f"""...""", unsafe_allow_html=True)
-
+    col_w.markdown(f"""
+    <div class="kpi-spark"
+         style="background-color:{card_bg} !important; border-color:{card_bg} !important;">
+      <div class="kpi-icon-top">{icon_html}</div>
+      <div class="kpi-label">{label}</div>
+      <div class="kpi-center-val">{value_str}</div>
+      <div class="kpi-footer">
+        <span class="{d_cls}" style="font-size:15px; font-weight:700; {delta_style}">
+          {arr} {abs(d):,.0f}
+        </span>
+        <span>{spark_svg}</span>
+      </div>
+    </div>""", unsafe_allow_html=True)
 
 def _pct_kpi(col_w, label, value, prev_value, lower_is_better=True):
     """Percentage KPI card."""
@@ -565,7 +574,7 @@ def _pct_kpi(col_w, label, value, prev_value, lower_is_better=True):
     </div>""", unsafe_allow_html=True)
 
 # ── ROW 1: 3 KPI cards + Donut ───────────────────────────────────────────────
-kc1, kc2, kc3, kc4 = st.columns([1, 1, 1, 1])
+, kc2, kc3, kc4 = st.columns([1, 1, 1, 1])
 
 d_fid_v = tot_fid - pr_fid
 d_bl_v  = overall_bl - pr_overall
